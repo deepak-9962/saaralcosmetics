@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Playfair_Display, DM_Sans } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/layout/Providers";
@@ -59,7 +60,10 @@ export default function RootLayout({
         className={`${playfairDisplay.variable} ${dmSans.variable} font-body text-on-surface antialiased min-h-screen`}
       >
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   );
 }
+
+
