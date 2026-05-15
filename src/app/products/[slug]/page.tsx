@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import { use, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -10,8 +10,9 @@ import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
 import ProductCard from "@/components/product/ProductCard";
 import { useCart } from "@/lib/cart";
-import { getProductBySlug, getRelatedProducts } from "@/lib/products";
-import { notFound } from "next/navigation";
+import { getProductBySlug, listRelatedProducts } from "@/lib/supabase/data";
+import { formatPrice } from "@/lib/utils";
+import type { Product } from "@/lib/types";
 
 export default function ProductDetailPage({
   params,
@@ -19,19 +20,45 @@ export default function ProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
-  const product = getProductBySlug(slug);
   const { addItem } = useCart();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!product) {
-    notFound();
-  }
+  useEffect(() => {
+    async function loadProductData() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const currentProduct = await getProductBySlug(slug);
 
-  const relatedProducts = getRelatedProducts(slug, product.category);
+        if (!currentProduct) {
+          setProduct(null);
+          return;
+        }
+
+        setProduct(currentProduct);
+        const related = await listRelatedProducts(slug, currentProduct.category);
+        setRelatedProducts(related);
+      } catch (loadError) {
+        setError(loadError instanceof Error ? loadError.message : "Failed to load product.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadProductData();
+  }, [slug]);
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
+    if (!product) {
+      return;
+    }
+
+    for (let i = 0; i < quantity; i += 1) {
       addItem({
         product_id: product.id,
         name: product.name,
@@ -44,26 +71,93 @@ export default function ProductDetailPage({
     toast.success(`${product.name} added to cart`);
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col" style={{
+        background:
+          "radial-gradient(circle at 20% 30%, #e0d2ff 0%, transparent 40%), radial-gradient(circle at 80% 70%, #cfbcff 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fdf7ff 0%, #fcf4eb 100%)",
+        backgroundAttachment: "fixed",
+      }}>
+        <TopNavBar />
+        <main className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)] flex-grow">
+          <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant">
+            Loading product...
+          </p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col" style={{
+        background:
+          "radial-gradient(circle at 20% 30%, #e0d2ff 0%, transparent 40%), radial-gradient(circle at 80% 70%, #cfbcff 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fdf7ff 0%, #fcf4eb 100%)",
+        backgroundAttachment: "fixed",
+      }}>
+        <TopNavBar />
+        <main className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)] flex-grow">
+          <p className="font-body text-[16px] leading-[1.6] text-error">{error}</p>
+          <Link
+            href="/products"
+            className="mt-4 inline-flex border border-on-surface text-on-surface px-5 py-2 rounded-full font-body text-[14px]"
+          >
+            Back to Products
+          </Link>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen flex flex-col" style={{
+        background:
+          "radial-gradient(circle at 20% 30%, #e0d2ff 0%, transparent 40%), radial-gradient(circle at 80% 70%, #cfbcff 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fdf7ff 0%, #fcf4eb 100%)",
+        backgroundAttachment: "fixed",
+      }}>
+        <TopNavBar />
+        <main className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)] flex-grow">
+          <h1 className="font-display text-[32px] leading-[1.3] text-on-surface">Product not found</h1>
+          <Link
+            href="/products"
+            className="mt-4 inline-flex border border-on-surface text-on-surface px-5 py-2 rounded-full font-body text-[14px]"
+          >
+            Back to Products
+          </Link>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex flex-col" style={{
-      background: `radial-gradient(circle at 20% 30%, #e0d2ff 0%, transparent 40%), radial-gradient(circle at 80% 70%, #cfbcff 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fdf7ff 0%, #fcf4eb 100%)`,
-      backgroundAttachment: 'fixed',
-    }}>
+    <div
+      className="min-h-screen flex flex-col"
+      style={{
+        background:
+          "radial-gradient(circle at 20% 30%, #e0d2ff 0%, transparent 40%), radial-gradient(circle at 80% 70%, #cfbcff 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fdf7ff 0%, #fcf4eb 100%)",
+        backgroundAttachment: "fixed",
+      }}
+    >
       <TopNavBar />
 
       <main className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)] flex-grow">
-        {/* Breadcrumbs */}
         <div className="mb-[var(--spacing-stack-md)] flex items-center gap-2 font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
-          <Link href="/" className="hover:text-primary transition-colors">Home</Link>
+          <Link href="/" className="hover:text-primary transition-colors">
+            Home
+          </Link>
           <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-          <Link href="/products" className="hover:text-primary transition-colors">Shop</Link>
+          <Link href="/products" className="hover:text-primary transition-colors">
+            Shop
+          </Link>
           <span className="material-symbols-outlined text-[14px]">chevron_right</span>
           <span className="text-on-surface">{product.name}</span>
         </div>
 
-        {/* Product Detail Layout */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-[var(--spacing-gutter)] mb-[var(--spacing-stack-lg)]">
-          {/* Left: Images */}
           <motion.div
             className="md:col-span-7 flex flex-col gap-4"
             initial={{ opacity: 0, x: -30 }}
@@ -85,12 +179,11 @@ export default function ProductDetailPage({
                 </div>
               )}
             </div>
-            {/* Thumbnails */}
             {product.images.length > 1 && (
               <div className="grid grid-cols-4 gap-4">
                 {product.images.map((img, i) => (
                   <button
-                    key={i}
+                    key={img}
                     onClick={() => setSelectedImage(i)}
                     className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
                       selectedImage === i
@@ -111,7 +204,6 @@ export default function ProductDetailPage({
             )}
           </motion.div>
 
-          {/* Right: Product Info */}
           <motion.div
             className="md:col-span-5 flex flex-col pt-4 md:pt-0"
             initial={{ opacity: 0, x: 30 }}
@@ -131,11 +223,11 @@ export default function ProductDetailPage({
 
             <div className="flex items-end gap-3 mb-6">
               <span className="font-display text-[32px] leading-[1.3] text-on-surface font-semibold">
-                ${product.price.toFixed(2)}
+                {formatPrice(product.price)}
               </span>
               {product.compare_price && (
                 <span className="font-body text-[18px] leading-[1.6] text-outline line-through mb-1">
-                  ${product.compare_price.toFixed(2)}
+                  {formatPrice(product.compare_price)}
                 </span>
               )}
             </div>
@@ -146,7 +238,6 @@ export default function ProductDetailPage({
               {product.description}
             </p>
 
-            {/* Size Variants */}
             <div className="mb-8">
               <h3 className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface mb-3">
                 Size
@@ -158,7 +249,6 @@ export default function ProductDetailPage({
               </div>
             </div>
 
-            {/* Quantity & Add to Cart */}
             <div className="flex flex-col gap-4 mb-8">
               <div className="flex items-center border border-outline-variant/50 rounded-lg w-fit">
                 <button
@@ -186,7 +276,6 @@ export default function ProductDetailPage({
               </button>
             </div>
 
-            {/* Accordion Tabs */}
             <div className="flex flex-col border-t border-outline-variant/50">
               <details className="group py-4 border-b border-outline-variant/50" open>
                 <summary className="flex justify-between items-center cursor-pointer list-none font-body text-[16px] leading-[1.6] font-medium text-on-surface">
@@ -225,15 +314,14 @@ export default function ProductDetailPage({
           </motion.div>
         </div>
 
-        {/* Related Products */}
         {relatedProducts.length > 0 && (
           <section className="mt-[var(--spacing-stack-lg)] pt-[var(--spacing-stack-lg)] border-t border-outline-variant/50">
             <h2 className="font-display text-[24px] leading-[1.4] text-on-surface mb-[var(--spacing-stack-md)] text-center">
               Complete Your Ritual
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((p, i) => (
-                <ProductCard key={p.id} product={p} index={i} />
+              {relatedProducts.map((relatedProduct, i) => (
+                <ProductCard key={relatedProduct.id} product={relatedProduct} index={i} />
               ))}
             </div>
           </section>

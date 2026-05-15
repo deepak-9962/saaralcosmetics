@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import GradientBackground from "@/components/layout/GradientBackground";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const navItems = [
   { label: "Dashboard", href: "/admin/dashboard", icon: "dashboard" },
@@ -17,6 +19,78 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function verifyAdminSession() {
+      try {
+        const supabase = getSupabaseBrowserClient();
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
+
+        if (error) {
+          setAuthError(error.message);
+          return;
+        }
+
+        if (!user) {
+          router.replace("/admin");
+          return;
+        }
+
+        setIsAuthorized(true);
+      } catch (sessionError) {
+        setAuthError(
+          sessionError instanceof Error ? sessionError.message : "Failed to verify session."
+        );
+      }
+    }
+
+    verifyAdminSession();
+  }, [router]);
+
+  const handleSignOut = async () => {
+    const supabase = getSupabaseBrowserClient();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      setAuthError(error.message);
+      return;
+    }
+
+    router.replace("/admin");
+  };
+
+  if (authError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <GradientBackground />
+        <div className="relative z-10 bg-surface p-8 rounded-xl border border-outline-variant/40">
+          <p className="font-body text-[16px] leading-[1.6] text-error">{authError}</p>
+          <Link
+            href="/admin"
+            className="inline-flex mt-4 px-5 py-2 rounded-lg border border-outline-variant"
+          >
+            Back to Sign In
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <GradientBackground />
+        <p className="relative z-10 font-body text-[16px] leading-[1.6] text-on-surface-variant">
+          Verifying admin session...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex bg-background text-on-background font-body text-[16px] leading-[1.6]">
@@ -50,7 +124,7 @@ export default function AdminLayout({
                     isActive
                       ? "bg-primary-container text-on-primary-container font-bold"
                       : "text-on-surface-variant hover:bg-surface-container-high"
-                  } ${item.label === "Export" ? "mt-auto mb-4" : ""}`}
+                  }`}
                 >
                   <span
                     className="material-symbols-outlined"
@@ -66,6 +140,14 @@ export default function AdminLayout({
                 </Link>
               );
             })}
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="mt-auto mx-1 mb-2 flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium"
+            >
+              <span className="material-symbols-outlined">logout</span>
+              Sign Out
+            </button>
           </nav>
         </div>
       </aside>

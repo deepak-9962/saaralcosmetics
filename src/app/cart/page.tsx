@@ -8,6 +8,7 @@ import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
 import GradientBackground from "@/components/layout/GradientBackground";
 import { useCart } from "@/lib/cart";
+import { formatPrice } from "@/lib/utils";
 
 export default function CartPage() {
   const { items, total, updateQuantity, removeItem } = useCart();
@@ -95,7 +96,7 @@ export default function CartPage() {
                           {item.variant_name}
                         </p>
                         <span className="md:hidden font-body text-[18px] leading-[1.6] text-on-surface mt-2">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          {formatPrice(item.price * item.quantity)}
                         </span>
                       </div>
                     </div>
@@ -133,7 +134,7 @@ export default function CartPage() {
 
                     {/* Total */}
                     <div className="hidden md:block md:col-span-2 text-right font-body text-[18px] leading-[1.6] text-on-surface">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      {formatPrice(item.price * item.quantity)}
                     </div>
 
                     {/* Remove */}
@@ -159,7 +160,7 @@ export default function CartPage() {
               <div className="flex flex-col gap-[var(--spacing-stack-sm)] font-body text-[16px] leading-[1.6] text-on-surface-variant mb-[var(--spacing-stack-md)]">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="text-on-surface">${total.toFixed(2)}</span>
+                  <span className="text-on-surface">{formatPrice(total)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
@@ -171,8 +172,8 @@ export default function CartPage() {
                   Total
                 </span>
                 <span className="font-display text-[24px] leading-[1.4] text-on-surface">
-                  ${total.toFixed(2)}
-                </span>
+                   {formatPrice(total)}
+                 </span>
               </div>
               <Link
                 href="/checkout"

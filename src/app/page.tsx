@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -8,7 +9,8 @@ import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
 import GradientBackground from "@/components/layout/GradientBackground";
 import ProductCard from "@/components/product/ProductCard";
-import { getFeaturedProducts } from "@/lib/products";
+import { listFeaturedProducts } from "@/lib/supabase/data";
+import type { Product } from "@/lib/types";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -41,9 +43,25 @@ const ingredients = [
 ];
 
 export default function HomePage() {
-  const featuredProducts = getFeaturedProducts();
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [productsError, setProductsError] = useState<string | null>(null);
   const { scrollY } = useScroll();
   const heroY = useTransform(scrollY, [0, 500], [0, 150]);
+
+  useEffect(() => {
+    async function loadFeaturedProducts() {
+      try {
+        const products = await listFeaturedProducts(3);
+        setFeaturedProducts(products);
+      } catch (error) {
+        setProductsError(
+          error instanceof Error ? error.message : "Failed to load featured products."
+        );
+      }
+    }
+
+    loadFeaturedProducts();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -270,6 +288,11 @@ export default function HomePage() {
               />
             ))}
           </div>
+          {productsError && (
+            <p className="mt-6 font-body text-[16px] leading-[1.6] text-error text-center">
+              {productsError}
+            </p>
+          )}
         </section>
 
         <section className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)] mb-[var(--spacing-stack-lg)]">

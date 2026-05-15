@@ -1,12 +1,114 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
+import { motion } from "framer-motion";
+import { createProduct } from "@/lib/supabase/data";
+import type { Product } from "@/lib/types";
+
+type ProductFormState = {
+  name: string;
+  category: Product["category"];
+  variant_name: string;
+  price: string;
+  compare_price: string;
+  description: string;
+  ingredients: string;
+  how_to_use: string;
+  images: string;
+  stock: string;
+  is_active: boolean;
+};
+
+const initialState: ProductFormState = {
+  name: "",
+  category: "face-cream",
+  variant_name: "",
+  price: "",
+  compare_price: "",
+  description: "",
+  ingredients: "",
+  how_to_use: "",
+  images: "",
+  stock: "0",
+  is_active: true,
+};
 
 export default function AdminAddProductPage() {
+  const router = useRouter();
+  const [form, setForm] = useState<ProductFormState>(initialState);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const target = event.target;
+    if (target instanceof HTMLInputElement && target.type === "checkbox") {
+      setForm((prev) => ({ ...prev, [target.name]: target.checked }));
+      return;
+    }
+
+    setForm((prev) => ({ ...prev, [target.name]: target.value }));
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError(null);
+
+    const parsedPrice = Number(form.price);
+    const parsedStock = Number(form.stock);
+    const parsedComparePrice = form.compare_price ? Number(form.compare_price) : null;
+    const imageList = form.images
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+
+    if (!form.name.trim()) {
+      setError("Product name is required.");
+      return;
+    }
+    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+      setError("Enter a valid product price.");
+      return;
+    }
+    if (!Number.isFinite(parsedStock) || parsedStock < 0) {
+      setError("Enter a valid stock quantity.");
+      return;
+    }
+    if (imageList.length === 0) {
+      setError("Add at least one product image URL.");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      await createProduct({
+        name: form.name.trim(),
+        category: form.category,
+        variant_name: form.variant_name.trim() || null,
+        price: parsedPrice,
+        compare_price: parsedComparePrice,
+        description: form.description.trim() || null,
+        ingredients: form.ingredients.trim() || null,
+        how_to_use: form.how_to_use.trim() || null,
+        images: imageList,
+        stock: parsedStock,
+        is_active: form.is_active,
+      });
+
+      toast.success("Product created");
+      router.push("/admin/products");
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : "Failed to create product.");
+      setIsSaving(false);
+    }
+  };
+
   return (
-    <>
-      {/* Header */}
+    <form onSubmit={handleSubmit}>
       <header className="flex items-center justify-between px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-md)] border-b border-outline-variant/30 bg-surface/80 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <Link
@@ -31,206 +133,182 @@ export default function AdminAddProductPage() {
           >
             Cancel
           </Link>
-          <button className="px-6 py-2 rounded bg-tertiary-container text-on-tertiary-container hover:bg-tertiary-fixed-dim transition-colors duration-200 font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium shadow-sm">
-            Save Product
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="px-6 py-2 rounded bg-tertiary-container text-on-tertiary-container hover:bg-tertiary-fixed-dim transition-colors duration-200 font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium shadow-sm disabled:opacity-50"
+          >
+            {isSaving ? "Saving..." : "Save Product"}
           </button>
         </div>
       </header>
 
-      {/* Form Area */}
       <motion.div
-        className="p-[var(--spacing-margin-mobile)] md:p-[var(--spacing-margin-desktop)] max-w-[var(--spacing-container-max)] mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-[var(--spacing-stack-md)] lg:gap-[var(--spacing-gutter)] pb-[var(--spacing-stack-lg)]"
+        className="p-[var(--spacing-margin-mobile)] md:p-[var(--spacing-margin-desktop)] max-w-[var(--spacing-container-max)] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-[var(--spacing-gutter)] pb-[var(--spacing-stack-lg)]"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        {/* Left Column */}
-        <div className="lg:col-span-2 flex flex-col gap-[var(--spacing-stack-md)]">
-          {/* Basic Info */}
-          <section className="bg-surface p-6 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow">
-            <h2 className="font-display text-[24px] leading-[1.4] text-on-surface mb-[var(--spacing-stack-sm)] border-b border-outline-variant/30 pb-4">
-              Basic Information
-            </h2>
-            <div className="space-y-6 mt-6">
-              <div>
-                <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                  Product Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Saffron Radiance Serum"
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                    Category
-                  </label>
-                  <div className="relative">
-                    <select className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 appearance-none focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface">
-                      <option>Select a category</option>
-                      <option>Face Cream</option>
-                      <option>Face Wash</option>
-                      <option>Soap</option>
-                      <option>Nalangu Maavu</option>
-                    </select>
-                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none">
-                      expand_more
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                    Variant / Size
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 50ml Glass Dropper"
-                    className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                    Price (USD)
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant">
-                      $
-                    </span>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl pl-8 pr-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                    Compare at Price (Optional)
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant">
-                      $
-                    </span>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl pl-8 pr-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+        <section className="bg-surface p-6 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow space-y-5">
+          <h2 className="font-display text-[24px] leading-[1.4] text-on-surface">Basics</h2>
 
-          {/* Product Story & Composition */}
-          <section className="bg-surface p-6 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow">
-            <h2 className="font-display text-[24px] leading-[1.4] text-on-surface mb-[var(--spacing-stack-sm)] border-b border-outline-variant/30 pb-4">
-              Product Story & Composition
-            </h2>
-            <div className="space-y-6 mt-6">
-              <div>
-                <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                  Description
-                </label>
-                <textarea
-                  rows={5}
-                  placeholder="Describe the product's origin, benefits, and sensory experience..."
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline resize-y"
-                />
-              </div>
-              <div>
-                <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                  Key Ingredients
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="e.g. Kashmiri Saffron, Cold-pressed Almond Oil, Rose Water..."
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline resize-y"
-                />
-              </div>
-              <div>
-                <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                  Ritual / How to Use
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="Step-by-step application instructions..."
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline resize-y"
-                />
-              </div>
-            </div>
-          </section>
-        </div>
+          <div className="space-y-2">
+            <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
+              Product Name
+            </label>
+            <input
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              required
+              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
+            />
+          </div>
 
-        {/* Right Column */}
-        <div className="flex flex-col gap-[var(--spacing-stack-md)]">
-          {/* Image Upload */}
-          <section className="bg-surface p-6 rounded-xl border border-outline-variant/50 custom-shadow">
-            <h2 className="font-display text-[24px] leading-[1.4] text-on-surface mb-[var(--spacing-stack-sm)] border-b border-outline-variant/30 pb-4">
-              Product Imagery
-            </h2>
-            <div className="mt-6 border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center text-center hover:border-tertiary-container hover:bg-surface-container-lowest transition-colors cursor-pointer group">
-              <div className="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center mb-4 group-hover:bg-tertiary-container/10 transition-colors">
-                <span className="material-symbols-outlined text-outline group-hover:text-tertiary-container text-3xl">
-                  add_photo_alternate
-                </span>
-              </div>
-              <p className="font-body text-[16px] leading-[1.6] text-on-surface mb-1">
-                Drag & drop high-res images here
-              </p>
-              <p className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
-                or click to browse files
-              </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
+                Category
+              </label>
+              <select
+                name="category"
+                value={form.category}
+                onChange={handleChange}
+                className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
+              >
+                <option value="face-cream">Face Cream</option>
+                <option value="face-wash">Face Wash</option>
+                <option value="soap">Soap</option>
+                <option value="nalangu-maavu">Nalangu Maavu</option>
+              </select>
             </div>
-          </section>
+            <div className="space-y-2">
+              <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
+                Variant
+              </label>
+              <input
+                name="variant_name"
+                value={form.variant_name}
+                onChange={handleChange}
+                className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
+              />
+            </div>
+          </div>
 
-          {/* Availability */}
-          <section className="bg-surface p-6 rounded-xl border border-outline-variant/50 custom-shadow">
-            <h2 className="font-display text-[24px] leading-[1.4] text-on-surface mb-[var(--spacing-stack-sm)] border-b border-outline-variant/30 pb-4">
-              Availability
-            </h2>
-            <div className="space-y-6 mt-6">
-              <div className="flex items-center justify-between p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/50">
-                <div>
-                  <p className="font-body text-[16px] leading-[1.6] font-medium text-on-surface">
-                    Active Status
-                  </p>
-                  <p className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mt-1">
-                    Visible on boutique front
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" defaultChecked className="sr-only peer" />
-                  <div className="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-tertiary-container" />
-                </label>
-              </div>
-              <div>
-                <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                  Stock Quantity
-                </label>
-                <input
-                  type="number"
-                  defaultValue={50}
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface"
-                />
-              </div>
-              <div>
-                <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                  SKU (Stock Keeping Unit)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. SAA-SER-001"
-                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
-                />
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
+                Price (INR)
+              </label>
+              <input
+                name="price"
+                type="number"
+                value={form.price}
+                onChange={handleChange}
+                required
+                className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
+              />
             </div>
-          </section>
-        </div>
+            <div className="space-y-2">
+              <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
+                Compare Price (Optional)
+              </label>
+              <input
+                name="compare_price"
+                type="number"
+                value={form.compare_price}
+                onChange={handleChange}
+                className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
+              Stock
+            </label>
+            <input
+              name="stock"
+              type="number"
+              value={form.stock}
+              onChange={handleChange}
+              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
+            />
+          </div>
+
+          <label className="flex items-center gap-3">
+            <input
+              name="is_active"
+              type="checkbox"
+              checked={form.is_active}
+              onChange={handleChange}
+            />
+            <span className="font-body text-[14px] leading-[1.6] text-on-surface">
+              Active product
+            </span>
+          </label>
+        </section>
+
+        <section className="bg-surface p-6 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow space-y-5">
+          <h2 className="font-display text-[24px] leading-[1.4] text-on-surface">Details</h2>
+
+          <div className="space-y-2">
+            <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
+              Description
+            </label>
+            <textarea
+              name="description"
+              rows={4}
+              value={form.description}
+              onChange={handleChange}
+              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
+              Ingredients
+            </label>
+            <textarea
+              name="ingredients"
+              rows={3}
+              value={form.ingredients}
+              onChange={handleChange}
+              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
+              How to Use
+            </label>
+            <textarea
+              name="how_to_use"
+              rows={3}
+              value={form.how_to_use}
+              onChange={handleChange}
+              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
+              Image URLs (comma-separated)
+            </label>
+            <textarea
+              name="images"
+              rows={4}
+              value={form.images}
+              onChange={handleChange}
+              placeholder="https://.../image-1.jpg, https://.../image-2.jpg"
+              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
+            />
+          </div>
+        </section>
+
+        {error && (
+          <p className="lg:col-span-2 font-body text-[14px] leading-[1.6] text-error">{error}</p>
+        )}
       </motion.div>
-    </>
+    </form>
   );
 }

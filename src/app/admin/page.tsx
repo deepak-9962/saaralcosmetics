@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import GradientBackground from "@/components/layout/GradientBackground";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -17,17 +18,46 @@ export default function AdminLoginPage() {
     setIsLoading(true);
     setError("");
 
-    // Simulate auth — replace with Supabase Auth
-    setTimeout(() => {
-      if (email && password) {
-        localStorage.setItem("saaral-admin-auth", "true");
-        router.push("/admin/dashboard");
-      } else {
-        setError("Please enter valid credentials");
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError) {
+        setError(signInError.message);
+        setIsLoading(false);
+        return;
       }
+
+      router.push("/admin/dashboard");
+    } catch (authError) {
+      setError(authError instanceof Error ? authError.message : "Failed to sign in.");
       setIsLoading(false);
-    }, 1000);
+    }
   };
+
+  useEffect(() => {
+    async function checkSession() {
+      const supabase = getSupabaseBrowserClient();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        setError(userError.message);
+        return;
+      }
+
+      if (user) {
+        router.replace("/admin/dashboard");
+      }
+    }
+
+    checkSession();
+  }, [router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-[var(--spacing-margin-mobile)]">

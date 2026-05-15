@@ -9,12 +9,15 @@ import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import GradientBackground from "@/components/layout/GradientBackground";
 import { useCart } from "@/lib/cart";
+import { createOrder } from "@/lib/supabase/data";
 import { INDIAN_STATES } from "@/lib/types";
+import { formatPrice } from "@/lib/utils";
 
 export default function CheckoutPage() {
   const { items, total, clearCart } = useCart();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -86,13 +89,30 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setSubmitError(null);
 
-    // Simulate order creation — in production, this calls Razorpay
-    setTimeout(() => {
+    try {
+      setIsSubmitting(true);
+      const order = await createOrder({
+        customer_name: formData.name.trim(),
+        customer_phone: formData.phone.trim(),
+        customer_email: formData.email.trim() || null,
+        address_line1: formData.address1.trim(),
+        address_line2: formData.address2.trim() || null,
+        city: formData.city.trim(),
+        state: formData.state.trim(),
+        pincode: formData.pincode.trim(),
+        items,
+        subtotal: total,
+        shipping_charge: shippingCharge,
+        total: grandTotal,
+      });
       clearCart();
-      router.push("/order-confirmation/demo-order");
-    }, 1500);
+      router.push(`/order-confirmation/${order.id}`);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Failed to place order.");
+      setIsSubmitting(false);
+    }
   };
 
   const shippingCharge = total >= 500 ? 0 : 50;
@@ -234,7 +254,7 @@ export default function CheckoutPage() {
                       </p>
                     </div>
                     <p className="font-body text-[16px] leading-[1.6] text-on-surface">
-                      ${(item.price * item.quantity).toFixed(2)}
+                           {formatPrice(item.price * item.quantity)}
                     </p>
                   </div>
                 ))}
@@ -243,14 +263,14 @@ export default function CheckoutPage() {
               <div className="border-t border-outline-variant/30 pt-4 space-y-2">
                 <div className="flex justify-between font-body text-[16px] leading-[1.6] text-on-surface-variant">
                   <span>Subtotal</span>
-                  <span className="text-on-surface">${total.toFixed(2)}</span>
+                  <span className="text-on-surface">{formatPrice(total)}</span>
                 </div>
                 <div className="flex justify-between font-body text-[16px] leading-[1.6] text-on-surface-variant">
                   <span>Shipping</span>
                   <span className="text-on-surface">
                     {shippingCharge === 0
                       ? "Free"
-                      : `$${shippingCharge.toFixed(2)}`}
+                        : formatPrice(shippingCharge)}
                   </span>
                 </div>
                 <div className="h-px bg-outline-variant/30 w-full my-3" />
@@ -259,10 +279,16 @@ export default function CheckoutPage() {
                     Total
                   </span>
                   <span className="font-display text-[24px] leading-[1.4] text-on-surface font-bold">
-                    ${grandTotal.toFixed(2)}
-                  </span>
-                </div>
-              </div>
+                     {formatPrice(grandTotal)}
+                   </span>
+                 </div>
+               </div>
+
+               {submitError && (
+                 <p className="mt-4 font-body text-[14px] leading-[1.6] text-error text-center">
+                   {submitError}
+                 </p>
+               )}
 
               <button
                 type="submit"

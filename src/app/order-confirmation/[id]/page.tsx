@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 import { motion } from "framer-motion";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import GradientBackground from "@/components/layout/GradientBackground";
+import { getOrderById } from "@/lib/supabase/data";
+import type { Order } from "@/lib/types";
 
 const container = {
   animate: {
@@ -21,15 +23,38 @@ const item = {
   animate: { opacity: 1, y: 0 },
 };
 
-export default function OrderConfirmationPage() {
+export default function OrderConfirmationPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  const [order, setOrder] = useState<Order | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    confetti({
-      particleCount: 120,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ["#C9A96E", "#6750a4", "#ffffff"],
-    });
-  }, []);
+    async function loadOrder() {
+      try {
+        const orderData = await getOrderById(id);
+        if (!orderData) {
+          setError("Order not found.");
+          return;
+        }
+
+        setOrder(orderData);
+        confetti({
+          particleCount: 120,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ["#C9A96E", "#6750a4", "#ffffff"],
+        });
+      } catch (loadError) {
+        setError(loadError instanceof Error ? loadError.message : "Failed to load order.");
+      }
+    }
+
+    loadOrder();
+  }, [id]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -43,7 +68,6 @@ export default function OrderConfirmationPage() {
           initial="initial"
           animate="animate"
         >
-          {/* Success Checkmark */}
           <motion.div
             className="w-24 h-24 rounded-full bg-[#4CAF50]/10 flex items-center justify-center mb-4"
             initial={{ scale: 0, opacity: 0 }}
@@ -64,38 +88,53 @@ export default function OrderConfirmationPage() {
           <motion.h1 variants={item} className="font-display text-[36px] md:text-[48px] leading-[1.2] text-on-surface">
             Order Confirmed!
           </motion.h1>
-          <motion.p variants={item} className="font-body text-[18px] leading-[1.6] text-on-surface-variant">
-            Thank you for your order. Your order number is:
-          </motion.p>
 
-          <motion.div variants={item} className="bg-surface-container-low px-8 py-4 rounded-xl border border-outline-variant/30">
-            <span className="font-display text-[32px] leading-[1.3] text-primary font-semibold">
-              SC-20260001
-            </span>
-          </motion.div>
+          {error ? (
+            <motion.p variants={item} className="font-body text-[16px] leading-[1.6] text-error">
+              {error}
+            </motion.p>
+          ) : order ? (
+            <>
+              <motion.p variants={item} className="font-body text-[18px] leading-[1.6] text-on-surface-variant">
+                Thank you for your order. Your order number is:
+              </motion.p>
 
-          <motion.p variants={item} className="font-body text-[16px] leading-[1.6] text-on-surface-variant max-w-sm">
-            We&apos;ll contact you on WhatsApp for shipping updates. You can also
-            track your order by chatting with us.
-          </motion.p>
+              <motion.div variants={item} className="bg-surface-container-low px-8 py-4 rounded-xl border border-outline-variant/30">
+                <span className="font-display text-[32px] leading-[1.3] text-primary font-semibold">
+                  {order.order_number}
+                </span>
+              </motion.div>
 
-          <motion.div variants={item} className="flex flex-col sm:flex-row gap-4 mt-4">
-            <a
-              href="https://wa.me/919999999999?text=Hi%2C%20I%20just%20placed%20order%20%23SC-20260001.%20Please%20confirm%20my%20order."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-[#25D366] text-white px-8 py-3 rounded-full font-body text-[16px] leading-[1.6] font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
-            >
-              <span className="material-symbols-outlined">chat</span>
-              Chat on WhatsApp
-            </a>
-            <Link
-              href="/products"
-              className="border border-on-surface text-on-surface px-8 py-3 rounded-full font-body text-[16px] leading-[1.6] font-medium flex items-center justify-center gap-2 hover:bg-on-surface hover:text-surface transition-all"
-            >
-              Continue Shopping
-            </Link>
-          </motion.div>
+              <motion.p variants={item} className="font-body text-[16px] leading-[1.6] text-on-surface-variant max-w-sm">
+                We&apos;ll contact you on WhatsApp for shipping updates. You can also
+                track your order by chatting with us.
+              </motion.p>
+
+              <motion.div variants={item} className="flex flex-col sm:flex-row gap-4 mt-4">
+                <a
+                  href={`https://wa.me/919999999999?text=${encodeURIComponent(
+                    `Hi, I just placed order #${order.order_number}. Please confirm my order.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-[#25D366] text-white px-8 py-3 rounded-full font-body text-[16px] leading-[1.6] font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                >
+                  <span className="material-symbols-outlined">chat</span>
+                  Chat on WhatsApp
+                </a>
+                <Link
+                  href="/products"
+                  className="border border-on-surface text-on-surface px-8 py-3 rounded-full font-body text-[16px] leading-[1.6] font-medium flex items-center justify-center gap-2 hover:bg-on-surface hover:text-surface transition-all"
+                >
+                  Continue Shopping
+                </Link>
+              </motion.div>
+            </>
+          ) : (
+            <motion.p variants={item} className="font-body text-[16px] leading-[1.6] text-on-surface-variant">
+              Loading order details...
+            </motion.p>
+          )}
         </motion.div>
       </main>
 

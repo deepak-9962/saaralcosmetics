@@ -1,21 +1,36 @@
 "use client";
 
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
 import GradientBackground from "@/components/layout/GradientBackground";
 import ProductCard from "@/components/product/ProductCard";
-import { getProductsByCategory } from "@/lib/products";
-import { CATEGORIES, type CategoryFilter } from "@/lib/types";
+import { listProducts } from "@/lib/supabase/data";
+import { CATEGORIES, type CategoryFilter, type Product } from "@/lib/types";
 
 function ProductsContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const activeCategory = (searchParams.get("category") as CategoryFilter) || "all";
+  const [products, setProducts] = useState<Product[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const products = getProductsByCategory(activeCategory);
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        setError(null);
+        const data = await listProducts(activeCategory);
+        setProducts(data);
+      } catch (loadError) {
+        setError(loadError instanceof Error ? loadError.message : "Failed to load products.");
+      }
+    }
+
+    loadProducts();
+  }, [activeCategory]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -47,7 +62,7 @@ function ProductsContent() {
                 onClick={() => {
                   const nextUrl =
                     cat.slug === "all" ? "/products" : `/products?category=${cat.slug}`;
-                  window.history.pushState(null, "", nextUrl);
+                  router.push(nextUrl);
                 }}
                 className={`px-6 py-2 rounded-full border font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium transition-colors duration-200 ${
                   activeCategory === cat.slug
@@ -87,6 +102,11 @@ function ProductsContent() {
             ))}
           </motion.section>
         </AnimatePresence>
+        {error && (
+          <p className="font-body text-[16px] leading-[1.6] text-error text-center">
+            {error}
+          </p>
+        )}
 
         {/* Load More */}
         <div className="flex justify-center mt-12 mb-8">

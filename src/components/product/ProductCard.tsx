@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCart } from "@/lib/cart";
 import type { Product } from "@/lib/types";
+import { formatPrice } from "@/lib/utils";
 
 interface ProductCardProps {
   product: Product;
@@ -105,13 +106,13 @@ export default function ProductCard({
           </p>
           <div className="mt-auto flex items-center gap-2">
             <span className="font-body text-[18px] leading-[1.6] text-primary font-medium">
-              ${product.price.toFixed(2)}
-            </span>
-            {product.compare_price && (
-              <span className="font-body text-[16px] leading-[1.6] text-outline line-through">
-                ${product.compare_price.toFixed(2)}
+                {formatPrice(product.price)}
               </span>
-            )}
+              {product.compare_price && (
+                <span className="font-body text-[16px] leading-[1.6] text-outline line-through">
+                  {formatPrice(product.compare_price)}
+                </span>
+              )}
           </div>
         </div>
       </Link>
@@ -163,11 +164,11 @@ export default function ProductCard({
                 </h3>
                 <div className="flex items-center gap-3 mb-5">
                   <span className="font-display text-[28px] text-on-surface">
-                    ${product.price.toFixed(2)}
+                    {formatPrice(product.price)}
                   </span>
                   {product.compare_price && (
                     <span className="font-body text-[16px] text-outline line-through">
-                      ${product.compare_price.toFixed(2)}
+                      {formatPrice(product.compare_price)}
                     </span>
                   )}
                 </div>
