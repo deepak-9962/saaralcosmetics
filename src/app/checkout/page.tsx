@@ -25,11 +25,63 @@ export default function CheckoutPage() {
     state: "",
     pincode: "",
   });
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleBlur = (
+    e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setTouched((prev) => ({ ...prev, [e.target.name]: true }));
+  };
+
+  const isFieldValid = (name: keyof typeof formData) => {
+    const value = formData[name].trim();
+    if (!value) return false;
+    if (name === "phone") return /^[0-9]{10}$/.test(value);
+    if (name === "pincode") return /^[0-9]{6}$/.test(value);
+    return true;
+  };
+
+  const renderInput = ({
+    name,
+    label,
+    type = "text",
+    required = false,
+    pattern,
+  }: {
+    name: keyof typeof formData;
+    label: string;
+    type?: string;
+    required?: boolean;
+    pattern?: string;
+  }) => {
+    const valid = required && touched[name] && isFieldValid(name);
+    return (
+      <div className="floating-label-group">
+        <input
+          type={type}
+          name={name}
+          required={required}
+          value={formData[name]}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          placeholder=" "
+          pattern={pattern}
+          className="floating-label-field"
+        />
+        <label>{label}</label>
+        {valid && (
+          <span className="material-symbols-outlined text-green-500 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+            check_circle
+          </span>
+        )}
+      </div>
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,49 +151,10 @@ export default function CheckoutPage() {
                   Contact Information
                 </h2>
                 <div className="space-y-5">
-                  <div>
-                    <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      required
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Enter your full name"
-                      className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
-                    />
-                  </div>
+                  {renderInput({ name: "name", label: "Full Name *", required: true })}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                        Phone Number *
-                      </label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        required
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="10-digit mobile number"
-                        pattern="[0-9]{10}"
-                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                        Email (Optional)
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="your@email.com"
-                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
-                      />
-                    </div>
+                    {renderInput({ name: "phone", label: "Phone Number *", type: "tel", required: true, pattern: "[0-9]{10}" })}
+                    {renderInput({ name: "email", label: "Email (Optional)", type: "email" })}
                   </div>
                 </div>
               </section>
@@ -152,59 +165,18 @@ export default function CheckoutPage() {
                   Shipping Address
                 </h2>
                 <div className="space-y-5">
-                  <div>
-                    <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                      Address Line 1 *
-                    </label>
-                    <input
-                      type="text"
-                      name="address1"
-                      required
-                      value={formData.address1}
-                      onChange={handleChange}
-                      placeholder="House/Flat no., Street name"
-                      className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                      Address Line 2
-                    </label>
-                    <input
-                      type="text"
-                      name="address2"
-                      value={formData.address2}
-                      onChange={handleChange}
-                      placeholder="Landmark, Area (optional)"
-                      className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
-                    />
-                  </div>
+                  {renderInput({ name: "address1", label: "Address Line 1 *", required: true })}
+                  {renderInput({ name: "address2", label: "Address Line 2" })}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div>
-                      <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                        City *
-                      </label>
-                      <input
-                        type="text"
-                        name="city"
-                        required
-                        value={formData.city}
-                        onChange={handleChange}
-                        placeholder="City"
-                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                        State *
-                      </label>
-                      <div className="relative">
+                    {renderInput({ name: "city", label: "City *", required: true })}
+                    <div className="floating-label-group">
                         <select
                           name="state"
                           required
                           value={formData.state}
                           onChange={handleChange}
-                          className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 appearance-none focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface"
+                          onBlur={handleBlur}
+                          className={`floating-label-field appearance-none ${formData.state ? "has-value" : ""}`}
                         >
                           <option value="">Select</option>
                           {INDIAN_STATES.map((state) => (
@@ -213,26 +185,17 @@ export default function CheckoutPage() {
                             </option>
                           ))}
                         </select>
+                        <label>State *</label>
                         <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none">
                           expand_more
                         </span>
-                      </div>
+                        {touched.state && isFieldValid("state") && (
+                          <span className="material-symbols-outlined text-green-500 absolute right-11 top-1/2 -translate-y-1/2 pointer-events-none">
+                            check_circle
+                          </span>
+                        )}
                     </div>
-                    <div>
-                      <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
-                        Pincode *
-                      </label>
-                      <input
-                        type="text"
-                        name="pincode"
-                        required
-                        value={formData.pincode}
-                        onChange={handleChange}
-                        placeholder="6-digit"
-                        pattern="[0-9]{6}"
-                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
-                      />
-                    </div>
+                    {renderInput({ name: "pincode", label: "Pincode *", required: true, pattern: "[0-9]{6}" })}
                   </div>
                 </div>
               </section>

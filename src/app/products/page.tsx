@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import TopNavBar from "@/components/layout/TopNavBar";
@@ -11,15 +11,9 @@ import ProductCard from "@/components/product/ProductCard";
 import { getProductsByCategory } from "@/lib/products";
 import { CATEGORIES, type CategoryFilter } from "@/lib/types";
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams();
-  const initialCategory = (searchParams.get("category") as CategoryFilter) || "all";
-  const [activeCategory, setActiveCategory] = useState<CategoryFilter>(initialCategory);
-
-  useEffect(() => {
-    const cat = searchParams.get("category") as CategoryFilter;
-    if (cat) setActiveCategory(cat);
-  }, [searchParams]);
+  const activeCategory = (searchParams.get("category") as CategoryFilter) || "all";
 
   const products = getProductsByCategory(activeCategory);
 
@@ -50,7 +44,11 @@ export default function ProductsPage() {
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.slug}
-                onClick={() => setActiveCategory(cat.slug)}
+                onClick={() => {
+                  const nextUrl =
+                    cat.slug === "all" ? "/products" : `/products?category=${cat.slug}`;
+                  window.history.pushState(null, "", nextUrl);
+                }}
                 className={`px-6 py-2 rounded-full border font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium transition-colors duration-200 ${
                   activeCategory === cat.slug
                     ? "border-tertiary-container bg-surface-container-low text-primary"
@@ -101,5 +99,22 @@ export default function ProductsPage() {
       <Footer />
       <WhatsAppFAB />
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex flex-col">
+          <GradientBackground />
+          <TopNavBar />
+          <main className="flex-grow" />
+          <Footer />
+        </div>
+      }
+    >
+      <ProductsContent />
+    </Suspense>
   );
 }

@@ -3,11 +3,11 @@
 import { useState, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
-import GradientBackground from "@/components/layout/GradientBackground";
 import ProductCard from "@/components/product/ProductCard";
 import { useCart } from "@/lib/cart";
 import { getProductBySlug, getRelatedProducts } from "@/lib/products";
@@ -41,6 +41,7 @@ export default function ProductDetailPage({
         slug: product.slug,
       });
     }
+    toast.success(`${product.name} added to cart`);
   };
 
   return (

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
@@ -13,18 +13,37 @@ import { getFeaturedProducts } from "@/lib/products";
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, ease: "easeOut" },
+  transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
 };
 
+const heroWords = ["Pure.", "Natural.", "You."];
+
 const categories = [
-  { name: "Face Cream", icon: "spa", href: "/products?category=face-cream" },
-  { name: "Face Wash", icon: "water_drop", href: "/products?category=face-wash" },
-  { name: "Soap", icon: "clean_hands", href: "/products?category=soap" },
-  { name: "Nalangu Maavu", icon: "potted_plant", href: "/products?category=nalangu-maavu" },
+  { name: "Face Cream", image: "/images/cat-face-cream.webp", href: "/products?category=face-cream" },
+  { name: "Face Wash", image: "/images/cat-face-wash.webp", href: "/products?category=face-wash" },
+  { name: "Soap", image: "/images/cat-soap.webp", href: "/products?category=soap" },
+  { name: "Nalangu Maavu", image: "/images/cat-nalangu-maavu.webp", href: "/products?category=nalangu-maavu" },
+];
+
+const trustSignals = [
+  "100% Natural Ingredients",
+  "Cruelty Free",
+  "Ethically Sourced",
+  "Handcrafted in India",
+  "No Harmful Chemicals",
+];
+
+const ingredients = [
+  { name: "Turmeric", note: "Ancient Healer", icon: "spa" },
+  { name: "Rose", note: "Skin Brightener", icon: "local_florist" },
+  { name: "Neem", note: "Anti-bacterial", icon: "eco" },
+  { name: "Aloe Vera", note: "Deep Hydrator", icon: "water_drop" },
 ];
 
 export default function HomePage() {
   const featuredProducts = getFeaturedProducts();
+  const { scrollY } = useScroll();
+  const heroY = useTransform(scrollY, [0, 500], [0, 150]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -37,7 +56,7 @@ export default function HomePage() {
             ================================ */}
         <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-surface-container-lowest">
           {/* Background Image */}
-          <div className="absolute inset-0 z-0">
+          <motion.div className="absolute inset-0 z-0 scale-110" style={{ y: heroY }}>
             <Image
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8-bjDTc3Unc9zLxtNxCaE-V4cqQ_GJugaVdFZ7k4KFoHrMZfddDoI9SbnMmFVkUq5GcU29rU0VzWiHa0Zc6oSJCd4GOZ8lF6r1HYEmhwn_5HhPDr0MZacIUBhW-TCLT3JU5SLCvhhiSoamVRGF_gN2MJitxL5Zij1_MYVG0nStfey3fSV6TtXDNFAocfdkKtl_ZpwTp3aRHvH1uSmF9qVXDgU7LZhBZlOL7sqVPPZ0DlfI8dP-8jFoOETvCwKNYFT3WBtNGUCFsxo"
               alt="Saaral Cosmetics — Premium skincare setting"
@@ -46,7 +65,7 @@ export default function HomePage() {
               priority
               sizes="100vw"
             />
-          </div>
+          </motion.div>
 
           {/* Frosted Glass Text Container */}
           <motion.div
@@ -58,9 +77,9 @@ export default function HomePage() {
               borderRadius: "16px",
               padding: "40px 48px",
             }}
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
           >
             {/* Eyebrow: ——— APOTHECARY HERITAGE ——— */}
             <div className="flex items-center justify-center gap-3 mb-4">
@@ -90,9 +109,21 @@ export default function HomePage() {
                 letterSpacing: "-0.01em",
               }}
             >
-              Pure.<br />
-              Natural.<br />
-              You.
+              {heroWords.map((word, i) => (
+                <motion.span
+                  key={word}
+                  className="block font-display"
+                  initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  transition={{
+                    duration: 0.7,
+                    delay: 0.3 + i * 0.15,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                >
+                  {word}
+                </motion.span>
+              ))}
             </h1>
 
             {/* Subtext */}
@@ -153,6 +184,19 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section className="w-full bg-[#C9A96E]/10 border-y border-[#C9A96E]/20 py-3 overflow-hidden">
+          <div className="flex animate-marquee whitespace-nowrap gap-12">
+            {[...trustSignals, ...trustSignals].map((signal, i) => (
+              <span
+                key={`${signal}-${i}`}
+                className="font-body text-sm tracking-[0.18em] text-[#765b00] uppercase"
+              >
+                ✦ {signal}
+              </span>
+            ))}
+          </div>
+        </section>
+
         {/* ================================
             CATEGORY STRIP
             ================================ */}
@@ -176,18 +220,22 @@ export default function HomePage() {
               >
                 <Link
                   href={cat.href}
-                  className="group block relative rounded-xl overflow-hidden bg-surface-container-low border border-outline-variant/30 ambient-shadow-hover transition-all duration-300"
+                  className="group block relative aspect-square rounded-2xl overflow-hidden bg-surface-container-low ambient-shadow-hover transition-all duration-300"
                 >
-                  <div className="aspect-square bg-surface-container p-6 flex flex-col items-center justify-center">
-                    <span
-                      className="material-symbols-outlined text-4xl text-tertiary-container mb-4 group-hover:scale-110 transition-transform duration-300"
-                      style={{ fontVariationSettings: "'wght' 200" }}
-                    >
-                      {cat.icon}
-                    </span>
-                    <h3 className="font-display text-[24px] leading-[1.4] text-on-surface text-center">
+                  <Image
+                    src={cat.image}
+                    alt={`${cat.name} category`}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-700"
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
+                  <div className="absolute inset-0 rounded-2xl border border-white/15 group-hover:border-[#C9A96E]/70 transition-colors" />
+                  <div className="absolute bottom-0 left-0 right-0 p-5">
+                    <h3 className="font-display text-white text-[24px] md:text-[28px] leading-[1.2]">
                       {cat.name}
                     </h3>
+                    <div className="h-px bg-[#C9A96E] w-0 group-hover:w-full transition-all duration-500 mt-2" />
                   </div>
                 </Link>
               </motion.div>
@@ -220,6 +268,45 @@ export default function HomePage() {
                 index={index}
                 showBadge={index === 0 ? "Bestseller" : index === 1 ? "Organic" : undefined}
               />
+            ))}
+          </div>
+        </section>
+
+        <section className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)] mb-[var(--spacing-stack-lg)]">
+          <motion.div
+            className="flex flex-col items-center text-center mb-[var(--spacing-stack-md)]"
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.5 }}
+          >
+            <span className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-tertiary-container mb-2 uppercase">
+              Botanical Actives
+            </span>
+            <h2 className="font-display text-[32px] leading-[1.3] text-on-surface">
+              Ingredients With Ritual Memory
+            </h2>
+          </motion.div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-[var(--spacing-gutter)]">
+            {ingredients.map((ingredient, i) => (
+              <motion.div
+                key={ingredient.name}
+                className="border border-outline-variant/40 bg-surface/70 backdrop-blur rounded-xl p-5 text-center ambient-shadow-sm"
+                initial={{ opacity: 0, x: i % 2 === 0 ? -24 : 24 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.4 }}
+                transition={{ duration: 0.45, delay: i * 0.08 }}
+              >
+                <span className="material-symbols-outlined text-[#C9A96E] text-3xl mb-3">
+                  {ingredient.icon}
+                </span>
+                <h3 className="font-display text-[24px] leading-[1.3] text-on-surface">
+                  {ingredient.name}
+                </h3>
+                <p className="font-body text-[14px] leading-[1.6] text-on-surface-variant mt-1">
+                  {ingredient.note}
+                </p>
+              </motion.div>
             ))}
           </div>
         </section>

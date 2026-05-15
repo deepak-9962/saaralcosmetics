@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, DM_Sans } from "next/font/google";
 import "./globals.css";
-import { CartProvider } from "@/lib/cart";
+import Providers from "@/components/layout/Providers";
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
@@ -49,6 +49,7 @@ export default function RootLayout({
     <html lang="en" className="light">
       <head>
         {/* Material Symbols Outlined */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
@@ -57,7 +58,7 @@ export default function RootLayout({
       <body
         className={`${playfairDisplay.variable} ${dmSans.variable} font-body text-on-surface antialiased min-h-screen`}
       >
-        <CartProvider>{children}</CartProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

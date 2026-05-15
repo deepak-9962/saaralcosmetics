@@ -9,38 +9,40 @@ export default function WhatsAppFAB() {
   const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
 
   return (
-    <motion.a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Contact us on WhatsApp"
-      className="fixed z-50 bg-[#25D366] text-white rounded-full flex items-center justify-center group"
-      style={{
-        bottom: "20px",
-        right: "16px",
-        width: "52px",
-        height: "52px",
-        boxShadow: "0 4px 16px rgba(37,211,102,0.4)",
-        animation: "whatsapp-pulse 2s infinite",
-      }}
+    <motion.div
+      className="fixed z-50 group"
+      style={{ bottom: "20px", right: "16px" }}
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ delay: 1, type: "spring", stiffness: 200 }}
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.95 }}
     >
       <span
-        className="material-symbols-outlined"
-        style={{ fontSize: "26px", fontVariationSettings: "'FILL' 1" }}
+        className="absolute right-16 bottom-1 bg-white text-[#322f35] shadow-xl rounded-xl px-4 py-2 font-body text-sm opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300 pointer-events-none whitespace-nowrap"
       >
-        chat
+        Need help? Chat with us!
       </span>
-      {/* Tooltip */}
-      <span className="absolute right-full mr-3 bg-[#322f35] text-white font-body px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none"
-        style={{ fontSize: "12px", letterSpacing: "0.05em" }}
+      <motion.a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Contact us on WhatsApp"
+        className="bg-[#25D366] text-white rounded-full flex items-center justify-center"
+        style={{
+          width: "52px",
+          height: "52px",
+          boxShadow: "0 4px 16px rgba(37,211,102,0.4)",
+          animation: "whatsapp-pulse 2.5s ease-out infinite",
+        }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
       >
-        Chat with us
-      </span>
-    </motion.a>
+        <span
+          className="material-symbols-outlined"
+          style={{ fontSize: "26px", fontVariationSettings: "'FILL' 1" }}
+        >
+          chat
+        </span>
+      </motion.a>
+    </motion.div>
   );
 }

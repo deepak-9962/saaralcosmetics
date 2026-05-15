@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import toast from "react-hot-toast";
+import { AnimatePresence, motion } from "framer-motion";
 import { useCart } from "@/lib/cart";
 import type { Product } from "@/lib/types";
 
@@ -18,10 +20,9 @@ export default function ProductCard({
   showBadge,
 }: ProductCardProps) {
   const { addItem } = useCart();
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const addProduct = () => {
     addItem({
       product_id: product.id,
       name: product.name,
@@ -30,30 +31,67 @@ export default function ProductCard({
       image: product.images[0] || "",
       slug: product.slug,
     });
+    toast.success(`${product.name} added to cart`);
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addProduct();
   };
 
   return (
-    <motion.article
-      className="flex flex-col group cursor-pointer"
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.08, ease: "easeOut" }}
-    >
-      <Link href={`/products/${product.slug}`} className="flex flex-col flex-grow">
-        <div className="relative aspect-[4/5] bg-surface-container-low rounded-xl overflow-hidden mb-4">
+    <>
+      <motion.article
+        className="flex flex-col group"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: index * 0.08, ease: "easeOut" }}
+      >
+        <div className="relative aspect-[4/5] bg-surface-container-low rounded-xl overflow-hidden mb-4 ambient-shadow-hover">
           <Image
             src={product.images[0]}
             alt={product.name}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
+          <Link
+            href={`/products/${product.slug}`}
+            className="absolute inset-0 z-[1]"
+            aria-label={`View ${product.name}`}
+          />
           {showBadge && (
-            <div className="absolute top-4 left-4 bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium">
+            <div className="absolute top-4 left-4 z-[2] bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium">
               {showBadge}
             </div>
           )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setQuickViewOpen(true);
+            }}
+            className="absolute top-4 right-4 z-[3] w-10 h-10 rounded-full bg-white/90 backdrop-blur text-on-surface shadow-lg flex items-center justify-center opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:text-[#C9A96E]"
+            aria-label={`Quick view ${product.name}`}
+          >
+            <span className="material-symbols-outlined text-[20px]">visibility</span>
+          </button>
+          <div className="absolute inset-x-0 bottom-0 z-[3] translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-black/70 via-black/35 to-transparent p-4">
+            <motion.button
+              type="button"
+              onClick={handleAddToCart}
+              whileHover={{ y: -2, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full bg-[#C9A96E] text-white font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium py-3 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 hover:bg-[#B8924F]"
+            >
+              <span className="material-symbols-outlined text-[18px]">shopping_bag</span>
+              Add to Cart
+            </motion.button>
+          </div>
         </div>
+        <Link href={`/products/${product.slug}`} className="flex flex-col flex-grow">
         <div className="flex flex-col flex-grow">
           <h3 className="font-display text-[24px] leading-[1.4] text-on-surface mb-1 group-hover:text-primary transition-colors">
             {product.name}
@@ -77,12 +115,88 @@ export default function ProductCard({
           </div>
         </div>
       </Link>
-      <button
-        onClick={handleAddToCart}
-        className="mt-4 w-full bg-surface-container-highest hover:bg-tertiary-container hover:text-on-tertiary-container text-on-surface font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium py-3 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2"
-      >
-        Add to Cart
-      </button>
-    </motion.article>
+      </motion.article>
+
+      <AnimatePresence>
+        {quickViewOpen && (
+          <motion.div
+            className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-5"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setQuickViewOpen(false)}
+          >
+            <motion.div
+              className="bg-surface rounded-2xl overflow-hidden max-w-3xl w-full grid grid-cols-1 md:grid-cols-2 shadow-2xl"
+              initial={{ opacity: 0, y: 24, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.98 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label={`Quick view for ${product.name}`}
+            >
+              <div className="relative aspect-[4/5] md:aspect-auto min-h-[320px] bg-surface-container-low">
+                <Image
+                  src={product.images[0]}
+                  alt={product.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+              </div>
+              <div className="p-6 md:p-8 flex flex-col">
+                <button
+                  type="button"
+                  onClick={() => setQuickViewOpen(false)}
+                  className="self-end w-9 h-9 rounded-full hover:bg-surface-container-high flex items-center justify-center transition-colors"
+                  aria-label="Close quick view"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+                <p className="font-body text-[12px] leading-[1.0] tracking-[0.1em] uppercase text-tertiary mb-3">
+                  {product.category.split("-").join(" ")} • {product.variant_name}
+                </p>
+                <h3 className="font-display text-[32px] leading-[1.2] text-on-surface mb-4">
+                  {product.name}
+                </h3>
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="font-display text-[28px] text-on-surface">
+                    ${product.price.toFixed(2)}
+                  </span>
+                  {product.compare_price && (
+                    <span className="font-body text-[16px] text-outline line-through">
+                      ${product.compare_price.toFixed(2)}
+                    </span>
+                  )}
+                </div>
+                <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant mb-6">
+                  {product.description}
+                </p>
+                <div className="mt-auto flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      addProduct();
+                      setQuickViewOpen(false);
+                    }}
+                    className="flex-1 bg-[#C9A96E] hover:bg-[#B8924F] text-white rounded-full px-6 py-3 font-body font-medium transition-colors"
+                  >
+                    Add to Cart
+                  </button>
+                  <Link
+                    href={`/products/${product.slug}`}
+                    className="flex-1 border border-on-surface text-on-surface rounded-full px-6 py-3 font-body font-medium text-center hover:bg-on-surface hover:text-surface transition-colors"
+                  >
+                    View Details
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
