@@ -1,26 +1,225 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================
+   SAARAL COSMETICS — DESIGN SYSTEM TOKENS
+   Material Design 3 Inspired Palette
+   ============================================ */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* --- Fonts --- */
+  --font-display: "Playfair Display", serif;
+  --font-body: "DM Sans", sans-serif;
+
+  /* --- Colors: Primary --- */
+  --color-primary: #4f378a;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #6750a4;
+  --color-on-primary-container: #e0d2ff;
+  --color-primary-fixed: #e9ddff;
+  --color-primary-fixed-dim: #cfbcff;
+  --color-on-primary-fixed: #22005d;
+  --color-on-primary-fixed-variant: #4f378a;
+  --color-inverse-primary: #cfbcff;
+
+  /* --- Colors: Secondary --- */
+  --color-secondary: #63597c;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #e1d4fd;
+  --color-on-secondary-container: #645a7d;
+  --color-secondary-fixed: #e9ddff;
+  --color-secondary-fixed-dim: #cdc0e9;
+  --color-on-secondary-fixed: #1f1635;
+  --color-on-secondary-fixed-variant: #4b4263;
+
+  /* --- Colors: Tertiary (Gold Accent) --- */
+  --color-tertiary: #765b00;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #c9a74d;
+  --color-on-tertiary-container: #503d00;
+  --color-tertiary-fixed: #ffdf93;
+  --color-tertiary-fixed-dim: #e7c365;
+  --color-on-tertiary-fixed: #241a00;
+  --color-on-tertiary-fixed-variant: #594400;
+
+  /* --- Colors: Error --- */
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  /* --- Colors: Surface --- */
+  --color-background: #fdf7ff;
+  --color-on-background: #1d1b20;
+  --color-surface: #fdf7ff;
+  --color-on-surface: #1d1b20;
+  --color-surface-dim: #ded8e0;
+  --color-surface-bright: #fdf7ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f8f2fa;
+  --color-surface-container: #f2ecf4;
+  --color-surface-container-high: #ece6ee;
+  --color-surface-container-highest: #e6e0e9;
+  --color-surface-variant: #e6e0e9;
+  --color-on-surface-variant: #494551;
+  --color-surface-tint: #6750a4;
+
+  /* --- Colors: Outline --- */
+  --color-outline: #7a7582;
+  --color-outline-variant: #cbc4d2;
+
+  /* --- Colors: Inverse --- */
+  --color-inverse-surface: #322f35;
+  --color-inverse-on-surface: #f5eff7;
+
+  /* --- Spacing --- */
+  --spacing-unit: 4px;
+  --spacing-stack-sm: 12px;
+  --spacing-stack-md: 24px;
+  --spacing-stack-lg: 48px;
+  --spacing-gutter: 24px;
+  --spacing-margin-mobile: 20px;
+  --spacing-margin-desktop: 64px;
+  --spacing-container-max: 1280px;
+
+  /* --- Font Size --- */
+  --font-size-display-lg: 48px;
+  --font-size-display-lg--line-height: 1.2;
+  --font-size-display-lg--letter-spacing: -0.01em;
+
+  --font-size-display-lg-mobile: 36px;
+  --font-size-display-lg-mobile--line-height: 1.2;
+
+  --font-size-headline-md: 32px;
+  --font-size-headline-md--line-height: 1.3;
+
+  --font-size-headline-sm: 24px;
+  --font-size-headline-sm--line-height: 1.4;
+
+  --font-size-body-lg: 18px;
+  --font-size-body-lg--line-height: 1.6;
+
+  --font-size-body-md: 16px;
+  --font-size-body-md--line-height: 1.6;
+
+  --font-size-label-caps: 12px;
+  --font-size-label-caps--line-height: 1.0;
+  --font-size-label-caps--letter-spacing: 0.1em;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ============================================
+   MATERIAL SYMBOLS ICON FONT
+   ============================================ */
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24;
+}
+.material-symbols-outlined.fill {
+  font-variation-settings: "FILL" 1, "wght" 300, "GRAD" 0, "opsz" 24;
+}
+
+/* ============================================
+   GLOBAL STYLES
+   ============================================ */
+::selection {
+  background-color: var(--color-tertiary-container);
+  color: var(--color-on-tertiary-container);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   AMBIENT SHADOW UTILITIES
+   ============================================ */
+.ambient-shadow {
+  box-shadow: 0 24px 48px -12px rgba(29, 27, 32, 0.08);
+}
+.ambient-shadow-hover:hover {
+  box-shadow: 0 32px 64px -12px rgba(29, 27, 32, 0.12);
+}
+.custom-shadow {
+  box-shadow: 0 4px 20px rgba(26, 26, 26, 0.04);
+}
+.ambient-shadow-sm {
+  box-shadow: 0 10px 40px -10px rgba(26, 26, 26, 0.04);
+}
+
+/* ============================================
+   GLASSMORPHISM
+   ============================================ */
+.glass-panel {
+  background: rgba(253, 247, 255, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ============================================
+   CUSTOM SCROLLBAR
+   ============================================ */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-outline-variant);
+  border-radius: 3px;
+}
+
+/* Hide scrollbar but allow scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ============================================
+   ANIMATION KEYFRAMES
+   ============================================ */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes scroll-bounce {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(6px); }
+}
+
+@keyframes whatsapp-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5); }
+  70% { box-shadow: 0 0 0 12px rgba(37, 211, 102, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+
+/* ============================================
+   NAV LINK HOVER UNDERLINE
+   ============================================ */
+.nav-link-underline {
+  position: relative;
+}
+.nav-link-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #C9A96E;
+  transition: width 0.25s ease;
+}
+.nav-link-underline:hover::after {
+  width: 100%;
 }

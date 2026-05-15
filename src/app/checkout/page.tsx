@@ -1,0 +1,338 @@
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import TopNavBar from "@/components/layout/TopNavBar";
+import Footer from "@/components/layout/Footer";
+import GradientBackground from "@/components/layout/GradientBackground";
+import { useCart } from "@/lib/cart";
+import { INDIAN_STATES } from "@/lib/types";
+
+export default function CheckoutPage() {
+  const { items, total, clearCart } = useCart();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    address1: "",
+    address2: "",
+    city: "",
+    state: "",
+    pincode: "",
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    // Simulate order creation — in production, this calls Razorpay
+    setTimeout(() => {
+      clearCart();
+      router.push("/order-confirmation/demo-order");
+    }, 1500);
+  };
+
+  const shippingCharge = total >= 500 ? 0 : 50;
+  const grandTotal = total + shippingCharge;
+
+  if (items.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <GradientBackground />
+        <TopNavBar />
+        <main className="flex-grow flex flex-col items-center justify-center gap-6 py-24">
+          <span className="material-symbols-outlined text-6xl text-outline-variant">
+            shopping_cart
+          </span>
+          <p className="font-body text-[18px] leading-[1.6] text-on-surface-variant">
+            Your cart is empty. Add items before checkout.
+          </p>
+          <Link
+            href="/products"
+            className="bg-tertiary-container text-on-tertiary-container px-8 py-3 rounded-full font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium"
+          >
+            Browse Products
+          </Link>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <GradientBackground />
+      <TopNavBar />
+
+      <main className="flex-grow w-full max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)]">
+        <motion.h1
+          className="font-display text-[36px] md:text-[48px] leading-[1.2] text-on-surface mb-[var(--spacing-stack-lg)]"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          Checkout
+        </motion.h1>
+
+        <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-[var(--spacing-stack-lg)] items-start">
+            {/* Form Fields */}
+            <motion.div
+              className="lg:col-span-7 flex flex-col gap-[var(--spacing-stack-md)]"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              {/* Contact Info */}
+              <section className="bg-surface p-6 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow">
+                <h2 className="font-display text-[24px] leading-[1.4] text-on-surface mb-6 pb-4 border-b border-outline-variant/30">
+                  Contact Information
+                </h2>
+                <div className="space-y-5">
+                  <div>
+                    <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      required
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="Enter your full name"
+                      className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
+                        Phone Number *
+                      </label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        required
+                        value={formData.phone}
+                        onChange={handleChange}
+                        placeholder="10-digit mobile number"
+                        pattern="[0-9]{10}"
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
+                        Email (Optional)
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="your@email.com"
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Shipping Address */}
+              <section className="bg-surface p-6 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow">
+                <h2 className="font-display text-[24px] leading-[1.4] text-on-surface mb-6 pb-4 border-b border-outline-variant/30">
+                  Shipping Address
+                </h2>
+                <div className="space-y-5">
+                  <div>
+                    <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
+                      Address Line 1 *
+                    </label>
+                    <input
+                      type="text"
+                      name="address1"
+                      required
+                      value={formData.address1}
+                      onChange={handleChange}
+                      placeholder="House/Flat no., Street name"
+                      className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
+                      Address Line 2
+                    </label>
+                    <input
+                      type="text"
+                      name="address2"
+                      value={formData.address2}
+                      onChange={handleChange}
+                      placeholder="Landmark, Area (optional)"
+                      className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div>
+                      <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
+                        City *
+                      </label>
+                      <input
+                        type="text"
+                        name="city"
+                        required
+                        value={formData.city}
+                        onChange={handleChange}
+                        placeholder="City"
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
+                        State *
+                      </label>
+                      <div className="relative">
+                        <select
+                          name="state"
+                          required
+                          value={formData.state}
+                          onChange={handleChange}
+                          className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 appearance-none focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface"
+                        >
+                          <option value="">Select</option>
+                          {INDIAN_STATES.map((state) => (
+                            <option key={state} value={state}>
+                              {state}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none">
+                          expand_more
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
+                        Pincode *
+                      </label>
+                      <input
+                        type="text"
+                        name="pincode"
+                        required
+                        value={formData.pincode}
+                        onChange={handleChange}
+                        placeholder="6-digit"
+                        pattern="[0-9]{6}"
+                        className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </motion.div>
+
+            {/* Order Summary */}
+            <motion.div
+              className="lg:col-span-5 bg-surface-container-low rounded-xl p-6 md:p-8 ambient-shadow-sm border border-outline-variant/20 sticky top-32"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <h2 className="font-display text-[24px] leading-[1.4] text-on-surface mb-6 pb-4 border-b border-outline-variant/30">
+                Order Summary
+              </h2>
+
+              {/* Items */}
+              <div className="flex flex-col gap-4 mb-6">
+                {items.map((item) => (
+                  <div key={item.product_id} className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-lg bg-surface-container overflow-hidden flex-shrink-0">
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-grow">
+                      <p className="font-body text-[16px] leading-[1.6] text-on-surface font-medium">
+                        {item.name}
+                      </p>
+                      <p className="font-body text-[14px] leading-[1.6] text-on-surface-variant">
+                        Qty: {item.quantity}
+                      </p>
+                    </div>
+                    <p className="font-body text-[16px] leading-[1.6] text-on-surface">
+                      ${(item.price * item.quantity).toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-outline-variant/30 pt-4 space-y-2">
+                <div className="flex justify-between font-body text-[16px] leading-[1.6] text-on-surface-variant">
+                  <span>Subtotal</span>
+                  <span className="text-on-surface">${total.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-body text-[16px] leading-[1.6] text-on-surface-variant">
+                  <span>Shipping</span>
+                  <span className="text-on-surface">
+                    {shippingCharge === 0
+                      ? "Free"
+                      : `$${shippingCharge.toFixed(2)}`}
+                  </span>
+                </div>
+                <div className="h-px bg-outline-variant/30 w-full my-3" />
+                <div className="flex justify-between">
+                  <span className="font-display text-[24px] leading-[1.4] text-on-surface font-bold">
+                    Total
+                  </span>
+                  <span className="font-display text-[24px] leading-[1.4] text-on-surface font-bold">
+                    ${grandTotal.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full mt-6 bg-tertiary-container text-on-tertiary-container font-body text-[18px] leading-[1.6] py-4 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 custom-shadow disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="material-symbols-outlined animate-spin">
+                      progress_activity
+                    </span>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined">payments</span>
+                    Pay Now
+                  </>
+                )}
+              </button>
+
+              <p className="text-center font-body text-[14px] leading-[1.6] text-on-surface-variant mt-4 flex items-center justify-center gap-2">
+                <span className="material-symbols-outlined text-[16px]">
+                  lock
+                </span>
+                Secured by Razorpay
+              </p>
+            </motion.div>
+          </div>
+        </form>
+      </main>
+
+      <Footer />
+    </div>
+  );
+}

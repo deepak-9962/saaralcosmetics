@@ -1,0 +1,104 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import GradientBackground from "@/components/layout/GradientBackground";
+
+export default function AdminLoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    // Simulate auth — replace with Supabase Auth
+    setTimeout(() => {
+      if (email && password) {
+        localStorage.setItem("saaral-admin-auth", "true");
+        router.push("/admin/dashboard");
+      } else {
+        setError("Please enter valid credentials");
+      }
+      setIsLoading(false);
+    }, 1000);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center px-[var(--spacing-margin-mobile)]">
+      <GradientBackground />
+      <motion.div
+        className="w-full max-w-md bg-surface p-8 md:p-10 rounded-xl border border-outline-variant/50 custom-shadow"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="text-center mb-8">
+          <h1 className="font-display text-[32px] leading-[1.3] text-primary mb-2">
+            Saaral Admin
+          </h1>
+          <p className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
+            Management Portal
+          </p>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
+            <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="admin@saaralcosmetics.com"
+              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
+            />
+          </div>
+          <div>
+            <label className="block font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="••••••••"
+              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[16px] leading-[1.6] text-on-surface placeholder:text-outline"
+            />
+          </div>
+
+          {error && (
+            <p className="text-error font-body text-[14px] leading-[1.6]">
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-tertiary-container text-on-tertiary-container py-4 rounded-xl font-body text-[16px] leading-[1.6] font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {isLoading ? (
+              <>
+                <span className="material-symbols-outlined animate-spin text-[20px]">
+                  progress_activity
+                </span>
+                Signing in...
+              </>
+            ) : (
+              "Sign In"
+            )}
+          </button>
+        </form>
+      </motion.div>
+    </div>
+  );
+}
