@@ -2,6 +2,7 @@
 
 import { generateOrderNumber, generateSlug } from "@/lib/utils";
 import type { CartItem, CategoryFilter, Order, OrderItem, Product } from "@/lib/types";
+import { MOCK_PRODUCTS } from "@/lib/products";
 import { getSupabaseBrowserClient } from "./client";
 import type { Database, Json } from "./database.types";
 
@@ -9,6 +10,84 @@ type ProductRow = Database["public"]["Tables"]["products"]["Row"];
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type OrderInsert = Database["public"]["Tables"]["orders"]["Insert"];
+
+const CATEGORY_FALLBACK_IMAGE: Record<Product["category"], string> = {
+  "face-cream": "/images/cat-face-cream.webp",
+  "face-wash": "/images/cat-face-wash.webp",
+  soap: "/images/cat-soap.webp",
+  "nalangu-maavu": "/images/cat-nalangu-maavu.webp",
+};
+
+const DISALLOWED_PLACEHOLDER_HOSTS = new Set([
+  "via.placeholder.com",
+  "placehold.co",
+  "placehold.it",
+]);
+
+function normalizeProductImages(images: string[] | null | undefined, category: Product["category"]) {
+  const cleanedImages = (images ?? [])
+    .map((image) => image.trim())
+    .filter((image) => image.length > 0)
+    .filter((image) => {
+      try {
+        const parsed = new URL(image);
+        return !DISALLOWED_PLACEHOLDER_HOSTS.has(parsed.hostname);
+      } catch {
+        return true;
+      }
+    });
+
+  if (cleanedImages.length > 0) {
+    return cleanedImages;
+  }
+
+  return [CATEGORY_FALLBACK_IMAGE[category]];
+}
+
+function normalizeStorefrontProduct(product: Product): Product {
+  return {
+    ...product,
+    images: normalizeProductImages(product.images, product.category),
+  };
+}
+
+function mergeWithMockStorefrontProducts(
+  sourceProducts: Product[],
+  category: CategoryFilter,
+  limit?: number
+) {
+  const normalizedSource = sourceProducts.map(normalizeStorefrontProduct);
+
+  if (process.env.NODE_ENV === "production") {
+    return typeof limit === "number" ? normalizedSource.slice(0, limit) : normalizedSource;
+  }
+
+  const mockProducts = MOCK_PRODUCTS.filter((product) => {
+    if (!product.is_active) {
+      return false;
+    }
+
+    if (category === "all") {
+      return true;
+    }
+
+    return product.category === category;
+  }).map(normalizeStorefrontProduct);
+
+  const mergedProducts = [...normalizedSource];
+  const seenSlugs = new Set(normalizedSource.map((product) => product.slug));
+
+  for (const mockProduct of mockProducts) {
+    if (seenSlugs.has(mockProduct.slug)) {
+      continue;
+    }
+
+    mergedProducts.push(mockProduct);
+    seenSlugs.add(mockProduct.slug);
+  }
+
+  return typeof limit === "number" ? mergedProducts.slice(0, limit) : mergedProducts;
+}
 
 function normalizeProduct(row: ProductRow): Product {
   return {
@@ -22,7 +101,7 @@ function normalizeProduct(row: ProductRow): Product {
     description: row.description,
     ingredients: row.ingredients,
     how_to_use: row.how_to_use,
-    images: row.images,
+    images: normalizeProductImages(row.images, row.category),
     stock: row.stock,
     is_active: row.is_active,
     created_at: row.created_at,
@@ -116,7 +195,8 @@ export async function listProducts(category: CategoryFilter = "all"): Promise<Pr
     throw new Error(error.message);
   }
 
-  return (data ?? []).map(normalizeProduct);
+  const products = (data ?? []).map(normalizeProduct);
+  return mergeWithMockStorefrontProducts(products, category);
 }
 
 export async function listFeaturedProducts(limit = 3): Promise<Product[]> {
@@ -132,7 +212,8 @@ export async function listFeaturedProducts(limit = 3): Promise<Product[]> {
     throw new Error(error.message);
   }
 
-  return (data ?? []).map(normalizeProduct);
+  const products = (data ?? []).map(normalizeProduct);
+  return mergeWithMockStorefrontProducts(products, "all", limit);
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
@@ -149,6 +230,16 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   }
 
   if (!data) {
+    if (process.env.NODE_ENV !== "production") {
+      const fallbackProduct = MOCK_PRODUCTS.find(
+        (product) => product.slug === slug && product.is_active
+      );
+
+      if (fallbackProduct) {
+        return normalizeStorefrontProduct(fallbackProduct);
+      }
+    }
+
     return null;
   }
 
@@ -174,7 +265,12 @@ export async function listRelatedProducts(
     throw new Error(error.message);
   }
 
-  return (data ?? []).map(normalizeProduct);
+  const relatedProducts = mergeWithMockStorefrontProducts(
+    (data ?? []).map(normalizeProduct),
+    category
+  ).filter((product) => product.slug !== currentSlug);
+
+  return relatedProducts.slice(0, limit);
 }
 
 interface CreateOrderInput {
