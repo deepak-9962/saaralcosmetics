@@ -75,7 +75,7 @@ export default function ProductDetailPage({
     return (
       <div className="min-h-screen flex flex-col" style={{
         background:
-          "radial-gradient(circle at 20% 30%, #e0d2ff 0%, transparent 40%), radial-gradient(circle at 80% 70%, #cfbcff 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fdf7ff 0%, #fcf4eb 100%)",
+          "radial-gradient(circle at 20% 30%, #F2D5E0 0%, transparent 40%), radial-gradient(circle at 80% 70%, #E9E2F8 0%, transparent 40%), radial-gradient(circle at 50% 50%, #FFF7FA 0%, #FFF0F5 100%)",
         backgroundAttachment: "fixed",
       }}>
         <TopNavBar />
@@ -93,7 +93,7 @@ export default function ProductDetailPage({
     return (
       <div className="min-h-screen flex flex-col" style={{
         background:
-          "radial-gradient(circle at 20% 30%, #e0d2ff 0%, transparent 40%), radial-gradient(circle at 80% 70%, #cfbcff 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fdf7ff 0%, #fcf4eb 100%)",
+          "radial-gradient(circle at 20% 30%, #F2D5E0 0%, transparent 40%), radial-gradient(circle at 80% 70%, #E9E2F8 0%, transparent 40%), radial-gradient(circle at 50% 50%, #FFF7FA 0%, #FFF0F5 100%)",
         backgroundAttachment: "fixed",
       }}>
         <TopNavBar />
@@ -115,7 +115,7 @@ export default function ProductDetailPage({
     return (
       <div className="min-h-screen flex flex-col" style={{
         background:
-          "radial-gradient(circle at 20% 30%, #e0d2ff 0%, transparent 40%), radial-gradient(circle at 80% 70%, #cfbcff 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fdf7ff 0%, #fcf4eb 100%)",
+          "radial-gradient(circle at 20% 30%, #F2D5E0 0%, transparent 40%), radial-gradient(circle at 80% 70%, #E9E2F8 0%, transparent 40%), radial-gradient(circle at 50% 50%, #FFF7FA 0%, #FFF0F5 100%)",
         backgroundAttachment: "fixed",
       }}>
         <TopNavBar />
@@ -138,7 +138,7 @@ export default function ProductDetailPage({
       className="min-h-screen flex flex-col"
       style={{
         background:
-          "radial-gradient(circle at 20% 30%, #e0d2ff 0%, transparent 40%), radial-gradient(circle at 80% 70%, #cfbcff 0%, transparent 40%), radial-gradient(circle at 50% 50%, #fdf7ff 0%, #fcf4eb 100%)",
+          "radial-gradient(circle at 20% 30%, #F2D5E0 0%, transparent 40%), radial-gradient(circle at 80% 70%, #E9E2F8 0%, transparent 40%), radial-gradient(circle at 50% 50%, #FFF7FA 0%, #FFF0F5 100%)",
         backgroundAttachment: "fixed",
       }}
     >

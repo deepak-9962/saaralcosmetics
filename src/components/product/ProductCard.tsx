@@ -47,14 +47,15 @@ export default function ProductCard({
         className="flex flex-col group"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: index * 0.08, ease: "easeOut" }}
+        transition={{ duration: 0.5, delay: index * 0.09, ease: [0.22, 1, 0.36, 1] }}
+        whileHover={{ y: -6 }}
       >
-        <div className="relative aspect-[4/5] bg-surface-container-low rounded-xl overflow-hidden mb-4 ambient-shadow-hover">
+        <div className="relative aspect-[4/5] bg-surface-container-low rounded-2xl overflow-hidden mb-4 transition-shadow duration-500 group-hover:shadow-[0_24px_60px_-12px_rgba(176,96,128,0.22)]" style={{ boxShadow: "0 8px 32px -8px rgba(176,96,128,0.10)" }}>
           <Image
             src={product.images[0]}
             alt={product.name}
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
+           className="object-cover transition-transform duration-700 group-hover:scale-110"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
           <Link
@@ -63,7 +64,7 @@ export default function ProductCard({
             aria-label={`View ${product.name}`}
           />
           {showBadge && (
-            <div className="absolute top-4 left-4 z-[2] bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium">
+            <div className="absolute top-3 left-3 z-[2] px-3 py-1 rounded-full font-body text-[10px] tracking-[0.12em] font-semibold uppercase" style={{ background: "rgba(201,167,77,0.92)", color: "#2A1D00", backdropFilter: "blur(8px)" }}>
               {showBadge}
             </div>
           )}
@@ -74,7 +75,7 @@ export default function ProductCard({
               e.stopPropagation();
               setQuickViewOpen(true);
             }}
-            className="absolute top-4 right-4 z-[3] w-10 h-10 rounded-full bg-white/90 backdrop-blur text-on-surface shadow-lg flex items-center justify-center opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:text-[#C9A96E]"
+            className="absolute top-3 right-3 z-[3] w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm text-[#2A1A14] shadow-lg flex items-center justify-center opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:text-primary hover:bg-white"
             aria-label={`Quick view ${product.name}`}
           >
             <span className="material-symbols-outlined text-[20px]">visibility</span>
@@ -85,7 +86,7 @@ export default function ProductCard({
               onClick={handleAddToCart}
               whileHover={{ y: -2, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full bg-[#C9A96E] text-white font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium py-3 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 hover:bg-[#B8924F]"
+              className="w-full bg-primary text-on-primary font-body text-[11px] leading-[1.0] tracking-[0.14em] font-semibold uppercase py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 hover:opacity-90 hover:gap-3"
             >
               <span className="material-symbols-outlined text-[18px]">shopping_bag</span>
               Add to Cart
@@ -182,7 +183,7 @@ export default function ProductCard({
                       addProduct();
                       setQuickViewOpen(false);
                     }}
-                    className="flex-1 bg-[#C9A96E] hover:bg-[#B8924F] text-white rounded-full px-6 py-3 font-body font-medium transition-colors"
+                    className="flex-1 bg-primary hover:opacity-90 text-on-primary rounded-full px-6 py-3 font-body font-medium transition-all"
                   >
                     Add to Cart
                   </button>

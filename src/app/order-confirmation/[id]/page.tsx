@@ -46,7 +46,7 @@ export default function OrderConfirmationPage({
           particleCount: 120,
           spread: 70,
           origin: { y: 0.6 },
-          colors: ["#C9A96E", "#6750a4", "#ffffff"],
+          colors: ["#B06080", "#7E6B9A", "#ffffff"],
         });
       } catch (loadError) {
         setError(loadError instanceof Error ? loadError.message : "Failed to load order.");

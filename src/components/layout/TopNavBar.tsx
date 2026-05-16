@@ -76,7 +76,7 @@ export default function TopNavBar() {
               href={item.href}
               className={`nav-link-underline font-body transition-colors ${
                 isActive(item.href)
-                  ? "text-[#C9A96E] after:w-full"
+                  ? "text-primary after:w-full"
                   : "text-on-surface-variant hover:text-on-surface"
               }`}
               style={{ fontSize: "14px", fontWeight: 500, letterSpacing: "0.04em" }}
@@ -105,7 +105,7 @@ export default function TopNavBar() {
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                className="absolute -top-1 -right-1 w-5 h-5 bg-[#C9A96E] text-white text-[10px] font-bold rounded-full flex items-center justify-center"
+                className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-on-primary text-[10px] font-bold rounded-full flex items-center justify-center"
               >
                 {itemCount > 9 ? "9+" : itemCount}
               </motion.span>
@@ -128,7 +128,7 @@ export default function TopNavBar() {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
-            <span className="material-symbols-outlined text-[#1A1A1A]" style={{ fontSize: "24px" }}>
+            <span className="material-symbols-outlined text-on-surface" style={{ fontSize: "24px" }}>
               {mobileMenuOpen ? "close" : "menu"}
             </span>
           </button>
@@ -143,7 +143,7 @@ export default function TopNavBar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="md:hidden absolute top-[68px] left-0 right-0 bg-white border-b border-[#E8E0D5] shadow-lg z-50"
+            className="md:hidden absolute top-[68px] left-0 right-0 bg-surface-container-low border-b border-outline-variant/40 shadow-lg z-50"
           >
             <div className="flex flex-col px-5 py-4 gap-1">
               {navItems.map((item) => (
@@ -153,7 +153,7 @@ export default function TopNavBar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`py-3 px-3 rounded-lg transition-colors font-body ${
                     isActive(item.href)
-                      ? "text-[#C9A96E] bg-surface-container-low"
+                      ? "text-primary bg-primary-container/30"
                       : "text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface"
                   }`}
                   style={{ fontSize: "15px", fontWeight: 500 }}
@@ -161,7 +161,7 @@ export default function TopNavBar() {
                   {item.label}
                 </Link>
               ))}
-              <div className="border-t border-[#E8E0D5] mt-2 pt-2">
+              <div className="border-t border-outline-variant/40 mt-2 pt-2">
                 <Link
                   href="/admin"
                   onClick={() => setMobileMenuOpen(false)}

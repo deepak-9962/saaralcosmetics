@@ -21,7 +21,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           },
           success: {
             iconTheme: {
-              primary: "#C9A96E",
+              primary: "#B06080",
               secondary: "#12100F",
             },
           },
