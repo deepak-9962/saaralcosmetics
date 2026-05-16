@@ -9,8 +9,8 @@ import { motion, AnimatePresence, useMotionValueEvent, useScroll } from "framer-
 const navItems = [
   { label: "Shop", href: "/products" },
   { label: "Collections", href: "/products?category=face-cream" },
-  { label: "Heritage", href: "/contact" },
-  { label: "Rituals", href: "/contact" },
+  { label: "Heritage", href: "/contact?section=heritage" },
+  { label: "Rituals", href: "/contact?section=rituals" },
 ];
 
 export default function TopNavBar() {
@@ -19,14 +19,32 @@ export default function TopNavBar() {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const { scrollY } = useScroll();
+  const currentSearch = typeof window !== "undefined" ? window.location.search : "";
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 20);
   });
 
   const isActive = (href: string) => {
-    const path = href.split("?")[0];
-    return path === "/" ? pathname === "/" : pathname === path;
+    const [path, queryString] = href.split("?");
+    if (pathname !== path) {
+      return false;
+    }
+
+    const expectedParams = new URLSearchParams(queryString ?? "");
+    const currentParams = new URLSearchParams(currentSearch);
+
+    if (expectedParams.size === 0) {
+      return currentParams.size === 0;
+    }
+
+    for (const [key, value] of expectedParams.entries()) {
+      if (currentParams.get(key) !== value) {
+        return false;
+      }
+    }
+
+    return true;
   };
 
   return (
