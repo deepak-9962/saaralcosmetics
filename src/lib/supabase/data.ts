@@ -58,10 +58,6 @@ function mergeWithMockStorefrontProducts(
 ) {
   const normalizedSource = sourceProducts.map(normalizeStorefrontProduct);
 
-  if (process.env.NODE_ENV === "production") {
-    return typeof limit === "number" ? normalizedSource.slice(0, limit) : normalizedSource;
-  }
-
   const mockProducts = MOCK_PRODUCTS.filter((product) => {
     if (!product.is_active) {
       return false;
@@ -230,14 +226,12 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   }
 
   if (!data) {
-    if (process.env.NODE_ENV !== "production") {
-      const fallbackProduct = MOCK_PRODUCTS.find(
-        (product) => product.slug === slug && product.is_active
-      );
+    const fallbackProduct = MOCK_PRODUCTS.find(
+      (product) => product.slug === slug && product.is_active
+    );
 
-      if (fallbackProduct) {
-        return normalizeStorefrontProduct(fallbackProduct);
-      }
+    if (fallbackProduct) {
+      return normalizeStorefrontProduct(fallbackProduct);
     }
 
     return null;
