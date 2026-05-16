@@ -3,44 +3,72 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { listOrders } from "@/lib/supabase/data";
+import { formatPrice } from "@/lib/utils";
 import type { Order } from "@/lib/types";
 
-function createCsv(rows: Array<Record<string, string | number | null>>) {
-  if (rows.length === 0) {
-    return "";
-  }
-
-  const headers = Object.keys(rows[0]);
-  const escapeCell = (value: string | number | null) => {
-    const valueString = value === null ? "" : String(value);
-    return `"${valueString.replaceAll('"', '""')}"`;
-  };
-
-  const lines = [
-    headers.join(","),
-    ...rows.map((row) => headers.map((header) => escapeCell(row[header] ?? "")).join(",")),
+function exportToCSV(data: Order[]) {
+  const headers = [
+    "Order Number",
+    "Customer Name",
+    "Phone",
+    "Email",
+    "Address Line 1",
+    "Address Line 2",
+    "City",
+    "State",
+    "Pincode",
+    "Items",
+    "Subtotal",
+    "Shipping",
+    "Total",
+    "Payment Status",
+    "Order Status",
+    "Date",
   ];
-
-  return lines.join("\n");
-}
-
-function downloadCsv(filename: string, csv: string) {
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const rows = data.map((o) => [
+    o.order_number,
+    o.customer_name,
+    o.customer_phone,
+    o.customer_email ?? "",
+    o.address_line1,
+    o.address_line2 ?? "",
+    o.city,
+    o.state,
+    o.pincode,
+    o.items.map((i) => `${i.name}(x${i.qty})`).join("; "),
+    o.subtotal.toFixed(2),
+    o.shipping_charge.toFixed(2),
+    o.total.toFixed(2),
+    o.payment_status,
+    o.order_status,
+    new Date(o.created_at).toLocaleDateString("en-IN"),
+  ]);
+  const csvContent = [headers, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
+  link.download = `saaral-orders-${new Date().toISOString().slice(0, 10)}.csv`;
   link.click();
-  document.body.removeChild(link);
   URL.revokeObjectURL(url);
+}
+
+function getPaymentBadgeClass(status: Order["payment_status"]) {
+  if (status === "paid") return "bg-emerald-100 text-emerald-800";
+  if (status === "failed") return "bg-red-100 text-red-800";
+  return "bg-yellow-100 text-yellow-800";
 }
 
 export default function AdminExportPage() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [paymentFilter, setPaymentFilter] = useState("all");
   const [error, setError] = useState<string | null>(null);
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     async function loadOrders() {
@@ -55,213 +83,267 @@ export default function AdminExportPage() {
     loadOrders();
   }, []);
 
-  const dateFilteredOrders = useMemo(() => {
+  const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
-      const orderDate = new Date(order.created_at);
-      const orderDay = new Date(
-        orderDate.getFullYear(),
-        orderDate.getMonth(),
-        orderDate.getDate()
-      );
-
-      if (fromDate) {
-        const fromDay = new Date(fromDate);
-        if (orderDay < fromDay) {
-          return false;
-        }
+      if (dateFrom && new Date(order.created_at) < new Date(dateFrom)) {
+        return false;
       }
 
-      if (toDate) {
-        const toDay = new Date(toDate);
-        if (orderDay > toDay) {
-          return false;
-        }
+      if (dateTo && new Date(order.created_at) > new Date(`${dateTo}T23:59:59`)) {
+        return false;
+      }
+
+      if (statusFilter !== "all" && order.order_status !== statusFilter) {
+        return false;
+      }
+
+      if (paymentFilter !== "all" && order.payment_status !== paymentFilter) {
+        return false;
       }
 
       return true;
     });
-  }, [orders, fromDate, toDate]);
+  }, [orders, dateFrom, dateTo, statusFilter, paymentFilter]);
 
-  const exportAllOrders = () => {
-    const rows = orders.map((order) => ({
-      order_number: order.order_number,
-      customer_name: order.customer_name,
-      customer_phone: order.customer_phone,
-      customer_email: order.customer_email,
-      city: order.city,
-      state: order.state,
-      pincode: order.pincode,
-      subtotal: order.subtotal,
-      shipping_charge: order.shipping_charge,
-      total: order.total,
-      payment_status: order.payment_status,
-      order_status: order.order_status,
-      created_at: order.created_at,
-    }));
+  const previewRevenue = useMemo(() => {
+    return filteredOrders.reduce((sum, order) => sum + order.total, 0);
+  }, [filteredOrders]);
 
-    downloadCsv("orders.csv", createCsv(rows));
-  };
+  const previewRows = useMemo(() => filteredOrders.slice(0, 10), [filteredOrders]);
 
-  const exportDateFilteredOrders = () => {
-    const rows = dateFilteredOrders.map((order) => ({
-      order_number: order.order_number,
-      customer_name: order.customer_name,
-      customer_phone: order.customer_phone,
-      customer_email: order.customer_email,
-      city: order.city,
-      state: order.state,
-      pincode: order.pincode,
-      subtotal: order.subtotal,
-      shipping_charge: order.shipping_charge,
-      total: order.total,
-      payment_status: order.payment_status,
-      order_status: order.order_status,
-      created_at: order.created_at,
-    }));
+  async function handleDownload() {
+    setIsDownloading(true);
+    setError(null);
+    try {
+      exportToCSV(filteredOrders);
+    } catch (downloadError) {
+      setError(downloadError instanceof Error ? downloadError.message : "Failed to export CSV.");
+    } finally {
+      setIsDownloading(false);
+    }
+  }
 
-    downloadCsv("orders-by-date.csv", createCsv(rows));
-  };
-
-  const exportCustomers = () => {
-    const uniqueCustomers = new Map<
-      string,
-      { name: string; phone: string; email: string | null; city: string; state: string }
-    >();
-
-    orders.forEach((order) => {
-      const key = order.customer_phone;
-      if (!uniqueCustomers.has(key)) {
-        uniqueCustomers.set(key, {
-          name: order.customer_name,
-          phone: order.customer_phone,
-          email: order.customer_email,
-          city: order.city,
-          state: order.state,
-        });
-      }
-    });
-
-    const rows = Array.from(uniqueCustomers.values()).map((customer) => ({
-      name: customer.name,
-      phone: customer.phone,
-      email: customer.email,
-      city: customer.city,
-      state: customer.state,
-    }));
-
-    downloadCsv("customer-contacts.csv", createCsv(rows));
-  };
+  function clearFilters() {
+    setDateFrom("");
+    setDateTo("");
+    setStatusFilter("all");
+    setPaymentFilter("all");
+  }
 
   return (
-    <div className="p-[var(--spacing-margin-mobile)] md:p-[var(--spacing-margin-desktop)] max-w-[var(--spacing-container-max)] mx-auto w-full flex-grow flex flex-col gap-[var(--spacing-stack-lg)]">
-      <motion.header
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+    <div className="p-[var(--spacing-margin-mobile)] md:p-[var(--spacing-margin-desktop)] max-w-[var(--spacing-container-max)] mx-auto w-full flex-grow flex flex-col gap-[var(--spacing-stack-lg)] overflow-y-auto custom-scrollbar">
+      <motion.header initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="font-display text-[36px] md:text-[48px] leading-[1.2] text-on-surface">
-          Export Data
+          Export Orders
         </h1>
-        <p className="font-body text-[18px] leading-[1.6] text-on-surface-variant mt-2 max-w-2xl">
-          Download your Supabase orders and customer data as CSV files.
+        <p className="font-body text-[18px] leading-[1.6] text-on-surface-variant mt-2">
+          Download filtered order data as CSV
         </p>
       </motion.header>
 
       {error && <p className="font-body text-[14px] leading-[1.6] text-error">{error}</p>}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[var(--spacing-gutter)]">
-        <motion.div
-          className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 flex flex-col gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <div className="p-3 bg-surface-container-low rounded-lg w-fit">
-            <span className="material-symbols-outlined text-primary text-2xl">
-              receipt_long
-            </span>
-          </div>
-          <h3 className="font-display text-[24px] leading-[1.4] text-on-surface">
-            All Orders
-          </h3>
-          <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant">
-            Export all order records with customer details, payment status, and
-            fulfillment status.
-          </p>
+      <motion.section
+        className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <div className="flex items-center justify-between gap-3 mb-5">
+          <h2 className="font-display text-[24px] leading-[1.4] text-on-surface inline-flex items-center gap-2">
+            <span className="material-symbols-outlined">tune</span>
+            Filter Export Data
+          </h2>
           <button
-            onClick={exportAllOrders}
-            className="mt-auto bg-tertiary-container text-on-tertiary-container py-3 rounded-xl font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+            type="button"
+            onClick={clearFilters}
+            className="font-body text-[13px] leading-[1.6] text-primary hover:underline"
           >
-            <span className="material-symbols-outlined text-[18px]">download</span>
-            Download CSV
+            Clear Filters
           </button>
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 flex flex-col gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <div className="p-3 bg-surface-container-low rounded-lg w-fit">
-            <span className="material-symbols-outlined text-primary text-2xl">
-              date_range
-            </span>
-          </div>
-          <h3 className="font-display text-[24px] leading-[1.4] text-on-surface">
-            Orders by Date
-          </h3>
-          <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant">
-            Filter orders by a specific date range before exporting.
-          </p>
-          <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block font-body text-[11px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant uppercase mb-2">
+              Date From
+            </label>
             <input
               type="date"
-              value={fromDate}
-              onChange={(event) => setFromDate(event.target.value)}
-              className="bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 font-body text-[14px] text-on-surface focus:outline-none focus:border-tertiary-container"
+              value={dateFrom}
+              onChange={(event) => setDateFrom(event.target.value)}
+              className="w-full h-11 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg font-body text-[14px] leading-[1.4] text-on-surface focus:outline-none focus:border-tertiary-container"
             />
+          </div>
+
+          <div>
+            <label className="block font-body text-[11px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant uppercase mb-2">
+              Date To
+            </label>
             <input
               type="date"
-              value={toDate}
-              onChange={(event) => setToDate(event.target.value)}
-              className="bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 font-body text-[14px] text-on-surface focus:outline-none focus:border-tertiary-container"
+              value={dateTo}
+              onChange={(event) => setDateTo(event.target.value)}
+              className="w-full h-11 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg font-body text-[14px] leading-[1.4] text-on-surface focus:outline-none focus:border-tertiary-container"
             />
           </div>
-          <button
-            onClick={exportDateFilteredOrders}
-            className="mt-auto bg-tertiary-container text-on-tertiary-container py-3 rounded-xl font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-          >
-            <span className="material-symbols-outlined text-[18px]">download</span>
-            Download CSV
-          </button>
-        </motion.div>
 
-        <motion.div
-          className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 flex flex-col gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <div className="p-3 bg-surface-container-low rounded-lg w-fit">
-            <span className="material-symbols-outlined text-primary text-2xl">
-              group
-            </span>
+          <div>
+            <label className="block font-body text-[11px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant uppercase mb-2">
+              Order Status
+            </label>
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="w-full h-11 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg font-body text-[14px] leading-[1.4] text-on-surface focus:outline-none focus:border-tertiary-container"
+            >
+              <option value="all">All</option>
+              <option value="new">New</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
           </div>
-          <h3 className="font-display text-[24px] leading-[1.4] text-on-surface">
-            Customer Contacts
-          </h3>
-          <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant">
-            Export unique customer contact list for follow-up and campaigns.
+
+          <div>
+            <label className="block font-body text-[11px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant uppercase mb-2">
+              Payment Status
+            </label>
+            <select
+              value={paymentFilter}
+              onChange={(event) => setPaymentFilter(event.target.value)}
+              className="w-full h-11 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg font-body text-[14px] leading-[1.4] text-on-surface focus:outline-none focus:border-tertiary-container"
+            >
+              <option value="all">All</option>
+              <option value="pending">Pending</option>
+              <option value="paid">Paid</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
+        </div>
+      </motion.section>
+
+      <motion.section
+        className="grid grid-cols-1 md:grid-cols-3 gap-[var(--spacing-gutter)]"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <div className="bg-surface-container rounded-xl p-4 text-center border border-outline-variant/40">
+          <p className="font-body text-[11px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant uppercase">
+            Orders to Export
           </p>
-          <button
-            onClick={exportCustomers}
-            className="mt-auto bg-tertiary-container text-on-tertiary-container py-3 rounded-xl font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-          >
-            <span className="material-symbols-outlined text-[18px]">download</span>
-            Download CSV
-          </button>
-        </motion.div>
-      </div>
+          <p className="font-display text-[32px] leading-[1.2] text-on-surface mt-2">
+            {filteredOrders.length}
+          </p>
+        </div>
+
+        <div className="bg-surface-container rounded-xl p-4 text-center border border-outline-variant/40">
+          <p className="font-body text-[11px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant uppercase">
+            Total Revenue
+          </p>
+          <p className="font-display text-[32px] leading-[1.2] text-on-surface mt-2">
+            {formatPrice(previewRevenue)}
+          </p>
+        </div>
+
+        <div className="bg-surface-container rounded-xl p-4 text-center border border-outline-variant/40">
+          <p className="font-body text-[11px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant uppercase">
+            Date Range
+          </p>
+          <p className="font-body text-[16px] leading-[1.6] text-on-surface mt-2">
+            {dateFrom || "All time"} → {dateTo || "Now"}
+          </p>
+        </div>
+      </motion.section>
+
+      <motion.section
+        className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <button
+          type="button"
+          onClick={handleDownload}
+          disabled={isDownloading}
+          className="w-full bg-tertiary-container text-on-background py-4 rounded-xl font-body text-[18px] leading-[1.6] font-medium hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+        >
+          {isDownloading ? (
+            <>
+              <span className="material-symbols-outlined animate-spin">progress_activity</span>
+              Downloading...
+            </>
+          ) : (
+            <>
+              <span className="material-symbols-outlined">download</span>
+              Download CSV ({filteredOrders.length} orders)
+            </>
+          )}
+        </button>
+        <p className="font-body text-[12px] leading-[1.6] text-on-surface-variant mt-3">
+          File will be saved as saaral-orders-YYYY-MM-DD.csv
+        </p>
+      </motion.section>
+
+      <motion.section
+        className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <div className="p-6 border-b border-outline-variant/50">
+          <h2 className="font-display text-[24px] leading-[1.4] text-on-surface">
+            Preview (first 10 of {filteredOrders.length} orders)
+          </h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead className="bg-surface-container-low font-body text-[11px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant uppercase">
+              <tr>
+                <th className="p-4 font-normal text-left">Order #</th>
+                <th className="p-4 font-normal text-left">Customer</th>
+                <th className="p-4 font-normal text-left">Date</th>
+                <th className="p-4 font-normal text-left">Total</th>
+                <th className="p-4 font-normal text-left">Payment</th>
+                <th className="p-4 font-normal text-left">Status</th>
+              </tr>
+            </thead>
+            <tbody className="font-body text-[15px] leading-[1.6] text-on-surface divide-y divide-outline-variant/30">
+              {previewRows.length === 0 && (
+                <tr>
+                  <td className="p-4 text-on-surface-variant" colSpan={6}>
+                    No orders match the selected filters.
+                  </td>
+                </tr>
+              )}
+              {previewRows.map((order) => (
+                <tr key={order.id} className="hover:bg-surface-container-low/50 transition-colors">
+                  <td className="p-4 font-medium">{order.order_number}</td>
+                  <td className="p-4">{order.customer_name}</td>
+                  <td className="p-4 text-on-surface-variant">
+                    {new Date(order.created_at).toLocaleDateString("en-IN")}
+                  </td>
+                  <td className="p-4">{formatPrice(order.total)}</td>
+                  <td className="p-4">
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-full font-body text-[10px] leading-[1.0] tracking-[0.1em] font-medium uppercase ${getPaymentBadgeClass(order.payment_status)}`}
+                    >
+                      {order.payment_status}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full bg-primary-container text-on-primary-container font-body text-[10px] leading-[1.0] tracking-[0.1em] font-medium uppercase">
+                      {order.order_status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </motion.section>
     </div>
   );
 }

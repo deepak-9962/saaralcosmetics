@@ -372,6 +372,18 @@ export async function updateOrderStatus(
   }
 }
 
+export async function updateOrderNotes(orderId: string, notes: string | null): Promise<void> {
+  const supabase = getSupabaseBrowserClient();
+  const { error } = await supabase
+    .from("orders")
+    .update({ notes })
+    .eq("id", orderId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function getAdminSessionUser() {
   const supabase = getSupabaseBrowserClient();
   const {

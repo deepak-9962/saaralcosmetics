@@ -111,17 +111,16 @@ export default function TopNavBar() {
               </motion.span>
             )}
           </Link>
-          <button
-            className="hidden md:flex p-2 hover:bg-surface-container-high/50 rounded-full transition-colors"
-            aria-label="Account"
+          <Link
+            href="/admin"
+            className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50 transition-colors"
+            aria-label="Admin login"
           >
-            <span
-              className="material-symbols-outlined text-on-surface"
-              style={{ fontSize: "24px" }}
-            >
-              person
+            <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
+              admin_panel_settings
             </span>
-          </button>
+            <span className="font-body text-[13px] tracking-[0.04em]">Admin</span>
+          </Link>
 
           {/* Mobile Hamburger */}
           <button
@@ -162,6 +161,19 @@ export default function TopNavBar() {
                   {item.label}
                 </Link>
               ))}
+              <div className="border-t border-[#E8E0D5] mt-2 pt-2">
+                <Link
+                  href="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="py-3 px-3 rounded-lg transition-colors font-body text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface flex items-center gap-2"
+                  style={{ fontSize: "15px", fontWeight: 500 }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
+                    admin_panel_settings
+                  </span>
+                  Admin Login
+                </Link>
+              </div>
             </div>
           </motion.div>
         )}
