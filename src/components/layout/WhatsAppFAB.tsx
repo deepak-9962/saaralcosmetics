@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-const WHATSAPP_NUMBER = "919999999999"; // Replace with actual number
+const WHATSAPP_NUMBER = "918428251423"; // Updated with actual number
 const WHATSAPP_MESSAGE = "Hi, I have a question about Saaral Cosmetics";
 
 export default function WhatsAppFAB() {

@@ -103,7 +103,7 @@ export default function ContactPage() {
                 </p>
               </div>
               <a
-                href="https://wa.me/919999999999?text=Hi%2C%20I%20have%20a%20question%20about%20Saaral%20Cosmetics"
+                href="https://wa.me/918428251423?text=Hi%2C%20I%20have%20a%20question%20about%20Saaral%20Cosmetics"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-tertiary-container text-on-tertiary-container px-8 py-4 rounded-full font-body text-[16px] leading-[1.6] font-medium flex items-center gap-3 hover:bg-[#b8973c] transition-colors duration-200"
@@ -132,10 +132,10 @@ export default function ContactPage() {
                   For wholesale, press, or general questions.
                 </p>
                 <a
-                  href="mailto:hello@saaralcosmetics.com"
+                  href="mailto:saaralcosmetics@gmail.com"
                   className="font-body text-[16px] leading-[1.6] text-primary hover:text-tertiary transition-colors border-b border-transparent hover:border-tertiary inline-block w-max pb-1"
                 >
-                  hello@saaralcosmetics.com
+                  saaralcosmetics@gmail.com
                 </a>
               </motion.div>
 

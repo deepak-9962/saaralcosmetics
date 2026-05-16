@@ -51,7 +51,14 @@ export default function Footer() {
           </div>
           <div className="flex items-center gap-3">
             <a
-              href="https://wa.me/919999999999"
+              href="mailto:saaralcosmetics@gmail.com"
+              className="w-9 h-9 rounded-full border border-white/12 flex items-center justify-center text-white/50 hover:text-[#B06080] hover:border-[#B06080]/40 transition-all"
+              aria-label="Email Us"
+            >
+              <span className="material-symbols-outlined text-[18px]">mail</span>
+            </a>
+            <a
+              href="https://wa.me/918428251423"
               target="_blank"
               rel="noopener noreferrer"
               className="w-9 h-9 rounded-full border border-white/12 flex items-center justify-center text-white/50 hover:text-[#B06080] hover:border-[#B06080]/40 transition-all"
