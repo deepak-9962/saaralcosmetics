@@ -99,7 +99,7 @@ export default function ContactPage() {
                 <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant max-w-md">
                   For immediate assistance, formulation advice, or urgent order
                   updates, connect with us directly via WhatsApp. Available
-                  Monday to Friday, 9am - 6pm EST.
+                  Monday to Saturday, 9am - 6pm IST.
                 </p>
               </div>
               <a
@@ -150,14 +150,14 @@ export default function ContactPage() {
                   location_on
                 </span>
                 <h4 className="font-body text-[18px] leading-[1.6] font-medium text-on-surface mt-2">
-                  Flagship Studio
+                  Our Studio
                 </h4>
                 <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant">
-                  128 Heritage Row,
+                  Saaral Cosmetics,
                   <br />
-                  Botanical District,
+                  Tamil Nadu,
                   <br />
-                  NY 10012
+                  India
                 </p>
               </motion.div>
             </div>
