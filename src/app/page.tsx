@@ -202,12 +202,12 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="w-full bg-[#C9A96E]/10 border-y border-[#C9A96E]/20 py-3 overflow-hidden">
+        <section className="w-full bg-purple-300 border-y border-purple-400 py-3 overflow-hidden">
           <div className="flex animate-marquee whitespace-nowrap gap-12">
             {[...trustSignals, ...trustSignals].map((signal, i) => (
               <span
                 key={`${signal}-${i}`}
-                className="font-body text-sm tracking-[0.18em] text-[#765b00] uppercase"
+                className="font-body text-sm tracking-[0.18em] text-black uppercase"
               >
                 ✦ {signal}
               </span>
