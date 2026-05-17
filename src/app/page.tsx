@@ -7,6 +7,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import GradientBackground from "@/components/layout/GradientBackground";
 import ProductCard from "@/components/product/ProductCard";
 import { listFeaturedProducts } from "@/lib/supabase/data";
@@ -31,6 +32,13 @@ const categories = [
   { name: "Face Wash", sub: "Cleanse & Refresh", image: "/images/cat-face-wash.webp", href: "/products?category=face-wash" },
   { name: "Soap", sub: "Purify & Soften", image: "/images/cat-soap.webp", href: "/products?category=soap" },
   { name: "Nalangu Maavu", sub: "Heritage Ritual", image: "/images/cat-nalangu-maavu.webp", href: "/products?category=nalangu-maavu" },
+];
+
+const quickPromoTiles = [
+  { title: "Products Under ₹499", subtitle: "Value Picks", href: "/products", tone: "from-[#E7F0E4] to-[#F4F9F2]" },
+  { title: "New Launches", subtitle: "Fresh Rituals", href: "/products", tone: "from-[#E8EEF8] to-[#F4F7FD]" },
+  { title: "Bestsellers", subtitle: "Most Loved", href: "/products", tone: "from-[#F9E9E7] to-[#FFF5F2]" },
+  { title: "Gen Z Favourites", subtitle: "Trending Now", href: "/products", tone: "from-[#EFE8FA] to-[#F7F2FF]" },
 ];
 
 const ingredients = [
@@ -79,10 +87,10 @@ export default function HomePage() {
       <GradientBackground />
       <TopNavBar />
 
-      <main className="w-full flex-grow">
+      <main className="w-full flex-grow pb-24 md:pb-0">
 
         {/* ── HERO ── */}
-        <section ref={heroRef} className="relative w-full h-screen min-h-[600px] max-h-[1000px] overflow-hidden flex items-end pb-20 md:pb-28">
+        <section ref={heroRef} className="relative w-full h-[86vh] min-h-[560px] md:h-screen md:min-h-[600px] max-h-[1000px] overflow-hidden flex items-end pb-14 md:pb-28">
           <motion.div className="absolute inset-0 scale-110" style={{ y: heroY, opacity: heroOpacity }}>
             <Image
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8-bjDTc3Unc9zLxtNxCaE-V4cqQ_GJugaVdFZ7k4KFoHrMZfddDoI9SbnMmFVkUq5GcU29rU0VzWiHa0Zc6oSJCd4GOZ8lF6r1HYEmhwn_5HhPDr0MZacIUBhW-TCLT3JU5SLCvhhiSoamVRGF_gN2MJitxL5Zij1_MYVG0nStfey3fSV6TtXDNFAocfdkKtl_ZpwTp3aRHvH1uSmF9qVXDgU7LZhBZlOL7sqVPPZ0DlfI8dP-8jFoOETvCwKNYFT3WBtNGUCFsxo"
@@ -106,13 +114,13 @@ export default function HomePage() {
                   </motion.div>
                 ))}
               </div>
-              <motion.div className="flex flex-col sm:flex-row items-start sm:items-center gap-4" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.85, ease }}>
+              <motion.div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.85, ease }}>
                 <p className="font-body text-white/65 text-[15px] leading-relaxed max-w-xs hidden md:block">Ancient Indian botanicals, formulated for modern skin.</p>
                 <div className="flex items-center gap-3 sm:ml-auto">
-                  <Link href="/products" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-body text-[12px] tracking-[0.18em] uppercase font-semibold transition-all duration-300 hover:scale-105" style={{ background: "#B06080", color: "#fff" }}>
+                  <Link href="/products" className="inline-flex items-center gap-2 px-6 sm:px-8 py-3.5 rounded-full font-body text-[11px] sm:text-[12px] tracking-[0.16em] sm:tracking-[0.18em] uppercase font-semibold transition-all duration-300 hover:scale-105" style={{ background: "#B06080", color: "#fff" }}>
                     Shop the Ritual
                   </Link>
-                  <Link href="/contact" className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-body text-[12px] tracking-[0.18em] uppercase font-medium border border-white/35 text-white/80 hover:border-white/70 hover:text-white transition-all duration-300">
+                  <Link href="/contact" className="inline-flex items-center gap-2 px-5 sm:px-6 py-3.5 rounded-full font-body text-[11px] sm:text-[12px] tracking-[0.16em] sm:tracking-[0.18em] uppercase font-medium border border-white/35 text-white/80 hover:border-white/70 hover:text-white transition-all duration-300">
                     Our Story
                   </Link>
                 </div>
@@ -120,7 +128,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <motion.div className="absolute bottom-8 right-8 md:right-16 flex flex-col items-center gap-2 z-10" initial={{ opacity: 0 }} animate={{ opacity: 0.7 }} transition={{ delay: 1.4 }} style={{ animation: "scroll-bounce 2s ease-in-out infinite" }}>
+          <motion.div className="hidden md:flex absolute bottom-8 right-8 md:right-16 flex-col items-center gap-2 z-10" initial={{ opacity: 0 }} animate={{ opacity: 0.7 }} transition={{ delay: 1.4 }} style={{ animation: "scroll-bounce 2s ease-in-out infinite" }}>
             <span className="label-caps text-white/60" style={{ writingMode: "vertical-rl" }}>Scroll</span>
             <div className="w-px h-10 bg-gradient-to-b from-white/50 to-transparent" />
           </motion.div>
@@ -133,6 +141,36 @@ export default function HomePage() {
               <span key={i} className="label-caps text-[#B06080] flex items-center gap-3">
                 <span className="text-[#C9A74D] text-xs">✦</span> {s}
               </span>
+            ))}
+          </div>
+        </section>
+
+        {/* ── MOBILE QUICK SHOP ── */}
+        <section className="md:hidden max-w-[1280px] mx-auto px-5 py-8">
+          <div className="overflow-x-auto no-scrollbar">
+            <div className="flex w-max min-w-full gap-2">
+              {categories.map((cat) => (
+                <Link
+                  key={cat.name}
+                  href={cat.href}
+                  className="px-4 py-2 rounded-full border border-outline-variant/40 bg-surface-container-lowest font-body text-[13px] text-on-surface whitespace-nowrap"
+                >
+                  {cat.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            {quickPromoTiles.map((tile) => (
+              <Link
+                key={tile.title}
+                href={tile.href}
+                className={`rounded-2xl p-4 min-h-[108px] bg-gradient-to-br ${tile.tone} border border-outline-variant/20 flex flex-col justify-between`}
+              >
+                <span className="font-body text-[11px] tracking-[0.08em] uppercase text-on-surface-variant">{tile.subtitle}</span>
+                <h3 className="font-display text-[20px] leading-[1.15] text-on-surface">{tile.title}</h3>
+              </Link>
             ))}
           </div>
         </section>
@@ -336,6 +374,7 @@ export default function HomePage() {
       </main>
 
       <Footer />
+      <MobileBottomNav />
       <WhatsAppFAB />
     </div>
   );

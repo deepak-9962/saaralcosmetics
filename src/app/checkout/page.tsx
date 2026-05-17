@@ -127,7 +127,7 @@ export default function CheckoutPage() {
           <span className="material-symbols-outlined text-6xl text-outline-variant">
             shopping_cart
           </span>
-          <p className="font-body text-[18px] leading-[1.6] text-on-surface-variant">
+          <p className="px-6 text-center font-body text-[16px] md:text-[18px] leading-[1.6] text-on-surface-variant">
             Your cart is empty. Add items before checkout.
           </p>
           <Link
@@ -147,9 +147,9 @@ export default function CheckoutPage() {
       <GradientBackground />
       <TopNavBar />
 
-      <main className="flex-grow w-full max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)]">
+      <main className="flex-grow w-full max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-10 md:py-[var(--spacing-stack-lg)]">
         <motion.h1
-          className="font-display text-[36px] md:text-[48px] leading-[1.2] text-on-surface mb-[var(--spacing-stack-lg)]"
+          className="font-display text-[32px] md:text-[48px] leading-[1.2] text-on-surface mb-[var(--spacing-stack-lg)]"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
@@ -160,13 +160,13 @@ export default function CheckoutPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-[var(--spacing-stack-lg)] items-start">
             {/* Form Fields */}
             <motion.div
-              className="lg:col-span-7 flex flex-col gap-[var(--spacing-stack-md)]"
+              className="order-2 lg:order-1 lg:col-span-7 flex flex-col gap-[var(--spacing-stack-md)]"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
             >
               {/* Contact Info */}
-              <section className="bg-surface p-6 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow">
+              <section className="bg-surface p-5 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow">
                 <h2 className="font-display text-[24px] leading-[1.4] text-on-surface mb-6 pb-4 border-b border-outline-variant/30">
                   Contact Information
                 </h2>
@@ -180,7 +180,7 @@ export default function CheckoutPage() {
               </section>
 
               {/* Shipping Address */}
-              <section className="bg-surface p-6 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow">
+              <section className="bg-surface p-5 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow">
                 <h2 className="font-display text-[24px] leading-[1.4] text-on-surface mb-6 pb-4 border-b border-outline-variant/30">
                   Shipping Address
                 </h2>
@@ -223,12 +223,12 @@ export default function CheckoutPage() {
 
             {/* Order Summary */}
             <motion.div
-              className="lg:col-span-5 bg-surface-container-low rounded-xl p-6 md:p-8 ambient-shadow-sm border border-outline-variant/20 sticky top-32"
+              className="order-1 lg:order-2 lg:col-span-5 bg-surface-container-low rounded-xl p-5 md:p-8 ambient-shadow-sm border border-outline-variant/20 lg:sticky lg:top-32"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <h2 className="font-display text-[24px] leading-[1.4] text-on-surface mb-6 pb-4 border-b border-outline-variant/30">
+              <h2 className="font-display text-[22px] md:text-[24px] leading-[1.4] text-on-surface mb-6 pb-4 border-b border-outline-variant/30">
                 Order Summary
               </h2>
 
@@ -293,7 +293,7 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full mt-6 bg-tertiary-container text-on-tertiary-container font-body text-[18px] leading-[1.6] py-4 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 custom-shadow disabled:opacity-50"
+                className="w-full mt-6 bg-tertiary-container text-on-tertiary-container font-body text-[16px] md:text-[18px] leading-[1.6] py-4 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 custom-shadow disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>

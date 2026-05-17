@@ -75,12 +75,12 @@ export default function ProductCard({
               e.stopPropagation();
               setQuickViewOpen(true);
             }}
-            className="absolute top-3 right-3 z-[3] w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm text-[#2A1A14] shadow-lg flex items-center justify-center opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:text-primary hover:bg-white"
+            className="absolute top-3 right-3 z-[3] w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm text-[#2A1A14] shadow-lg flex items-center justify-center opacity-100 translate-y-0 md:opacity-0 md:translate-y-2 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-300 hover:text-primary hover:bg-white"
             aria-label={`Quick view ${product.name}`}
           >
             <span className="material-symbols-outlined text-[20px]">visibility</span>
           </button>
-          <div className="absolute inset-x-0 bottom-0 z-[3] translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-black/70 via-black/35 to-transparent p-4">
+          <div className="absolute inset-x-0 bottom-0 z-[3] translate-y-0 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-black/70 via-black/35 to-transparent p-4">
             <motion.button
               type="button"
               onClick={handleAddToCart}
@@ -95,10 +95,10 @@ export default function ProductCard({
         </div>
         <Link href={`/products/${product.slug}`} className="flex flex-col flex-grow">
         <div className="flex flex-col flex-grow">
-          <h3 className="font-display text-[24px] leading-[1.4] text-on-surface mb-1 group-hover:text-primary transition-colors">
+          <h3 className="font-display text-[20px] md:text-[24px] leading-[1.3] md:leading-[1.4] text-on-surface mb-1 group-hover:text-primary transition-colors">
             {product.name}
           </h3>
-          <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant mb-2">
+          <p className="font-body text-[14px] md:text-[16px] leading-[1.6] text-on-surface-variant mb-2">
             {product.category
               .split("-")
               .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -110,7 +110,7 @@ export default function ProductCard({
                 {formatPrice(product.price)}
               </span>
               {product.compare_price && (
-                <span className="font-body text-[16px] leading-[1.6] text-outline line-through">
+                <span className="font-body text-[14px] md:text-[16px] leading-[1.6] text-outline line-through">
                   {formatPrice(product.compare_price)}
                 </span>
               )}
@@ -129,7 +129,7 @@ export default function ProductCard({
             onClick={() => setQuickViewOpen(false)}
           >
             <motion.div
-              className="bg-surface rounded-2xl overflow-hidden max-w-3xl w-full grid grid-cols-1 md:grid-cols-2 shadow-2xl"
+              className="bg-surface rounded-2xl overflow-hidden max-w-3xl w-full max-h-[90vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 shadow-2xl"
               initial={{ opacity: 0, y: 24, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 16, scale: 0.98 }}
@@ -160,7 +160,7 @@ export default function ProductCard({
                 <p className="font-body text-[12px] leading-[1.0] tracking-[0.1em] uppercase text-tertiary mb-3">
                   {product.category.split("-").join(" ")} • {product.variant_name}
                 </p>
-                <h3 className="font-display text-[32px] leading-[1.2] text-on-surface mb-4">
+                <h3 className="font-display text-[28px] md:text-[32px] leading-[1.2] text-on-surface mb-4">
                   {product.name}
                 </h3>
                 <div className="flex items-center gap-3 mb-5">

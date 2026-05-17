@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import ProductCard from "@/components/product/ProductCard";
 import { useCart } from "@/lib/cart";
 import { getProductBySlug, listRelatedProducts } from "@/lib/supabase/data";
@@ -144,8 +145,8 @@ export default function ProductDetailPage({
     >
       <TopNavBar />
 
-      <main className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)] flex-grow">
-        <div className="mb-[var(--spacing-stack-md)] flex items-center gap-2 font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
+        <main className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-10 md:py-[var(--spacing-stack-lg)] pb-24 md:pb-[var(--spacing-stack-lg)] flex-grow">
+        <div className="mb-[var(--spacing-stack-md)] flex flex-wrap items-center gap-2 font-body text-[11px] md:text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
           <Link href="/" className="hover:text-primary transition-colors">
             Home
           </Link>
@@ -154,10 +155,10 @@ export default function ProductDetailPage({
             Shop
           </Link>
           <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-          <span className="text-on-surface">{product.name}</span>
+          <span className="text-on-surface truncate max-w-[180px] md:max-w-none">{product.name}</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-[var(--spacing-gutter)] mb-[var(--spacing-stack-lg)]">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-[var(--spacing-gutter)] mb-[var(--spacing-stack-lg)]">
           <motion.div
             className="md:col-span-7 flex flex-col gap-4"
             initial={{ opacity: 0, x: -30 }}
@@ -180,7 +181,7 @@ export default function ProductDetailPage({
               )}
             </div>
             {product.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-4 gap-3 md:gap-4">
                 {product.images.map((img, i) => (
                   <button
                     key={img}
@@ -204,37 +205,37 @@ export default function ProductDetailPage({
             )}
           </motion.div>
 
-          <motion.div
-            className="md:col-span-5 flex flex-col pt-4 md:pt-0"
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            <h1 className="font-display text-[36px] md:text-[48px] leading-[1.2] text-on-surface mb-2">
-              {product.name}
-            </h1>
-            <p className="font-body text-[18px] leading-[1.6] text-on-surface-variant mb-6">
-              {product.category
-                .split("-")
-                .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            <motion.div
+              className="md:col-span-5 flex flex-col pt-2 md:pt-0"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <h1 className="font-display text-[32px] md:text-[48px] leading-[1.2] text-on-surface mb-2">
+                {product.name}
+              </h1>
+              <p className="font-body text-[16px] md:text-[18px] leading-[1.6] text-on-surface-variant mb-6">
+                {product.category
+                  .split("-")
+                  .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
                 .join(" ")}{" "}
               • {product.variant_name}
             </p>
 
             <div className="flex items-end gap-3 mb-6">
-              <span className="font-display text-[32px] leading-[1.3] text-on-surface font-semibold">
-                {formatPrice(product.price)}
-              </span>
-              {product.compare_price && (
-                <span className="font-body text-[18px] leading-[1.6] text-outline line-through mb-1">
-                  {formatPrice(product.compare_price)}
+                <span className="font-display text-[28px] md:text-[32px] leading-[1.3] text-on-surface font-semibold">
+                  {formatPrice(product.price)}
                 </span>
-              )}
+                {product.compare_price && (
+                  <span className="font-body text-[16px] md:text-[18px] leading-[1.6] text-outline line-through mb-1">
+                    {formatPrice(product.compare_price)}
+                  </span>
+                )}
             </div>
 
             <div className="w-full h-px bg-outline-variant/50 my-4" />
 
-            <p className="font-body text-[16px] leading-[1.6] text-on-surface mb-8">
+            <p className="font-body text-[15px] md:text-[16px] leading-[1.6] text-on-surface mb-8">
               {product.description}
             </p>
 
@@ -267,14 +268,14 @@ export default function ProductDetailPage({
                   <span className="material-symbols-outlined">add</span>
                 </button>
               </div>
-              <button
-                onClick={handleAddToCart}
-                className="w-full bg-tertiary-container hover:bg-[#b8965c] text-on-tertiary-container font-body text-[16px] leading-[1.6] py-4 rounded-lg flex items-center justify-center gap-2 transition-colors duration-200"
-              >
-                <span className="material-symbols-outlined">shopping_bag</span>
-                Add to Cart
-              </button>
-            </div>
+                <button
+                  onClick={handleAddToCart}
+                  className="hidden md:flex w-full bg-tertiary-container hover:bg-[#b8965c] text-on-tertiary-container font-body text-[16px] leading-[1.6] py-4 rounded-lg items-center justify-center gap-2 transition-colors duration-200"
+                >
+                  <span className="material-symbols-outlined">shopping_bag</span>
+                  Add to Cart
+                </button>
+              </div>
 
             <div className="flex flex-col border-t border-outline-variant/50">
               <details className="group py-4 border-b border-outline-variant/50" open>
@@ -316,9 +317,9 @@ export default function ProductDetailPage({
 
         {relatedProducts.length > 0 && (
           <section className="mt-[var(--spacing-stack-lg)] pt-[var(--spacing-stack-lg)] border-t border-outline-variant/50">
-            <h2 className="font-display text-[24px] leading-[1.4] text-on-surface mb-[var(--spacing-stack-md)] text-center">
-              Complete Your Ritual
-            </h2>
+              <h2 className="font-display text-[22px] md:text-[24px] leading-[1.4] text-on-surface mb-[var(--spacing-stack-md)] text-center">
+                Complete Your Ritual
+              </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct, i) => (
                 <ProductCard key={relatedProduct.id} product={relatedProduct} index={i} />
@@ -328,7 +329,24 @@ export default function ProductDetailPage({
         )}
       </main>
 
+      <div className="md:hidden fixed bottom-20 inset-x-0 z-40 px-4">
+        <div className="bg-surface-container-lowest/95 backdrop-blur rounded-2xl border border-outline-variant/30 shadow-[0_12px_24px_-12px_rgba(42,26,20,0.32)] px-3 py-2.5 flex items-center gap-3">
+          <div className="flex flex-col min-w-[82px]">
+            <span className="font-body text-[11px] uppercase tracking-[0.08em] text-on-surface-variant">Price</span>
+            <span className="font-display text-[22px] leading-[1] text-on-surface">{formatPrice(product.price)}</span>
+          </div>
+          <button
+            onClick={handleAddToCart}
+            className="flex-1 h-11 rounded-xl bg-tertiary-container text-on-tertiary-container font-body text-[13px] tracking-[0.08em] uppercase font-semibold flex items-center justify-center gap-1.5"
+          >
+            <span className="material-symbols-outlined text-[18px]">shopping_bag</span>
+            Add {quantity > 1 ? `${quantity} items` : "to cart"}
+          </button>
+        </div>
+      </div>
+
       <Footer />
+      <MobileBottomNav />
       <WhatsAppFAB />
     </div>
   );

@@ -21,6 +21,11 @@ export default function TopNavBar() {
   const { scrollY } = useScroll();
   const currentSearch = typeof window !== "undefined" ? window.location.search : "";
 
+  const isAdminRoute = pathname.startsWith("/admin");
+  const showPromoBar = !isAdminRoute;
+  const showMobileSearch = !isAdminRoute && (pathname === "/" || pathname.startsWith("/products"));
+  const drawerTop = showPromoBar ? (showMobileSearch ? 148 : 100) : 68;
+
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 20);
   });
@@ -54,21 +59,36 @@ export default function TopNavBar() {
           ? "bg-white/95 shadow-lg backdrop-blur-lg border-b border-outline-variant"
           : "bg-white/70 backdrop-blur-md border-b border-transparent"
       }`}
-      style={{
-        height: "68px",
-      }}
     >
-      <div className="flex justify-between items-center h-full px-5 md:px-16 max-w-[1280px] mx-auto">
-        {/* Brand Logo */}
-        <Link
-          href="/"
-          className="font-display text-on-surface tracking-tight"
-          style={{ fontSize: "28px", fontWeight: 600 }}
-        >
-          Saaral Cosmetics
-        </Link>
+      {showPromoBar && (
+        <div className="h-8 bg-primary text-on-primary px-4 flex items-center justify-center">
+          <p className="font-body text-[11px] tracking-[0.08em] uppercase text-center">
+            Product of the month: use code <strong>HURRY20</strong> for 20% off
+          </p>
+        </div>
+      )}
 
-        {/* Desktop Navigation */}
+      <div className="flex justify-between items-center h-[68px] px-4 md:px-16 max-w-[1280px] mx-auto">
+        <div className="flex items-center gap-2 md:gap-3">
+          <button
+            className="md:hidden p-2"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            aria-label="Toggle menu"
+          >
+            <span className="material-symbols-outlined text-on-surface text-[24px]">
+              {mobileMenuOpen ? "close" : "menu"}
+            </span>
+          </button>
+
+          <Link
+            href="/"
+            className="font-display text-on-surface tracking-tight"
+            style={{ fontSize: "clamp(26px, 4.5vw, 32px)", fontWeight: 600 }}
+          >
+            Saaral
+          </Link>
+        </div>
+
         <div className="hidden md:flex items-center gap-8">
           {navItems.map((item) => (
             <Link
@@ -86,17 +106,23 @@ export default function TopNavBar() {
           ))}
         </div>
 
-        {/* Trailing Icons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 md:gap-3">
+          <Link
+            href="/products"
+            className="p-2 hover:bg-surface-container-high/50 rounded-full transition-colors"
+            aria-label="Search products"
+          >
+            <span className="material-symbols-outlined text-on-surface text-[24px]">
+              search
+            </span>
+          </Link>
+
           <Link
             href="/cart"
             className="relative p-2 hover:bg-surface-container-high/50 rounded-full transition-colors"
             aria-label="Shopping cart"
           >
-            <span
-              className="material-symbols-outlined text-on-surface"
-              style={{ fontSize: "24px" }}
-            >
+            <span className="material-symbols-outlined text-on-surface text-[24px]">
               shopping_bag
             </span>
             {itemCount > 0 && (
@@ -105,37 +131,39 @@ export default function TopNavBar() {
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-on-primary text-[10px] font-bold rounded-full flex items-center justify-center"
+                className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-primary text-on-primary text-[10px] font-bold rounded-full flex items-center justify-center"
               >
                 {itemCount > 9 ? "9+" : itemCount}
               </motion.span>
             )}
           </Link>
+
           <Link
             href="/admin"
             className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50 transition-colors"
             aria-label="Admin login"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
+            <span className="material-symbols-outlined text-[20px]">
               admin_panel_settings
             </span>
             <span className="font-body text-[13px] tracking-[0.04em]">Admin</span>
           </Link>
-
-          {/* Mobile Hamburger */}
-          <button
-            className="md:hidden p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            <span className="material-symbols-outlined text-on-surface" style={{ fontSize: "24px" }}>
-              {mobileMenuOpen ? "close" : "menu"}
-            </span>
-          </button>
         </div>
       </div>
 
-      {/* Mobile Menu Drawer */}
+      {showMobileSearch && (
+        <div className="md:hidden border-t border-outline-variant/30 px-4 pb-3">
+          <Link
+            href="/products"
+            className="h-11 mt-2 rounded-xl border border-outline-variant/40 bg-surface-container-lowest flex items-center gap-2 px-3 text-on-surface-variant"
+            aria-label="Browse products"
+          >
+            <span className="material-symbols-outlined text-[20px]">search</span>
+            <span className="font-body text-[15px]">Search products, rituals, ingredients</span>
+          </Link>
+        </div>
+      )}
+
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
@@ -143,7 +171,8 @@ export default function TopNavBar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="md:hidden absolute top-[68px] left-0 right-0 bg-surface-container-low border-b border-outline-variant/40 shadow-lg z-50"
+            className="md:hidden absolute left-0 right-0 bg-surface-container-low border-b border-outline-variant/40 shadow-lg z-50"
+            style={{ top: `${drawerTop}px` }}
           >
             <div className="flex flex-col px-5 py-4 gap-1">
               {navItems.map((item) => (
@@ -163,15 +192,13 @@ export default function TopNavBar() {
               ))}
               <div className="border-t border-outline-variant/40 mt-2 pt-2">
                 <Link
-                  href="/admin"
+                  href="/contact"
                   onClick={() => setMobileMenuOpen(false)}
                   className="py-3 px-3 rounded-lg transition-colors font-body text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface flex items-center gap-2"
                   style={{ fontSize: "15px", fontWeight: 500 }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
-                    admin_panel_settings
-                  </span>
-                  Admin Login
+                  <span className="material-symbols-outlined text-[20px]">person</span>
+                  My Account
                 </Link>
               </div>
             </div>

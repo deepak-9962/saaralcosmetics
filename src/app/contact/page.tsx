@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import GradientBackground from "@/components/layout/GradientBackground";
 
 export default function ContactPage() {
@@ -13,9 +14,9 @@ export default function ContactPage() {
       <GradientBackground />
       <TopNavBar />
 
-      <main className="flex-grow flex flex-col">
+      <main className="flex-grow flex flex-col pb-24 md:pb-0">
         {/* Brand Story Section */}
-        <section className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)] md:py-24 w-full grid grid-cols-1 md:grid-cols-2 gap-[var(--spacing-gutter)] items-center">
+        <section className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-10 md:py-24 w-full grid grid-cols-1 md:grid-cols-2 gap-[var(--spacing-gutter)] items-center">
           <motion.div
             className="flex flex-col gap-[var(--spacing-stack-md)] order-2 md:order-1"
             initial={{ opacity: 0, x: -30 }}
@@ -25,12 +26,12 @@ export default function ContactPage() {
             <span className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-tertiary uppercase tracking-widest">
               About Saaral
             </span>
-            <h1 className="font-display text-[36px] md:text-[48px] leading-[1.2] md:tracking-[-0.01em] text-on-surface tracking-tight">
+            <h1 className="font-display text-[32px] md:text-[48px] leading-[1.2] md:tracking-[-0.01em] text-on-surface tracking-tight">
               Apothecary Heritage,
               <br />
               Modern Rituals.
             </h1>
-            <p className="font-body text-[18px] leading-[1.6] text-on-surface-variant max-w-lg">
+            <p className="font-body text-[16px] md:text-[18px] leading-[1.6] text-on-surface-variant max-w-lg">
               Born from a lineage of traditional botanical mastery, Saaral
               Cosmetics bridges the gap between ancient apothecary wisdom and
               contemporary skincare science. We believe in the tactile luxury
@@ -40,7 +41,7 @@ export default function ContactPage() {
             </p>
           </motion.div>
           <motion.div
-            className="order-1 md:order-2 w-full h-[400px] md:h-[500px] rounded-xl overflow-hidden shadow-[0_20px_40px_rgba(26,26,26,0.04)] bg-surface-container"
+            className="order-1 md:order-2 w-full h-[320px] md:h-[500px] rounded-xl overflow-hidden shadow-[0_20px_40px_rgba(26,26,26,0.04)] bg-surface-container"
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
@@ -68,7 +69,7 @@ export default function ContactPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="font-display text-[32px] leading-[1.3] text-on-surface">
+            <h2 className="font-display text-[28px] md:text-[32px] leading-[1.3] text-on-surface">
               Get in Touch
             </h2>
             <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant">
@@ -93,7 +94,7 @@ export default function ContactPage() {
                   </span>
                   Priority Support
                 </span>
-                <h3 className="font-display text-[32px] leading-[1.3] text-on-surface">
+                <h3 className="font-display text-[28px] md:text-[32px] leading-[1.3] text-on-surface">
                   Chat with our Apothecary Experts
                 </h3>
                 <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant max-w-md">
@@ -106,7 +107,7 @@ export default function ContactPage() {
                 href="https://wa.me/918428251423?text=Hi%2C%20I%20have%20a%20question%20about%20Saaral%20Cosmetics"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-tertiary-container text-on-tertiary-container px-8 py-4 rounded-full font-body text-[16px] leading-[1.6] font-medium flex items-center gap-3 hover:bg-[#b8973c] transition-colors duration-200"
+                className="w-full sm:w-auto bg-tertiary-container text-on-tertiary-container px-8 py-4 rounded-full font-body text-[16px] leading-[1.6] font-medium flex items-center justify-center gap-3 hover:bg-[#b8973c] transition-colors duration-200"
               >
                 <span className="material-symbols-outlined">chat</span>
                 Start WhatsApp Chat
@@ -133,7 +134,7 @@ export default function ContactPage() {
                 </p>
                 <a
                   href="mailto:saaralcosmetics@gmail.com"
-                  className="font-body text-[16px] leading-[1.6] text-primary hover:text-tertiary transition-colors border-b border-transparent hover:border-tertiary inline-block w-max pb-1"
+                  className="font-body text-[16px] leading-[1.6] text-primary hover:text-tertiary transition-colors border-b border-transparent hover:border-tertiary inline-block w-max break-all pb-1"
                 >
                   saaralcosmetics@gmail.com
                 </a>
@@ -166,6 +167,7 @@ export default function ContactPage() {
       </main>
 
       <Footer />
+      <MobileBottomNav />
       <WhatsAppFAB />
     </div>
   );

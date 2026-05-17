@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import GradientBackground from "@/components/layout/GradientBackground";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/utils";
@@ -18,11 +19,11 @@ export default function CartPage() {
       <GradientBackground />
       <TopNavBar />
 
-      <main className="flex-grow w-full max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)]">
+      <main className="flex-grow w-full max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-10 md:py-[var(--spacing-stack-lg)] pb-28 md:pb-[var(--spacing-stack-lg)]">
         {/* Header */}
         <div className="mb-[var(--spacing-stack-lg)] flex flex-col md:flex-row justify-between items-start md:items-end gap-[var(--spacing-stack-sm)]">
           <motion.h1
-            className="font-display text-[36px] md:text-[48px] leading-[1.2] text-on-surface"
+              className="font-display text-[32px] md:text-[48px] leading-[1.2] text-on-surface"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -45,7 +46,7 @@ export default function CartPage() {
             <span className="material-symbols-outlined text-6xl text-outline-variant">
               shopping_bag
             </span>
-            <p className="font-body text-[18px] leading-[1.6] text-on-surface-variant">
+            <p className="font-body text-[16px] md:text-[18px] leading-[1.6] text-on-surface-variant">
               Your cart is empty
             </p>
             <Link
@@ -75,10 +76,10 @@ export default function CartPage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="grid grid-cols-1 md:grid-cols-12 gap-[var(--spacing-gutter)] py-[var(--spacing-stack-md)] border-b border-outline-variant/30 items-center relative"
+                    className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-[var(--spacing-gutter)] py-[var(--spacing-stack-md)] border-b border-outline-variant/30 items-center"
                   >
                     {/* Product Info */}
-                    <div className="md:col-span-6 flex gap-[var(--spacing-gutter)] items-center">
+                    <div className="md:col-span-6 flex gap-4 md:gap-[var(--spacing-gutter)] items-center">
                       <div className="w-24 h-32 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden relative">
                         <Image
                           src={item.image}
@@ -89,13 +90,13 @@ export default function CartPage() {
                         />
                       </div>
                       <div className="flex flex-col gap-1">
-                        <h3 className="font-display text-[24px] leading-[1.4] text-on-surface">
-                          {item.name}
-                        </h3>
+                          <h3 className="font-display text-[20px] md:text-[24px] leading-[1.3] md:leading-[1.4] text-on-surface">
+                            {item.name}
+                          </h3>
                         <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant">
                           {item.variant_name}
                         </p>
-                        <span className="md:hidden font-body text-[18px] leading-[1.6] text-on-surface mt-2">
+                        <span className="md:hidden font-body text-[16px] leading-[1.6] text-on-surface mt-2">
                           {formatPrice(item.price * item.quantity)}
                         </span>
                       </div>
@@ -138,7 +139,7 @@ export default function CartPage() {
                     </div>
 
                     {/* Remove */}
-                    <div className="md:col-span-1 flex justify-end md:justify-center absolute md:relative right-0 top-0 mt-[var(--spacing-stack-md)] mr-[var(--spacing-margin-mobile)] md:mt-0 md:mr-0">
+                    <div className="md:col-span-1 flex justify-end md:justify-center self-start md:self-center">
                       <button
                         onClick={() => removeItem(item.product_id)}
                         className="text-outline hover:text-error transition-colors p-2"
@@ -153,7 +154,7 @@ export default function CartPage() {
             </div>
 
             {/* Order Summary */}
-            <div className="lg:col-span-4 bg-surface-container-low rounded-xl p-[var(--spacing-stack-md)] ambient-shadow-sm border border-outline-variant/20 sticky top-32">
+            <div className="lg:col-span-4 bg-surface-container-low rounded-xl p-6 md:p-[var(--spacing-stack-md)] ambient-shadow-sm border border-outline-variant/20 lg:sticky lg:top-32">
               <h2 className="font-display text-[24px] leading-[1.4] text-on-surface mb-[var(--spacing-stack-md)] pb-[var(--spacing-stack-sm)] border-b border-outline-variant/30">
                 Order Summary
               </h2>
@@ -171,7 +172,7 @@ export default function CartPage() {
                 <span className="font-body text-[18px] leading-[1.6] text-on-surface">
                   Total
                 </span>
-                <span className="font-display text-[24px] leading-[1.4] text-on-surface">
+                <span className="font-display text-[22px] md:text-[24px] leading-[1.4] text-on-surface">
                    {formatPrice(total)}
                  </span>
               </div>
@@ -194,7 +195,26 @@ export default function CartPage() {
         )}
       </main>
 
+      {items.length > 0 && (
+        <div className="md:hidden fixed bottom-20 inset-x-0 z-40 px-4">
+          <div className="bg-surface-container-lowest/95 backdrop-blur rounded-2xl border border-outline-variant/30 shadow-[0_12px_24px_-12px_rgba(42,26,20,0.32)] px-3 py-2.5 flex items-center gap-3">
+            <div className="flex flex-col min-w-[86px]">
+              <span className="font-body text-[11px] uppercase tracking-[0.08em] text-on-surface-variant">Total</span>
+              <span className="font-display text-[22px] leading-[1] text-on-surface">{formatPrice(total)}</span>
+            </div>
+            <Link
+              href="/checkout"
+              className="flex-1 h-11 rounded-xl bg-tertiary-container text-on-tertiary-container font-body text-[13px] tracking-[0.08em] uppercase font-semibold flex items-center justify-center gap-1.5"
+            >
+              <span className="material-symbols-outlined text-[18px]">payments</span>
+              Checkout
+            </Link>
+          </div>
+        </div>
+      )}
+
       <Footer />
+      <MobileBottomNav />
       <WhatsAppFAB />
     </div>
   );
