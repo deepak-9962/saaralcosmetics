@@ -6,6 +6,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCart } from "@/lib/cart";
+import { useWishlist } from "@/lib/wishlist";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
@@ -21,7 +22,9 @@ export default function ProductCard({
   showBadge,
 }: ProductCardProps) {
   const { addItem } = useCart();
+  const { toggleItem, isInWishlist } = useWishlist();
   const [quickViewOpen, setQuickViewOpen] = useState(false);
+  const isWishlisted = isInWishlist(product.id);
 
   const addProduct = () => {
     addItem({
@@ -39,6 +42,18 @@ export default function ProductCard({
     e.preventDefault();
     e.stopPropagation();
     addProduct();
+  };
+
+  const handleToggleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const willBeWishlisted = !isWishlisted;
+    toggleItem(product);
+    toast.success(
+      willBeWishlisted
+        ? `${product.name} added to wishlist`
+        : `${product.name} removed from wishlist`,
+    );
   };
 
   return (
@@ -70,12 +85,33 @@ export default function ProductCard({
           )}
           <button
             type="button"
+            onClick={handleToggleWishlist}
+            className={`absolute top-3 right-3 z-[3] w-9 h-9 rounded-full backdrop-blur-sm shadow-lg flex items-center justify-center opacity-100 translate-y-0 md:opacity-0 md:translate-y-2 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-300 ${
+              isWishlisted
+                ? "bg-white text-primary"
+                : "bg-white/90 text-[#2A1A14] hover:text-primary hover:bg-white"
+            }`}
+            aria-label={
+              isWishlisted
+                ? `Remove ${product.name} from wishlist`
+                : `Add ${product.name} to wishlist`
+            }
+          >
+            <span
+              className="material-symbols-outlined text-[20px]"
+              style={{ fontVariationSettings: `'FILL' ${isWishlisted ? 1 : 0}` }}
+            >
+              favorite
+            </span>
+          </button>
+          <button
+            type="button"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               setQuickViewOpen(true);
             }}
-            className="absolute top-3 right-3 z-[3] w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm text-[#2A1A14] shadow-lg flex items-center justify-center opacity-100 translate-y-0 md:opacity-0 md:translate-y-2 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-300 hover:text-primary hover:bg-white"
+            className="absolute top-3 right-14 z-[3] w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm text-[#2A1A14] shadow-lg flex items-center justify-center opacity-100 translate-y-0 md:opacity-0 md:translate-y-2 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-300 hover:text-primary hover:bg-white"
             aria-label={`Quick view ${product.name}`}
           >
             <span className="material-symbols-outlined text-[20px]">visibility</span>

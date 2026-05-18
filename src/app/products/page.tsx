@@ -111,7 +111,7 @@ function ProductsContent() {
           </div>
         </motion.section>
 
-        <section className="sticky top-[148px] md:top-[100px] z-30 -mx-[var(--spacing-margin-mobile)] md:-mx-[var(--spacing-margin-desktop)] px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-3 border-y border-outline-variant/25 bg-surface-container-lowest/95 backdrop-blur">
+        <section className="-mx-[var(--spacing-margin-mobile)] md:-mx-[var(--spacing-margin-desktop)] px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-3 border-y border-outline-variant/25 bg-surface-container-lowest/95 backdrop-blur">
           <div className="overflow-x-auto no-scrollbar">
             <div className="flex w-max min-w-full gap-2 pb-2">
               {CATEGORIES.map((cat) => (

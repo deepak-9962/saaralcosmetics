@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/lib/cart";
+import { useWishlist } from "@/lib/wishlist";
 import { motion, AnimatePresence, useMotionValueEvent, useScroll } from "framer-motion";
 
 const navItems = [
@@ -15,6 +16,7 @@ const navItems = [
 
 export default function TopNavBar() {
   const { itemCount } = useCart();
+  const { itemCount: wishlistCount } = useWishlist();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
@@ -51,6 +53,8 @@ export default function TopNavBar() {
 
     return true;
   };
+
+  const wishlistActive = isActive("/wishlist");
 
   return (
     <nav
@@ -115,6 +119,34 @@ export default function TopNavBar() {
             <span className="material-symbols-outlined text-on-surface text-[24px]">
               search
             </span>
+          </Link>
+
+          <Link
+            href="/wishlist"
+            className={`relative hidden md:inline-flex p-2 rounded-full transition-colors ${
+              wishlistActive
+                ? "text-primary bg-primary-container/30"
+                : "text-on-surface hover:bg-surface-container-high/50"
+            }`}
+            aria-label="Wishlist"
+          >
+            <span
+              className="material-symbols-outlined text-[24px]"
+              style={{ fontVariationSettings: `'FILL' ${wishlistActive ? 1 : 0}` }}
+            >
+              favorite
+            </span>
+            {wishlistCount > 0 && (
+              <motion.span
+                key={wishlistCount}
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-primary text-on-primary text-[10px] font-bold rounded-full flex items-center justify-center"
+              >
+                {wishlistCount > 9 ? "9+" : wishlistCount}
+              </motion.span>
+            )}
           </Link>
 
           <Link
@@ -192,13 +224,13 @@ export default function TopNavBar() {
               ))}
               <div className="border-t border-outline-variant/40 mt-2 pt-2">
                 <Link
-                  href="/contact"
+                  href="/wishlist"
                   onClick={() => setMobileMenuOpen(false)}
                   className="py-3 px-3 rounded-lg transition-colors font-body text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface flex items-center gap-2"
                   style={{ fontSize: "15px", fontWeight: 500 }}
                 >
-                  <span className="material-symbols-outlined text-[20px]">person</span>
-                  My Account
+                  <span className="material-symbols-outlined text-[20px]">favorite</span>
+                  Wishlist
                 </Link>
               </div>
             </div>

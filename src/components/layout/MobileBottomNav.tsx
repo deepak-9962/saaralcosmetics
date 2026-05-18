@@ -8,7 +8,7 @@ const navItems = [
   { label: "Home", href: "/", icon: "home" },
   { label: "Shop", href: "/products", icon: "storefront" },
   { label: "Cart", href: "/cart", icon: "shopping_bag" },
-  { label: "Account", href: "/contact", icon: "person" },
+  { label: "Wishlist", href: "/wishlist", icon: "favorite" },
 ];
 
 function isActive(pathname: string, href: string) {

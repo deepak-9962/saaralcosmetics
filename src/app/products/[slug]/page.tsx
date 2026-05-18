@@ -9,6 +9,7 @@ import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
+import GradientBackground from "@/components/layout/GradientBackground";
 import ProductCard from "@/components/product/ProductCard";
 import { useCart } from "@/lib/cart";
 import { getProductBySlug, listRelatedProducts } from "@/lib/supabase/data";
@@ -74,11 +75,8 @@ export default function ProductDetailPage({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col" style={{
-        background:
-          "radial-gradient(circle at 20% 30%, #F2D5E0 0%, transparent 40%), radial-gradient(circle at 80% 70%, #E9E2F8 0%, transparent 40%), radial-gradient(circle at 50% 50%, #FFF7FA 0%, #FFF0F5 100%)",
-        backgroundAttachment: "fixed",
-      }}>
+      <div className="min-h-screen flex flex-col grain-overlay">
+        <GradientBackground />
         <TopNavBar />
         <main className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)] flex-grow">
           <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant">
@@ -92,11 +90,8 @@ export default function ProductDetailPage({
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col" style={{
-        background:
-          "radial-gradient(circle at 20% 30%, #F2D5E0 0%, transparent 40%), radial-gradient(circle at 80% 70%, #E9E2F8 0%, transparent 40%), radial-gradient(circle at 50% 50%, #FFF7FA 0%, #FFF0F5 100%)",
-        backgroundAttachment: "fixed",
-      }}>
+      <div className="min-h-screen flex flex-col grain-overlay">
+        <GradientBackground />
         <TopNavBar />
         <main className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)] flex-grow">
           <p className="font-body text-[16px] leading-[1.6] text-error">{error}</p>
@@ -114,11 +109,8 @@ export default function ProductDetailPage({
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col" style={{
-        background:
-          "radial-gradient(circle at 20% 30%, #F2D5E0 0%, transparent 40%), radial-gradient(circle at 80% 70%, #E9E2F8 0%, transparent 40%), radial-gradient(circle at 50% 50%, #FFF7FA 0%, #FFF0F5 100%)",
-        backgroundAttachment: "fixed",
-      }}>
+      <div className="min-h-screen flex flex-col grain-overlay">
+        <GradientBackground />
         <TopNavBar />
         <main className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)] flex-grow">
           <h1 className="font-display text-[32px] leading-[1.3] text-on-surface">Product not found</h1>
@@ -135,14 +127,8 @@ export default function ProductDetailPage({
   }
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{
-        background:
-          "radial-gradient(circle at 20% 30%, #F2D5E0 0%, transparent 40%), radial-gradient(circle at 80% 70%, #E9E2F8 0%, transparent 40%), radial-gradient(circle at 50% 50%, #FFF7FA 0%, #FFF0F5 100%)",
-        backgroundAttachment: "fixed",
-      }}
-    >
+    <div className="min-h-screen flex flex-col grain-overlay">
+      <GradientBackground />
       <TopNavBar />
 
         <main className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-10 md:py-[var(--spacing-stack-lg)] pb-24 md:pb-[var(--spacing-stack-lg)] flex-grow">

@@ -82,6 +82,11 @@ export interface CartState {
   itemCount: number;
 }
 
+export interface WishlistState {
+  items: Product[];
+  itemCount: number;
+}
+
 // ============================================
 // UI TYPES
 // ============================================
