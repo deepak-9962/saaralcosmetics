@@ -140,27 +140,6 @@ export default function ContactPage() {
                 </a>
               </motion.div>
 
-              <motion.div
-                className="bg-surface-container-lowest rounded-xl p-[var(--spacing-stack-md)] flex flex-col gap-[var(--spacing-stack-sm)] border border-outline-variant/40 shadow-[0_5px_15px_rgba(26,26,26,0.02)] h-full justify-center"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-              >
-                <span className="material-symbols-outlined text-tertiary-container text-3xl">
-                  location_on
-                </span>
-                <h4 className="font-body text-[18px] leading-[1.6] font-medium text-on-surface mt-2">
-                  Flagship Studio
-                </h4>
-                <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant">
-                  128 Heritage Row,
-                  <br />
-                  Botanical District,
-                  <br />
-                  NY 10012
-                </p>
-              </motion.div>
             </div>
           </div>
         </section>
