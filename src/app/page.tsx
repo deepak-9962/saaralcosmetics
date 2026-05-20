@@ -10,7 +10,7 @@ import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import GradientBackground from "@/components/layout/GradientBackground";
 import ProductCard from "@/components/product/ProductCard";
-import { listFeaturedProducts } from "@/lib/supabase/data";
+import { listProducts } from "@/lib/supabase/data";
 import type { Product } from "@/lib/types";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -48,37 +48,62 @@ const ingredients = [
   { name: "Aloe Vera", note: "Deep Hydrator", description: "Deeply moisturises while calming sensitivity and redness.", icon: "water_drop", color: "#7E6B9A" },
 ];
 
-/* Scallop arch SVG — 8 wide temple domes, sharp crisp lines */
+const featuredBadges = ["Bestseller", "New Ritual", "Botanical Formula"];
+
+/* Scallop arch SVG — responsive: 4 domes on mobile, 8 on desktop */
 function ScallopArch() {
-  const d = "M0,96 Q90,0 180,96 Q270,0 360,96 Q450,0 540,96 Q630,0 720,96 Q810,0 900,96 Q990,0 1080,96 Q1170,0 1260,96 Q1350,0 1440,96";
+  // Mobile: 4 wide shallow domes across 400px viewBox
+  const mobileD = "M0,80 Q50,35 100,80 Q150,35 200,80 Q250,35 300,80 Q350,35 400,80";
+  // Desktop: 8 domes across 1440px viewBox
+  const desktopD = "M0,96 Q90,0 180,96 Q270,0 360,96 Q450,0 540,96 Q630,0 720,96 Q810,0 900,96 Q990,0 1080,96 Q1170,0 1260,96 Q1350,0 1440,96";
   return (
-    <div className="w-full overflow-hidden pointer-events-none" style={{ marginTop: "-96px", height: "96px" }} aria-hidden="true">
-      <svg viewBox="0 0 1440 96" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: "96px" }}>
-        {/* Section fill */}
-        <path d={d + " L1440,96 L0,96 Z"} fill="#FAF0EE" />
-        {/* Rose depth shadow — slightly wider, sharp */}
-        <path d={d} fill="none" stroke="#D4A0B0" strokeWidth="3" opacity="0.35" strokeLinecap="round" />
-        {/* Gold crisp line — no filter, fully sharp */}
-        <path d={d} fill="none" stroke="#C9A74D" strokeWidth="2.2" opacity="1" strokeLinecap="round" />
-        {/* Cream inner highlight */}
-        <path d={d} fill="none" stroke="#FFF5DC" strokeWidth="0.8" opacity="0.9" strokeLinecap="round" />
-      </svg>
-    </div>
+    <>
+      {/* Mobile arch — 4 wide shallow domes, pulls up exactly 60px */}
+      <div className="block md:hidden w-full overflow-hidden pointer-events-none" style={{ marginTop: "-60px", height: "60px" }} aria-hidden="true">
+        <svg viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: "60px" }}>
+          <path d={mobileD + " L400,80 L0,80 Z"} fill="#FAF0EE" />
+          <path d={mobileD} fill="none" stroke="#D4A0B0" strokeWidth="3" opacity="0.35" strokeLinecap="round" />
+          <path d={mobileD} fill="none" stroke="#C9A74D" strokeWidth="2.2" opacity="1" strokeLinecap="round" />
+          <path d={mobileD} fill="none" stroke="#FFF5DC" strokeWidth="1" opacity="0.9" strokeLinecap="round" />
+        </svg>
+      </div>
+      {/* Desktop arch — 8 domes, pulls up exactly 96px */}
+      <div className="hidden md:block w-full overflow-hidden pointer-events-none" style={{ marginTop: "-96px", height: "96px" }} aria-hidden="true">
+        <svg viewBox="0 0 1440 96" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: "96px" }}>
+          <path d={desktopD + " L1440,96 L0,96 Z"} fill="#FAF0EE" />
+          <path d={desktopD} fill="none" stroke="#D4A0B0" strokeWidth="3" opacity="0.35" strokeLinecap="round" />
+          <path d={desktopD} fill="none" stroke="#C9A74D" strokeWidth="2.2" opacity="1" strokeLinecap="round" />
+          <path d={desktopD} fill="none" stroke="#FFF5DC" strokeWidth="0.8" opacity="0.9" strokeLinecap="round" />
+        </svg>
+      </div>
+    </>
   );
 }
 
 
 export default function HomePage() {
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [bestsellingProducts, setBestsellingProducts] = useState<Product[]>([]);
   const [productsError, setProductsError] = useState<string | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
+  const bestsellerScrollRef = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
   const heroY = useTransform(scrollY, [0, 700], [0, 180]);
-  const heroOpacity = useTransform(scrollY, [0, 400], [1, 0.3]);
+
+  const scrollBestsellers = (direction: "left" | "right") => {
+    const container = bestsellerScrollRef.current;
+    if (!container) {
+      return;
+    }
+    const scrollAmount = Math.max(240, container.clientWidth * 0.7);
+    container.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  };
 
   useEffect(() => {
-    listFeaturedProducts(3)
-      .then(setFeaturedProducts)
+    listProducts()
+      .then(setBestsellingProducts)
       .catch((e) => setProductsError(e instanceof Error ? e.message : "Failed to load products."));
   }, []);
 
@@ -87,50 +112,95 @@ export default function HomePage() {
       <GradientBackground />
       <TopNavBar />
 
-      <main className="w-full flex-grow pb-24 md:pb-0">
+      <main className="w-full flex-grow pb-24 md:pb-0 overflow-x-hidden">
 
-        {/* ── HERO ── */}
-        <section ref={heroRef} className="relative w-full h-[86vh] min-h-[560px] md:h-screen md:min-h-[600px] max-h-[1000px] overflow-hidden flex items-end pb-14 md:pb-28">
-          <motion.div className="absolute inset-0 scale-110" style={{ y: heroY, opacity: heroOpacity }}>
-            <Image
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8-bjDTc3Unc9zLxtNxCaE-V4cqQ_GJugaVdFZ7k4KFoHrMZfddDoI9SbnMmFVkUq5GcU29rU0VzWiHa0Zc6oSJCd4GOZ8lF6r1HYEmhwn_5HhPDr0MZacIUBhW-TCLT3JU5SLCvhhiSoamVRGF_gN2MJitxL5Zij1_MYVG0nStfey3fSV6TtXDNFAocfdkKtl_ZpwTp3aRHvH1uSmF9qVXDgU7LZhBZlOL7sqVPPZ0DlfI8dP-8jFoOETvCwKNYFT3WBtNGUCFsxo"
-              alt="Saaral Cosmetics — Luxury botanical skincare"
-              fill className="object-cover object-center" priority sizes="100vw"
-            />
-          </motion.div>
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1A0A05]/80 via-[#2A1208]/30 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#1A0A05]/40 via-transparent to-transparent" />
+        {/* ── HERO — Split Layout ── */}
+        <section
+          ref={heroRef}
+          className="relative w-full flex flex-col md:flex-row md:min-h-screen md:max-h-[1000px] overflow-hidden"
+          style={{ background: "#FDF6F0" }}
+        >
+          {/* LEFT — Content */}
+          <div className="relative z-10 flex flex-col justify-start md:justify-center px-6 md:px-14 lg:px-20 pt-10 pb-8 md:py-0 md:w-1/2 lg:w-[52%]">
+            {/* Soft glow behind text */}
+            <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[380px] h-[380px] rounded-full pointer-events-none opacity-[0.07]" style={{ background: "radial-gradient(circle, #B06080 0%, transparent 70%)" }} />
 
-          <div className="relative z-10 w-full px-5 md:px-[72px]">
-            <div className="max-w-[1280px] mx-auto">
-              <motion.div className="flex items-center gap-3 mb-5" initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2, ease }}>
-                <div className="w-8 h-px bg-[#C9A74D]" />
-                <span className="label-caps text-[#C9A74D]">Apothecary Heritage · Tamil Nadu</span>
-              </motion.div>
-              <div className="overflow-hidden mb-6">
-                {["Botanical", "Rituals,", "Rediscovered."].map((word, i) => (
-                  <motion.div key={word} initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.35 + i * 0.12, ease }}>
-                    <span className="font-display text-white block" style={{ fontSize: "clamp(44px, 7vw, 88px)", lineHeight: 1.05, letterSpacing: "-0.02em" }}>{word}</span>
-                  </motion.div>
-                ))}
-              </div>
-              <motion.div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.85, ease }}>
-                <p className="font-body text-white/65 text-[15px] leading-relaxed max-w-xs hidden md:block">Ancient Indian botanicals, formulated for modern skin.</p>
-                <div className="flex items-center gap-3 sm:ml-auto">
-                  <Link href="/products" className="inline-flex items-center gap-2 px-6 sm:px-8 py-3.5 rounded-full font-body text-[11px] sm:text-[12px] tracking-[0.16em] sm:tracking-[0.18em] uppercase font-semibold transition-all duration-300 hover:scale-105" style={{ background: "#B06080", color: "#fff" }}>
-                    Shop the Ritual
-                  </Link>
-                  <Link href="/contact" className="inline-flex items-center gap-2 px-5 sm:px-6 py-3.5 rounded-full font-body text-[11px] sm:text-[12px] tracking-[0.16em] sm:tracking-[0.18em] uppercase font-medium border border-white/35 text-white/80 hover:border-white/70 hover:text-white transition-all duration-300">
-                    Our Story
-                  </Link>
-                </div>
-              </motion.div>
+            <motion.div className="flex items-center gap-3 mb-6" initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2, ease }}>
+              <div className="w-8 h-px bg-[#C9A74D]" />
+              <span className="label-caps text-[#C9A74D]">Apothecary Heritage · Tamil Nadu</span>
+            </motion.div>
+
+            <div className="overflow-hidden mb-6">
+              {["Botanical", "Rituals,", "Rediscovered."].map((word, i) => (
+                <motion.div key={word} initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.35 + i * 0.12, ease }}>
+                  <span className="font-display text-[#2A1A14] block" style={{ fontSize: "clamp(38px, 5.5vw, 82px)", lineHeight: 1.05, letterSpacing: "-0.02em" }}>{word}</span>
+                </motion.div>
+              ))}
             </div>
+
+            <motion.p
+              className="font-body text-on-surface-variant text-[15px] md:text-[16px] leading-relaxed max-w-[280px] mb-8"
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.75, ease }}
+            >
+              Ancient Indian botanicals, formulated for modern skin.
+            </motion.p>
+
+            <motion.div
+              className="flex flex-wrap items-center gap-3 mb-10"
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.9, ease }}
+            >
+              <Link href="/products" className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-body text-[12px] tracking-[0.16em] uppercase font-semibold transition-all duration-300 hover:scale-105 active:scale-95" style={{ background: "#B06080", color: "#fff" }}>
+                Shop the Ritual
+              </Link>
+              <Link href="/contact" className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-body text-[12px] tracking-[0.16em] uppercase font-medium border border-[#2A1A14]/25 text-[#2A1A14]/65 hover:border-[#B06080]/60 hover:text-[#B06080] transition-all duration-300">
+                Our Story
+              </Link>
+            </motion.div>
+
+            <motion.div className="flex flex-wrap gap-x-5 gap-y-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1 }}>
+              {["100% Natural", "Cruelty Free", "Made in India"].map((t) => (
+                <div key={t} className="flex items-center gap-1.5">
+                  <span className="text-[#C9A74D] text-[10px]">✦</span>
+                  <span className="font-body text-[11px] tracking-[0.07em] uppercase text-on-surface-variant">{t}</span>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* Scroll hint — desktop only */}
+            <motion.div className="hidden md:flex absolute bottom-8 left-14 lg:left-20 flex-col items-center gap-2" initial={{ opacity: 0 }} animate={{ opacity: 0.45 }} transition={{ delay: 1.4 }}>
+              <span className="label-caps text-on-surface-variant" style={{ writingMode: "vertical-rl" }}>Scroll</span>
+              <div className="w-px h-10 bg-gradient-to-b from-[#2A1A14]/40 to-transparent" />
+            </motion.div>
           </div>
 
-          <motion.div className="hidden md:flex absolute bottom-8 right-8 md:right-16 flex-col items-center gap-2 z-10" initial={{ opacity: 0 }} animate={{ opacity: 0.7 }} transition={{ delay: 1.4 }} style={{ animation: "scroll-bounce 2s ease-in-out infinite" }}>
-            <span className="label-caps text-white/60" style={{ writingMode: "vertical-rl" }}>Scroll</span>
-            <div className="w-px h-10 bg-gradient-to-b from-white/50 to-transparent" />
+          {/* RIGHT — Image */}
+          <motion.div
+            className="relative md:w-1/2 lg:w-[48%] h-[85vw] max-h-[420px] md:h-auto md:max-h-none md:self-stretch overflow-hidden"
+            initial={{ opacity: 0, x: 48 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1.1, delay: 0.25, ease }}
+          >
+            {/* Arch on top-left corner (desktop) */}
+            <div className="absolute inset-0 md:rounded-tl-[80px] overflow-hidden">
+              <motion.div className="absolute inset-0 scale-105" style={{ y: heroY }}>
+                <Image
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8-bjDTc3Unc9zLxtNxCaE-V4cqQ_GJugaVdFZ7k4KFoHrMZfddDoI9SbnMmFVkUq5GcU29rU0VzWiHa0Zc6oSJCd4GOZ8lF6r1HYEmhwn_5HhPDr0MZacIUBhW-TCLT3JU5SLCvhhiSoamVRGF_gN2MJitxL5Zij1_MYVG0nStfey3fSV6TtXDNFAocfdkKtl_ZpwTp3aRHvH1uSmF9qVXDgU7LZhBZlOL7sqVPPZ0DlfI8dP-8jFoOETvCwKNYFT3WBtNGUCFsxo"
+                  alt="Saaral Cosmetics — Luxury botanical skincare"
+                  fill className="object-cover object-center" priority sizes="(max-width: 768px) 100vw, 50vw"
+                />
+                {/* Edge blends */}
+                <div className="absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-[#FDF6F0] to-transparent md:block hidden" />
+                <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#FDF6F0]/30 to-transparent" />
+              </motion.div>
+            </div>
+
+            {/* Floating badge */}
+            <motion.div
+              className="absolute bottom-6 left-4 md:bottom-10 md:left-6 rounded-2xl p-4 max-w-[160px] border border-[#C9A74D]/20"
+              style={{ background: "rgba(253,246,240,0.88)", backdropFilter: "blur(14px)" }}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 1.2 }}
+            >
+              <span className="material-symbols-outlined text-[#C9A74D] text-[20px] mb-1 block">eco</span>
+              <p className="font-body text-[#2A1A14] text-[12px] leading-snug font-medium">100% Ethically Sourced Botanicals</p>
+            </motion.div>
           </motion.div>
         </section>
 
@@ -188,9 +258,9 @@ export default function HomePage() {
                   <Image src={cat.image} alt={cat.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" sizes="(max-width: 768px) 50vw, 25vw" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
                   <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 group-hover:ring-[#B06080]/40 transition-all duration-500" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 md:p-5">
-                    <p className="label-caps text-white/60 mb-1">{cat.sub}</p>
-                    <h3 className="font-display text-white" style={{ fontSize: "clamp(18px, 2.5vw, 26px)", lineHeight: 1.2 }}>{cat.name}</h3>
+                  <div className="absolute bottom-0 left-0 right-0 pb-5 px-4 pt-3 md:p-5">
+                    <p className="label-caps text-white/60 mb-1 text-[9px] md:text-[10px]">{cat.sub}</p>
+                    <h3 className="font-display text-white text-[15px] md:text-[clamp(18px,2.5vw,26px)]" style={{ lineHeight: 1.2 }}>{cat.name}</h3>
                     <div className="h-px bg-[#B06080] w-0 group-hover:w-12 transition-all duration-500 mt-2" />
                   </div>
                 </Link>
@@ -217,15 +287,55 @@ export default function HomePage() {
             {productsError ? (
               <p className="font-body text-error text-center">{productsError}</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-                {featuredProducts.map((product, index) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    index={index}
-                    showBadge={index === 0 ? "Bestseller" : index === 1 ? "New Ritual" : "Botanical Formula"}
-                  />
-                ))}
+              <div className="relative">
+                <div
+                  ref={bestsellerScrollRef}
+                  className="overflow-x-auto overflow-y-visible no-scrollbar snap-x snap-mandatory"
+                >
+                  <div
+                    className="flex w-max items-stretch gap-4 pb-4"
+                    style={{ paddingInline: "calc(50vw - 130px)" }}
+                  >
+                    {bestsellingProducts.map((product, index) => {
+                      const badge = featuredBadges[index] ?? undefined;
+                      return (
+                        <motion.div
+                          key={product.id}
+                          className="snap-center shrink-0 w-[260px]"
+                          initial={{ opacity: 0, y: 28 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true, amount: 0.35 }}
+                          transition={{ duration: 0.55, delay: Math.min(index, 8) * 0.06, ease }}
+                        >
+                          <ProductCard
+                            product={product}
+                            index={index}
+                            showBadge={badge}
+                            imageAspectClassName="aspect-[1/1]"
+                          />
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="mt-2 flex items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => scrollBestsellers("left")}
+                    className="h-10 w-10 rounded-full border border-outline-variant/50 bg-surface-container-lowest text-on-surface-variant flex items-center justify-center hover:border-outline hover:text-on-surface transition-colors"
+                    aria-label="Scroll bestsellers left"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollBestsellers("right")}
+                    className="h-10 w-10 rounded-full border border-outline-variant/50 bg-surface-container-lowest text-on-surface-variant flex items-center justify-center hover:border-outline hover:text-on-surface transition-colors"
+                    aria-label="Scroll bestsellers right"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -245,7 +355,7 @@ export default function HomePage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#1A0A05]/60 via-transparent to-transparent" />
                 </div>
-                <motion.div className="absolute -bottom-6 -right-4 md:-right-8 glass-dark border border-white/10 rounded-2xl p-5 max-w-[180px]"
+                <motion.div className="absolute -bottom-6 right-4 md:-right-8 glass-dark border border-white/10 rounded-2xl p-5 max-w-[180px]"
                   initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.4 }}>
                   <span className="material-symbols-outlined text-[#C9A74D] text-2xl mb-2 block">eco</span>
                   <p className="font-body text-white/80 text-[13px] leading-snug">100% Ethically Sourced Botanicals</p>
@@ -278,33 +388,34 @@ export default function HomePage() {
               Sharp gold line traces the arch edge.
           ── */}
           <div className="absolute bottom-0 left-0 w-full pointer-events-none" aria-hidden="true">
-            <svg
-              viewBox="0 0 1440 110"
-              xmlns="http://www.w3.org/2000/svg"
-              preserveAspectRatio="none"
-              style={{ display: "block", width: "100%", height: "110px" }}
-            >
-              {/* Cream fill — the warm world below rising through dark arches */}
-              <path
-                d="M0,110 Q120,0 240,110 Q360,0 480,110 Q600,0 720,110 Q840,0 960,110 Q1080,0 1200,110 Q1320,0 1440,110 L1440,110 L0,110 Z"
-                fill="#FDF6F0"
-              />
-              {/* Rose depth behind gold — warm glow on arch edge */}
-              <path
-                d="M0,110 Q120,0 240,110 Q360,0 480,110 Q600,0 720,110 Q840,0 960,110 Q1080,0 1200,110 Q1320,0 1440,110"
-                fill="none" stroke="#D4A0B0" strokeWidth="3" opacity="0.4" strokeLinecap="round"
-              />
-              {/* Gold crisp arch line */}
-              <path
-                d="M0,110 Q120,0 240,110 Q360,0 480,110 Q600,0 720,110 Q840,0 960,110 Q1080,0 1200,110 Q1320,0 1440,110"
-                fill="none" stroke="#C9A74D" strokeWidth="2.2" opacity="1" strokeLinecap="round"
-              />
-              {/* Cream inner highlight */}
-              <path
-                d="M0,110 Q120,0 240,110 Q360,0 480,110 Q600,0 720,110 Q840,0 960,110 Q1080,0 1200,110 Q1320,0 1440,110"
-                fill="none" stroke="#FFF5DC" strokeWidth="0.8" opacity="0.85" strokeLinecap="round"
-              />
-            </svg>
+            {/* Mobile — 4 wide domes */}
+            <div className="block md:hidden" style={{ width: "100%", height: "65px" }}>
+              <svg
+                viewBox="0 0 400 90"
+                xmlns="http://www.w3.org/2000/svg"
+                preserveAspectRatio="none"
+                style={{ display: "block", width: "100%", height: "65px" }}
+              >
+                <path d="M0,90 Q50,40 100,90 Q150,40 200,90 Q250,40 300,90 Q350,40 400,90 L400,90 L0,90 Z" fill="#FDF6F0" />
+                <path d="M0,90 Q50,40 100,90 Q150,40 200,90 Q250,40 300,90 Q350,40 400,90" fill="none" stroke="#D4A0B0" strokeWidth="3" opacity="0.4" strokeLinecap="round" />
+                <path d="M0,90 Q50,40 100,90 Q150,40 200,90 Q250,40 300,90 Q350,40 400,90" fill="none" stroke="#C9A74D" strokeWidth="2.2" opacity="1" strokeLinecap="round" />
+                <path d="M0,90 Q50,40 100,90 Q150,40 200,90 Q250,40 300,90 Q350,40 400,90" fill="none" stroke="#FFF5DC" strokeWidth="1" opacity="0.85" strokeLinecap="round" />
+              </svg>
+            </div>
+            {/* Desktop — 6 wide domes (original, unchanged) */}
+            <div className="hidden md:block" style={{ width: "100%", height: "110px" }}>
+              <svg
+                viewBox="0 0 1440 110"
+                xmlns="http://www.w3.org/2000/svg"
+                preserveAspectRatio="none"
+                style={{ display: "block", width: "100%", height: "110px" }}
+              >
+                <path d="M0,110 Q120,0 240,110 Q360,0 480,110 Q600,0 720,110 Q840,0 960,110 Q1080,0 1200,110 Q1320,0 1440,110 L1440,110 L0,110 Z" fill="#FDF6F0" />
+                <path d="M0,110 Q120,0 240,110 Q360,0 480,110 Q600,0 720,110 Q840,0 960,110 Q1080,0 1200,110 Q1320,0 1440,110" fill="none" stroke="#D4A0B0" strokeWidth="3" opacity="0.4" strokeLinecap="round" />
+                <path d="M0,110 Q120,0 240,110 Q360,0 480,110 Q600,0 720,110 Q840,0 960,110 Q1080,0 1200,110 Q1320,0 1440,110" fill="none" stroke="#C9A74D" strokeWidth="2.2" opacity="1" strokeLinecap="round" />
+                <path d="M0,110 Q120,0 240,110 Q360,0 480,110 Q600,0 720,110 Q840,0 960,110 Q1080,0 1200,110 Q1320,0 1440,110" fill="none" stroke="#FFF5DC" strokeWidth="0.8" opacity="0.85" strokeLinecap="round" />
+              </svg>
+            </div>
           </div>
         </section>
 

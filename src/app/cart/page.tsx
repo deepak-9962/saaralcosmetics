@@ -76,77 +76,107 @@ export default function CartPage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-[var(--spacing-gutter)] py-[var(--spacing-stack-md)] border-b border-outline-variant/30 items-center"
+                    className="py-3 border-b border-outline-variant/30"
                   >
-                    {/* Product Info */}
-                    <div className="md:col-span-6 flex gap-4 md:gap-[var(--spacing-gutter)] items-center">
-                      <div className="w-24 h-32 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden relative">
+                    {/* Mobile Layout */}
+                    <div className="flex md:hidden gap-3 items-center">
+                      <div className="w-16 h-20 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden relative">
                         <Image
                           src={item.image}
                           alt={item.name}
                           fill
                           className="object-cover"
-                          sizes="96px"
+                          sizes="64px"
                         />
                       </div>
-                      <div className="flex flex-col gap-1">
-                          <h3 className="font-display text-[20px] md:text-[24px] leading-[1.3] md:leading-[1.4] text-on-surface">
-                            {item.name}
-                          </h3>
-                        <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant">
+                      <div className="flex-1 flex flex-col gap-0.5 min-w-0">
+                        <h3 className="font-display text-[16px] leading-[1.3] text-on-surface truncate">
+                          {item.name}
+                        </h3>
+                        <p className="font-body text-[12px] leading-[1.4] text-on-surface-variant">
                           {item.variant_name}
                         </p>
-                        <span className="md:hidden font-body text-[16px] leading-[1.6] text-on-surface mt-2">
+                        <span className="font-body text-[15px] font-medium text-primary mt-0.5">
                           {formatPrice(item.price * item.quantity)}
                         </span>
+                        {/* Qty + Remove */}
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <div className="flex items-center border border-outline-variant rounded-lg bg-surface">
+                            <button
+                              onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
+                              className="w-7 h-7 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
+                              aria-label="Decrease quantity"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">remove</span>
+                            </button>
+                            <span className="w-7 text-center font-body text-[14px]">{item.quantity}</span>
+                            <button
+                              onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
+                              className="w-7 h-7 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
+                              aria-label="Increase quantity"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">add</span>
+                            </button>
+                          </div>
+                          <button
+                            onClick={() => removeItem(item.product_id)}
+                            className="text-outline hover:text-error transition-colors p-1"
+                            aria-label="Remove item"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">close</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Quantity Stepper */}
-                    <div className="md:col-span-3 flex items-center justify-start md:justify-center mt-4 md:mt-0">
-                      <div className="flex items-center border border-outline-variant rounded-lg p-1 bg-surface">
+                    {/* Desktop Layout */}
+                    <div className="hidden md:grid grid-cols-12 gap-[var(--spacing-gutter)] items-center">
+                      <div className="col-span-6 flex gap-[var(--spacing-gutter)] items-center">
+                        <div className="w-24 h-32 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden relative">
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            className="object-cover"
+                            sizes="96px"
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <h3 className="font-display text-[24px] leading-[1.4] text-on-surface">{item.name}</h3>
+                          <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant">{item.variant_name}</p>
+                        </div>
+                      </div>
+                      <div className="col-span-3 flex items-center justify-center">
+                        <div className="flex items-center border border-outline-variant rounded-lg p-1 bg-surface">
+                          <button
+                            onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
+                            className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
+                            aria-label="Decrease quantity"
+                          >
+                            <span className="material-symbols-outlined text-sm">remove</span>
+                          </button>
+                          <span className="w-8 text-center font-body text-[16px] leading-[1.6]">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
+                            className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
+                            aria-label="Increase quantity"
+                          >
+                            <span className="material-symbols-outlined text-sm">add</span>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="col-span-2 text-right font-body text-[18px] leading-[1.6] text-on-surface">
+                        {formatPrice(item.price * item.quantity)}
+                      </div>
+                      <div className="col-span-1 flex justify-center">
                         <button
-                          onClick={() =>
-                            updateQuantity(item.product_id, item.quantity - 1)
-                          }
-                          className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
-                          aria-label="Decrease quantity"
+                          onClick={() => removeItem(item.product_id)}
+                          className="text-outline hover:text-error transition-colors p-2"
+                          aria-label="Remove item"
                         >
-                          <span className="material-symbols-outlined text-sm">
-                            remove
-                          </span>
-                        </button>
-                        <span className="w-8 text-center font-body text-[16px] leading-[1.6]">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() =>
-                            updateQuantity(item.product_id, item.quantity + 1)
-                          }
-                          className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
-                          aria-label="Increase quantity"
-                        >
-                          <span className="material-symbols-outlined text-sm">
-                            add
-                          </span>
+                          <span className="material-symbols-outlined">close</span>
                         </button>
                       </div>
-                    </div>
-
-                    {/* Total */}
-                    <div className="hidden md:block md:col-span-2 text-right font-body text-[18px] leading-[1.6] text-on-surface">
-                      {formatPrice(item.price * item.quantity)}
-                    </div>
-
-                    {/* Remove */}
-                    <div className="md:col-span-1 flex justify-end md:justify-center self-start md:self-center">
-                      <button
-                        onClick={() => removeItem(item.product_id)}
-                        className="text-outline hover:text-error transition-colors p-2"
-                        aria-label="Remove item"
-                      >
-                        <span className="material-symbols-outlined">close</span>
-                      </button>
                     </div>
                   </motion.div>
                 ))}

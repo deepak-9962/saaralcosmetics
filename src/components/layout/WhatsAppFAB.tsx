@@ -10,7 +10,13 @@ export default function WhatsAppFAB() {
   const pathname = usePathname();
   const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
 
-  if (pathname.startsWith("/admin") || pathname.startsWith("/checkout") || pathname.startsWith("/order-confirmation")) {
+  if (
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/checkout") ||
+    pathname.startsWith("/order-confirmation") ||
+    pathname.startsWith("/cart") ||
+    /^\/products\/.+/.test(pathname)
+  ) {
     return null;
   }
 

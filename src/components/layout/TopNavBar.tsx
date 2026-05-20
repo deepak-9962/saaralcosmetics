@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/lib/cart";
@@ -19,6 +19,8 @@ export default function TopNavBar() {
   const { itemCount: wishlistCount } = useWishlist();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [searchBarVisible, setSearchBarVisible] = useState(true);
+  const prevScrollY = useRef(0);
   const pathname = usePathname();
   const { scrollY } = useScroll();
   const currentSearch = typeof window !== "undefined" ? window.location.search : "";
@@ -30,6 +32,15 @@ export default function TopNavBar() {
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 20);
+    const diff = latest - prevScrollY.current;
+    if (diff > 10) {
+      // Scrolling down — hide search bar
+      setSearchBarVisible(false);
+    } else if (diff < -10) {
+      // Scrolling up — show search bar
+      setSearchBarVisible(true);
+    }
+    prevScrollY.current = latest;
   });
 
   const isActive = (href: string) => {
@@ -65,14 +76,14 @@ export default function TopNavBar() {
       }`}
     >
       {showPromoBar && (
-        <div className="h-8 bg-primary text-on-primary px-4 flex items-center justify-center">
-          <p className="font-body text-[11px] tracking-[0.08em] uppercase text-center">
+        <div className="h-6 bg-primary text-on-primary px-4 flex items-center justify-center">
+          <p className="font-body text-[10px] tracking-[0.08em] uppercase text-center">
             Product of the month: use code <strong>HURRY20</strong> for 20% off
           </p>
         </div>
       )}
 
-      <div className="flex justify-between items-center h-[68px] px-4 md:px-16 max-w-[1280px] mx-auto">
+      <div className="flex justify-between items-center h-[56px] md:h-[68px] px-4 md:px-16 max-w-[1280px] mx-auto">
         <div className="flex items-center gap-2 md:gap-3">
           <button
             className="md:hidden p-2"
@@ -87,7 +98,7 @@ export default function TopNavBar() {
           <Link
             href="/"
             className="font-display text-on-surface tracking-tight"
-            style={{ fontSize: "clamp(26px, 4.5vw, 32px)", fontWeight: 600 }}
+            style={{ fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 600 }}
           >
             Saaral
           </Link>
@@ -113,7 +124,7 @@ export default function TopNavBar() {
         <div className="flex items-center gap-1 md:gap-3">
           <Link
             href="/products"
-            className="p-2 hover:bg-surface-container-high/50 rounded-full transition-colors"
+            className="inline-flex items-center p-2 hover:bg-surface-container-high/50 rounded-full transition-colors"
             aria-label="Search products"
           >
             <span className="material-symbols-outlined text-on-surface text-[24px]">
@@ -151,7 +162,7 @@ export default function TopNavBar() {
 
           <Link
             href="/cart"
-            className="relative p-2 hover:bg-surface-container-high/50 rounded-full transition-colors"
+            className="relative inline-flex items-center p-2 hover:bg-surface-container-high/50 rounded-full transition-colors"
             aria-label="Shopping cart"
           >
             <span className="material-symbols-outlined text-on-surface text-[24px]">
@@ -183,18 +194,27 @@ export default function TopNavBar() {
         </div>
       </div>
 
-      {showMobileSearch && (
-        <div className="md:hidden border-t border-outline-variant/30 px-4 pb-3">
-          <Link
-            href="/products"
-            className="h-11 mt-2 rounded-xl border border-outline-variant/40 bg-surface-container-lowest flex items-center gap-2 px-3 text-on-surface-variant"
-            aria-label="Browse products"
+      <AnimatePresence initial={false}>
+        {showMobileSearch && searchBarVisible && (
+          <motion.div
+            key="mobile-search"
+            className="md:hidden border-t border-outline-variant/30 px-4 pb-3 overflow-hidden"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
           >
-            <span className="material-symbols-outlined text-[20px]">search</span>
-            <span className="font-body text-[15px]">Search products, rituals, ingredients</span>
-          </Link>
-        </div>
-      )}
+            <Link
+              href="/products"
+              className="h-10 mt-2 rounded-xl border border-outline-variant/40 bg-surface-container-lowest flex items-center gap-2 px-3 text-on-surface-variant"
+              aria-label="Browse products"
+            >
+              <span className="material-symbols-outlined text-[20px]">search</span>
+              <span className="font-body text-[15px]">Search products, rituals, ingredients</span>
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {mobileMenuOpen && (

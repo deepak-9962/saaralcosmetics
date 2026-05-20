@@ -14,12 +14,14 @@ interface ProductCardProps {
   product: Product;
   index?: number;
   showBadge?: string;
+  imageAspectClassName?: string;
 }
 
 export default function ProductCard({
   product,
   index = 0,
   showBadge,
+  imageAspectClassName = "aspect-[4/5]",
 }: ProductCardProps) {
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
@@ -65,7 +67,10 @@ export default function ProductCard({
         transition={{ duration: 0.5, delay: index * 0.09, ease: [0.22, 1, 0.36, 1] }}
         whileHover={{ y: -6 }}
       >
-        <div className="relative aspect-[4/5] bg-surface-container-low rounded-2xl overflow-hidden mb-4 transition-shadow duration-500 group-hover:shadow-[0_24px_60px_-12px_rgba(176,96,128,0.22)]" style={{ boxShadow: "0 8px 32px -8px rgba(176,96,128,0.10)" }}>
+        <div
+          className={`relative ${imageAspectClassName} bg-surface-container-low rounded-2xl overflow-hidden mb-4 transition-shadow duration-500 group-hover:shadow-[0_24px_60px_-12px_rgba(176,96,128,0.22)]`}
+          style={{ boxShadow: "0 8px 32px -8px rgba(176,96,128,0.10)" }}
+        >
           <Image
             src={product.images[0]}
             alt={product.name}
@@ -116,7 +121,7 @@ export default function ProductCard({
           >
             <span className="material-symbols-outlined text-[20px]">visibility</span>
           </button>
-          <div className="absolute inset-x-0 bottom-0 z-[3] translate-y-0 md:translate-y-full md:group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-black/70 via-black/35 to-transparent p-4">
+          <div className="hidden md:block absolute inset-x-0 bottom-0 z-[3] translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out bg-gradient-to-t from-black/70 via-black/35 to-transparent p-4">
             <motion.button
               type="button"
               onClick={handleAddToCart}
@@ -129,30 +134,40 @@ export default function ProductCard({
             </motion.button>
           </div>
         </div>
-        <Link href={`/products/${product.slug}`} className="flex flex-col flex-grow">
         <div className="flex flex-col flex-grow">
-          <h3 className="font-display text-[20px] md:text-[24px] leading-[1.3] md:leading-[1.4] text-on-surface mb-1 group-hover:text-primary transition-colors">
-            {product.name}
-          </h3>
-          <p className="font-body text-[14px] md:text-[16px] leading-[1.6] text-on-surface-variant mb-2">
-            {product.category
-              .split("-")
-              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-              .join(" ")}{" "}
-            • {product.variant_name}
-          </p>
-          <div className="mt-auto flex items-center gap-2">
-            <span className="font-body text-[18px] leading-[1.6] text-primary font-medium">
-                {formatPrice(product.price)}
-              </span>
-              {product.compare_price && (
-                <span className="font-body text-[14px] md:text-[16px] leading-[1.6] text-outline line-through">
-                  {formatPrice(product.compare_price)}
+          <Link href={`/products/${product.slug}`} className="flex flex-col flex-grow">
+            <h3 className="font-display text-[20px] md:text-[24px] leading-[1.3] md:leading-[1.4] text-on-surface mb-1 group-hover:text-primary transition-colors">
+              {product.name}
+            </h3>
+            <p className="font-body text-[14px] md:text-[16px] leading-[1.6] text-on-surface-variant mb-2">
+              {product.category
+                .split("-")
+                .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                .join(" ")}{" "}
+              • {product.variant_name}
+            </p>
+            <div className="mt-auto flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="font-body text-[18px] leading-[1.6] text-primary font-medium">
+                  {formatPrice(product.price)}
                 </span>
-              )}
-          </div>
+                {product.compare_price && (
+                  <span className="font-body text-[13px] leading-[1.6] text-outline line-through">
+                    {formatPrice(product.compare_price)}
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                className="md:hidden shrink-0 w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center active:scale-95 transition-transform"
+                aria-label={`Add ${product.name} to cart`}
+              >
+                <span className="material-symbols-outlined text-[18px]">shopping_bag</span>
+              </button>
+            </div>
+          </Link>
         </div>
-      </Link>
       </motion.article>
 
       <AnimatePresence>

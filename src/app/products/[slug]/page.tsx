@@ -306,7 +306,7 @@ export default function ProductDetailPage({
               <h2 className="font-display text-[22px] md:text-[24px] leading-[1.4] text-on-surface mb-[var(--spacing-stack-md)] text-center">
                 Complete Your Ritual
               </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {relatedProducts.map((relatedProduct, i) => (
                 <ProductCard key={relatedProduct.id} product={relatedProduct} index={i} />
               ))}
@@ -315,17 +315,17 @@ export default function ProductDetailPage({
         )}
       </main>
 
-      <div className="md:hidden fixed bottom-20 inset-x-0 z-40 px-4">
-        <div className="bg-surface-container-lowest/95 backdrop-blur rounded-2xl border border-outline-variant/30 shadow-[0_12px_24px_-12px_rgba(42,26,20,0.32)] px-3 py-2.5 flex items-center gap-3">
-          <div className="flex flex-col min-w-[82px]">
-            <span className="font-body text-[11px] uppercase tracking-[0.08em] text-on-surface-variant">Price</span>
-            <span className="font-display text-[22px] leading-[1] text-on-surface">{formatPrice(product.price)}</span>
+      <div className="md:hidden fixed bottom-20 inset-x-0 z-40 px-3">
+        <div className="bg-surface-container-lowest/95 backdrop-blur rounded-xl border border-outline-variant/30 shadow-[0_8px_16px_-8px_rgba(42,26,20,0.28)] px-2.5 py-1.5 flex items-center gap-2">
+          <div className="flex flex-col min-w-[72px]">
+            <span className="font-body text-[10px] uppercase tracking-[0.08em] text-on-surface-variant">Price</span>
+            <span className="font-display text-[18px] leading-[1] text-on-surface">{formatPrice(product.price)}</span>
           </div>
           <button
             onClick={handleAddToCart}
-            className="flex-1 h-11 rounded-xl bg-tertiary-container text-on-tertiary-container font-body text-[13px] tracking-[0.08em] uppercase font-semibold flex items-center justify-center gap-1.5"
+            className="flex-1 h-9 rounded-lg bg-tertiary-container text-on-tertiary-container font-body text-[12px] tracking-[0.08em] uppercase font-semibold flex items-center justify-center gap-1"
           >
-            <span className="material-symbols-outlined text-[18px]">shopping_bag</span>
+            <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
             Add {quantity > 1 ? `${quantity} items` : "to cart"}
           </button>
         </div>
