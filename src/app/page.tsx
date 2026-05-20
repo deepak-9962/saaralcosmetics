@@ -12,6 +12,7 @@ import GradientBackground from "@/components/layout/GradientBackground";
 import ProductCard from "@/components/product/ProductCard";
 import { listProducts } from "@/lib/supabase/data";
 import type { Product } from "@/lib/types";
+import radiantBeauty from "../../public/images/radiant-beauty.png";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -267,7 +268,7 @@ export default function HomePage() {
         {/* ── FEATURED PRODUCTS — Scallop Arch ── */}
         <section className="relative w-full" style={{ background: "#FAF0EE" }}>
           <ScallopArch />
-          <div className="max-w-[1280px] mx-auto px-5 md:px-[72px] pt-12 pb-20 md:pt-16 md:pb-28">
+          <div className="max-w-[1280px] mx-auto px-5 md:px-[72px] pt-12 pb-4 md:pt-16 md:pb-6">
             <motion.div className="flex flex-col md:flex-row md:items-end justify-between mb-10 md:mb-14 gap-4" {...fadeUp(0)}>
               <div>
                 <span className="label-caps text-[#C9A74D] block mb-3">The Ritual</span>
@@ -340,18 +341,19 @@ export default function HomePage() {
         </section>
 
         {/* ── BANNER ── */}
-        <section aria-label="Saaral — Your New Ritual For Radiant Beauty" className="w-full px-5 md:px-[72px] py-6 md:py-10" style={{ background: "#F9EFED" }}>
-          <div className="max-w-[1280px] mx-auto">
-            <Image
-              src="/images/radiant-beauty.png"
-              alt="Your New Ritual For Radiant Beauty — Saaral Cosmetics"
-              width={1920}
-              height={480}
-              className="w-full block rounded-2xl"
-              priority={false}
-              sizes="(max-width: 768px) calc(100vw - 40px), calc(100vw - 144px)"
-            />
-          </div>
+        <section
+          aria-label="Saaral — Your New Ritual For Radiant Beauty"
+          className="w-full flex justify-center items-center pt-8 pb-12 md:pt-14 md:pb-20"
+          style={{ background: "#F9EFED" }}
+        >
+          <Image
+            src={radiantBeauty}
+            alt="Your New Ritual For Radiant Beauty — Saaral Cosmetics"
+            className="w-[90%] md:w-[85%] h-auto block rounded-2xl mx-auto"
+            style={{ maxWidth: "1100px" }}
+            priority={false}
+            sizes="(max-width: 768px) 90vw, 85vw"
+          />
         </section>
 
         {/* ── STORYTELLING ── */}

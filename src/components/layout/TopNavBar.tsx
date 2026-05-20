@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
-import { motion, AnimatePresence, useMotionValueEvent, useScroll } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const navItems = [
   { label: "Shop", href: "/products" },
@@ -18,30 +18,94 @@ export default function TopNavBar() {
   const { itemCount } = useCart();
   const { itemCount: wishlistCount } = useWishlist();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [searchBarVisible, setSearchBarVisible] = useState(true);
-  const prevScrollY = useRef(0);
   const pathname = usePathname();
-  const { scrollY } = useScroll();
-  const currentSearch = typeof window !== "undefined" ? window.location.search : "";
+  const [isMounted, setIsMounted] = useState(false);
+
+  const navRef = useRef<HTMLElement>(null);
+  const searchBarRef = useRef<HTMLDivElement>(null);
+  const prevScrollY = useRef(0);
+  const scrolledRef = useRef(false);
+  const collapsedRef = useRef(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const currentSearch = isMounted && typeof window !== "undefined" ? window.location.search : "";
 
   const isAdminRoute = pathname.startsWith("/admin");
   const showPromoBar = !isAdminRoute;
   const showMobileSearch = !isAdminRoute && (pathname === "/" || pathname.startsWith("/products"));
   const drawerTop = showPromoBar ? (showMobileSearch ? 148 : 100) : 68;
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    setScrolled(latest > 20);
-    const diff = latest - prevScrollY.current;
-    if (diff > 10) {
-      // Scrolling down — hide search bar
-      setSearchBarVisible(false);
-    } else if (diff < -10) {
-      // Scrolling up — show search bar
-      setSearchBarVisible(true);
+  useEffect(() => {
+    // Sync initial scroll state on mount
+    const initScrollY = window.scrollY;
+    scrolledRef.current = initScrollY > 20;
+    prevScrollY.current = initScrollY;
+
+    if (navRef.current) {
+      if (scrolledRef.current) {
+        navRef.current.classList.remove("bg-white/70", "border-transparent");
+        navRef.current.classList.add("bg-white/95", "shadow-lg", "backdrop-blur-lg", "border-b", "border-outline-variant");
+      } else {
+        navRef.current.classList.add("bg-white/70", "border-transparent");
+        navRef.current.classList.remove("bg-white/95", "shadow-lg", "backdrop-blur-lg", "border-b", "border-outline-variant");
+      }
     }
-    prevScrollY.current = latest;
-  });
+
+    if (searchBarRef.current) {
+      collapsedRef.current = false;
+      searchBarRef.current.classList.remove("search-bar-collapsed");
+      searchBarRef.current.classList.add("search-bar-expanded");
+    }
+
+    const handleScroll = () => {
+      const latest = window.scrollY;
+
+      // 1. Scrolled styling for Navbar
+      if (navRef.current) {
+        const isScrolled = latest > 20;
+        if (isScrolled !== scrolledRef.current) {
+          scrolledRef.current = isScrolled;
+          if (isScrolled) {
+            navRef.current.classList.remove("bg-white/70", "border-transparent");
+            navRef.current.classList.add("bg-white/95", "shadow-lg", "backdrop-blur-lg", "border-b", "border-outline-variant");
+          } else {
+            navRef.current.classList.add("bg-white/70", "border-transparent");
+            navRef.current.classList.remove("bg-white/95", "shadow-lg", "backdrop-blur-lg", "border-b", "border-outline-variant");
+          }
+        }
+      }
+
+      // 2. Search bar collapsing styling
+      if (searchBarRef.current && showMobileSearch) {
+        const diff = latest - prevScrollY.current;
+        if (diff > 8) {
+          // Scrolling down - hide search bar
+          if (!collapsedRef.current) {
+            collapsedRef.current = true;
+            searchBarRef.current.classList.add("search-bar-collapsed");
+            searchBarRef.current.classList.remove("search-bar-expanded");
+          }
+        } else if (diff < -8) {
+          // Scrolling up - show search bar
+          if (collapsedRef.current) {
+            collapsedRef.current = false;
+            searchBarRef.current.classList.remove("search-bar-collapsed");
+            searchBarRef.current.classList.add("search-bar-expanded");
+          }
+        }
+      }
+
+      prevScrollY.current = latest;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [showMobileSearch]);
 
   const isActive = (href: string) => {
     const [path, queryString] = href.split("?");
@@ -69,11 +133,8 @@ export default function TopNavBar() {
 
   return (
     <nav
-      className={`sticky top-0 w-full z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-white/95 shadow-lg backdrop-blur-lg border-b border-outline-variant"
-          : "bg-white/70 backdrop-blur-md border-b border-transparent"
-      }`}
+      ref={navRef}
+      className="sticky top-0 w-full z-50 transition-all duration-300 bg-white/70 backdrop-blur-md border-b border-transparent"
     >
       {showPromoBar && (
         <div className="h-6 bg-primary text-on-primary px-4 flex items-center justify-center">
@@ -194,27 +255,21 @@ export default function TopNavBar() {
         </div>
       </div>
 
-      <AnimatePresence initial={false}>
-        {showMobileSearch && searchBarVisible && (
-          <motion.div
-            key="mobile-search"
-            className="md:hidden border-t border-outline-variant/30 px-4 pb-3 overflow-hidden"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
+      {showMobileSearch && (
+        <div
+          ref={searchBarRef}
+          className="md:hidden border-t border-outline-variant/30 px-4 pb-3 overflow-hidden search-bar-transition search-bar-expanded"
+        >
+          <Link
+            href="/products"
+            className="h-10 mt-2 rounded-xl border border-outline-variant/40 bg-surface-container-lowest flex items-center gap-2 px-3 text-on-surface-variant"
+            aria-label="Browse products"
           >
-            <Link
-              href="/products"
-              className="h-10 mt-2 rounded-xl border border-outline-variant/40 bg-surface-container-lowest flex items-center gap-2 px-3 text-on-surface-variant"
-              aria-label="Browse products"
-            >
-              <span className="material-symbols-outlined text-[20px]">search</span>
-              <span className="font-body text-[15px]">Search products, rituals, ingredients</span>
-            </Link>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <span className="material-symbols-outlined text-[20px]">search</span>
+            <span className="font-body text-[15px]">Search products, rituals, ingredients</span>
+          </Link>
+        </div>
+      )}
 
       <AnimatePresence>
         {mobileMenuOpen && (
