@@ -88,6 +88,7 @@ export default function HomePage() {
   const bestsellerScrollRef = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
   const heroY = useTransform(scrollY, [0, 700], [0, 180]);
+  const bannerY = useTransform(scrollY, [300, 1200], [-30, 30]);
 
   const scrollBestsellers = (direction: "left" | "right") => {
     const container = bestsellerScrollRef.current;
@@ -164,12 +165,6 @@ export default function HomePage() {
                   <span className="font-body text-[11px] tracking-[0.07em] uppercase text-on-surface-variant">{t}</span>
                 </div>
               ))}
-            </motion.div>
-
-            {/* Scroll hint — desktop only */}
-            <motion.div className="hidden md:flex absolute bottom-8 left-14 lg:left-20 flex-col items-center gap-2" initial={{ opacity: 0 }} animate={{ opacity: 0.45 }} transition={{ delay: 1.4 }}>
-              <span className="label-caps text-on-surface-variant" style={{ writingMode: "vertical-rl" }}>Scroll</span>
-              <div className="w-px h-10 bg-gradient-to-b from-[#2A1A14]/40 to-transparent" />
             </motion.div>
           </div>
 
@@ -290,18 +285,21 @@ export default function HomePage() {
               <div className="relative">
                 <div
                   ref={bestsellerScrollRef}
-                  className="overflow-x-auto overflow-y-visible no-scrollbar snap-x snap-mandatory"
+                  className="overflow-x-auto overflow-y-visible no-scrollbar snap-x snap-mandatory md:overflow-visible md:snap-none"
                 >
                   <div
-                    className="flex w-max items-stretch gap-4 pb-4"
-                    style={{ paddingInline: "calc(50vw - 130px)" }}
+                    className="flex w-max items-stretch gap-4 pb-4 md:grid md:grid-cols-4 md:w-full md:gap-6 md:pb-0 md:!px-0"
+                    style={{
+                      paddingLeft: "calc(50vw - 130px)",
+                      paddingRight: "calc(50vw - 130px)",
+                    }}
                   >
-                    {bestsellingProducts.map((product, index) => {
+                    {bestsellingProducts.slice(0, 4).map((product, index) => {
                       const badge = featuredBadges[index] ?? undefined;
                       return (
                         <motion.div
                           key={product.id}
-                          className="snap-center shrink-0 w-[260px]"
+                          className="snap-center shrink-0 w-[260px] md:snap-align-none md:shrink md:w-auto"
                           initial={{ opacity: 0, y: 28 }}
                           whileInView={{ opacity: 1, y: 0 }}
                           viewport={{ once: true, amount: 0.35 }}
@@ -318,7 +316,7 @@ export default function HomePage() {
                     })}
                   </div>
                 </div>
-                <div className="mt-2 flex items-center justify-center gap-3">
+                <div className="mt-2 flex items-center justify-center gap-3 md:hidden">
                   <button
                     type="button"
                     onClick={() => scrollBestsellers("left")}
@@ -338,6 +336,21 @@ export default function HomePage() {
                 </div>
               </div>
             )}
+          </div>
+        </section>
+
+        {/* ── BANNER ── */}
+        <section aria-label="Saaral — Your New Ritual For Radiant Beauty" className="w-full px-5 md:px-[72px] py-6 md:py-10" style={{ background: "#F9EFED" }}>
+          <div className="max-w-[1280px] mx-auto">
+            <Image
+              src="/images/radiant-beauty.png"
+              alt="Your New Ritual For Radiant Beauty — Saaral Cosmetics"
+              width={1920}
+              height={480}
+              className="w-full block rounded-2xl"
+              priority={false}
+              sizes="(max-width: 768px) calc(100vw - 40px), calc(100vw - 144px)"
+            />
           </div>
         </section>
 

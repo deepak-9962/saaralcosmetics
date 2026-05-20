@@ -293,6 +293,26 @@ body {
   0% { transform: rotate(0deg) translateY(-8px); }
   100% { transform: rotate(360deg) translateY(-8px); }
 }
+@keyframes bubble-float-1 {
+  0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
+  25% { transform: translateY(-12px) translateX(6px) scale(1.04); }
+  50% { transform: translateY(-20px) translateX(-4px) scale(0.97); }
+  75% { transform: translateY(-8px) translateX(8px) scale(1.02); }
+}
+@keyframes bubble-float-2 {
+  0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
+  33% { transform: translateY(-16px) translateX(-8px) scale(1.06); }
+  66% { transform: translateY(-6px) translateX(10px) scale(0.95); }
+}
+@keyframes bubble-float-3 {
+  0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
+  40% { transform: translateY(-24px) translateX(5px) scale(1.03); }
+  80% { transform: translateY(-10px) translateX(-6px) scale(0.98); }
+}
+@keyframes golden-shimmer {
+  0%, 100% { opacity: 0.4; filter: brightness(1); }
+  50% { opacity: 0.7; filter: brightness(1.2); }
+}
 
 /* ============================================
    UTILITY ANIMATIONS
@@ -301,6 +321,10 @@ body {
 .animate-float { animation: float 6s ease-in-out infinite; }
 .animate-float-slow { animation: float-slow 9s ease-in-out infinite; }
 .animate-pulse-soft { animation: pulse-soft 3s ease-in-out infinite; }
+.animate-bubble-1 { animation: bubble-float-1 7s ease-in-out infinite; }
+.animate-bubble-2 { animation: bubble-float-2 9s ease-in-out infinite; }
+.animate-bubble-3 { animation: bubble-float-3 11s ease-in-out infinite; }
+.animate-golden-shimmer { animation: golden-shimmer 4s ease-in-out infinite; }
 
 /* ============================================
    NAV LINK UNDERLINE
