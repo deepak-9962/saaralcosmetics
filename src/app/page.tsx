@@ -55,30 +55,32 @@ const ingredients = [
 
 const featuredBadges = ["Bestseller", "New Ritual", "Botanical Formula"];
 
-/* Scallop arch SVG — responsive: 4 domes on mobile, 8 on desktop */
+/* Sweeping organic arch SVG — responsive asymmetrical curve */
 function ScallopArch() {
-  // Mobile: 4 wide shallow domes across 400px viewBox
-  const mobileD = "M0,80 Q50,35 100,80 Q150,35 200,80 Q250,35 300,80 Q350,35 400,80";
-  // Desktop: 8 domes across 1440px viewBox
-  const desktopD = "M0,96 Q90,0 180,96 Q270,0 360,96 Q450,0 540,96 Q630,0 720,96 Q810,0 900,96 Q990,0 1080,96 Q1170,0 1260,96 Q1350,0 1440,96";
+  // Mobile: Asymmetrical sweeping curve across 400px viewBox
+  const mobileD = "M0,55 C130,55 270,10 400,45";
+  const mobileFill = "M0,55 C130,55 270,10 400,45 L400,60 L0,60 Z";
+  
+  // Desktop: Asymmetrical sweeping curve across 1440px viewBox
+  const desktopD = "M0,90 C480,90 960,15 1440,75";
+  const desktopFill = "M0,90 C480,90 960,15 1440,75 L1440,96 L0,96 Z";
+
   return (
     <>
-      {/* Mobile arch — 4 wide shallow domes, pulls up exactly 60px */}
-      <div className="block md:hidden w-full overflow-hidden pointer-events-none" style={{ marginTop: "-60px", height: "60px" }} aria-hidden="true">
-        <svg viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: "60px" }}>
-          <path d={mobileD + " L400,80 L0,80 Z"} fill="#FAF0EE" />
-          <path d={mobileD} fill="none" stroke="#D4A0B0" strokeWidth="3" opacity="0.35" strokeLinecap="round" />
-          <path d={mobileD} fill="none" stroke="#C9A74D" strokeWidth="2.2" opacity="1" strokeLinecap="round" />
-          <path d={mobileD} fill="none" stroke="#FFF5DC" strokeWidth="1" opacity="0.9" strokeLinecap="round" />
+      {/* Mobile arch — single wide shallow dome, pulls up exactly 45px */}
+      <div className="block md:hidden w-full overflow-hidden pointer-events-none" style={{ marginTop: "-45px", height: "45px" }} aria-hidden="true">
+        <svg viewBox="0 0 400 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: "45px" }}>
+          <path d={mobileFill} fill="#FAF0EE" />
+          <path d={mobileD} fill="none" stroke="#C9A74D" strokeWidth="2.5" opacity="0.9" strokeLinecap="round" />
+          <path d={mobileD} fill="none" stroke="#FFFFFF" strokeWidth="1.0" opacity="0.95" strokeLinecap="round" />
         </svg>
       </div>
-      {/* Desktop arch — 8 domes, pulls up exactly 96px */}
-      <div className="hidden md:block w-full overflow-hidden pointer-events-none" style={{ marginTop: "-96px", height: "96px" }} aria-hidden="true">
-        <svg viewBox="0 0 1440 96" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: "96px" }}>
-          <path d={desktopD + " L1440,96 L0,96 Z"} fill="#FAF0EE" />
-          <path d={desktopD} fill="none" stroke="#D4A0B0" strokeWidth="3" opacity="0.35" strokeLinecap="round" />
-          <path d={desktopD} fill="none" stroke="#C9A74D" strokeWidth="2.2" opacity="1" strokeLinecap="round" />
-          <path d={desktopD} fill="none" stroke="#FFF5DC" strokeWidth="0.8" opacity="0.9" strokeLinecap="round" />
+      {/* Desktop arch — single wide shallow dome, pulls up exactly 80px */}
+      <div className="hidden md:block w-full overflow-hidden pointer-events-none" style={{ marginTop: "-80px", height: "80px" }} aria-hidden="true">
+        <svg viewBox="0 0 1440 96" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: "80px" }}>
+          <path d={desktopFill} fill="#FAF0EE" />
+          <path d={desktopD} fill="none" stroke="#C9A74D" strokeWidth="3.5" opacity="0.9" strokeLinecap="round" />
+          <path d={desktopD} fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.95" strokeLinecap="round" />
         </svg>
       </div>
     </>
@@ -202,158 +204,119 @@ export default function HomePage() {
 
       <main className="w-full flex-grow pb-24 md:pb-0 overflow-x-hidden">
 
-        {/* ── HERO — Split Layout ── */}
+        {/* ── HERO — Split Layout (Screenshot Match) ── */}
         <section
           ref={heroRef}
-          className="relative w-full flex flex-col md:flex-row md:min-h-[100dvh] md:max-h-[1000px] overflow-hidden"
-          style={{ background: "#FDF6F0" }}
+          className="relative w-full overflow-hidden"
+          style={{
+            minHeight: "clamp(500px, 88vh, 820px)",
+            background: "#FDF6F0",
+          }}
         >
-          {/* Mobile Hero Image Slider - Placed at the very top of the section */}
-          <div className="block md:hidden w-full">
-            <div 
-              className="overflow-hidden w-full bg-surface-container" 
-              ref={heroEmblaRef}
-              role="region"
-              aria-roledescription="carousel"
-              aria-label="Hero Image Carousel"
-              onFocus={() => heroAutoplay.current.stop()}
-              onBlur={() => heroAutoplay.current.play()}
+          {/* Hero Background Image - Scaled to fit height, aligned right-bottom to show full reflection */}
+          <div
+            className="absolute inset-0 bg-no-repeat pointer-events-none"
+            style={{
+              backgroundImage: "url(/images/hero.png)",
+              backgroundSize: "auto 100%",
+              backgroundPosition: "right bottom",
+              transform: "translateX(3.5%)",
+            }}
+          />
+
+          {/* Left-to-Right Blend Gradient Overlay */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: `
+                linear-gradient(to right,
+                  #FDF6F0 0%,
+                  #FDF6F0 22%,
+                  rgba(253,246,240,0.82) 32%,
+                  rgba(253,246,240,0.18) 43%,
+                  transparent 54%
+                )
+              `,
+            }}
+          />
+
+
+          {/* ── LEFT — Text content ── */}
+
+          <div
+            className="relative z-10 flex flex-col justify-center px-6 md:px-14 lg:px-20 pt-10 pb-10 md:py-0 w-full md:w-[48%] lg:w-[46%]"
+            style={{ minHeight: "clamp(520px, 90vh, 860px)" }}
+          >
+            {/* Eyebrow */}
+            <motion.div
+              className="flex items-center gap-3 mb-6"
+              initial={{ opacity: 0, x: -24 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.2, ease }}
             >
-              <div className="flex">
-                {[
-                  { src: radiantBeauty, alt: "Your New Ritual For Radiant Beauty — Saaral Cosmetics" },
-                  { src: saaralBanner2, alt: "Pure Botanical Actives · Nature's Cleanest Formulas" },
-                  { src: saaralBanner3, alt: "100% Cruelty-Free · Ethically Handcrafted" }
-                ].map((slide, index) => (
-                  <div 
-                    id={`hero-slide-${index}`}
-                    className="flex-[0_0_100%] min-w-0 relative aspect-[2172/724]" 
-                    key={index}
-                    role="tabpanel"
-                    aria-labelledby={`hero-tab-${index}`}
-                    aria-roledescription="slide"
-                    aria-label={`Slide ${index + 1} of 3`}
-                  >
-                    <Image
-                      src={slide.src}
-                      alt={slide.alt}
-                      fill
-                      className="object-contain"
-                      priority={index === 0}
-                      sizes="100vw"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Slider Pagination Dots */}
-            {heroScrollSnaps.length > 1 && (
-              <div className="flex justify-center items-center gap-2 mt-3" role="tablist" aria-label="Hero slider pagination">
-                {heroScrollSnaps.map((_, index) => (
-                  <button
-                    key={index}
-                    id={`hero-tab-${index}`}
-                    type="button"
-                    role="tab"
-                    aria-selected={index === heroSelectedIndex}
-                    aria-label={`Go to slide ${index + 1}`}
-                    aria-controls={`hero-slide-${index}`}
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      index === heroSelectedIndex
-                        ? "bg-[#B06080] w-6 scale-110 shadow-[0_2px_6px_rgba(176,96,128,0.25)]"
-                        : "bg-[#B06080]/30 w-2 hover:bg-[#B06080]/60 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#B06080]/50"
-                    }`}
-                    onClick={() => heroEmblaApi?.scrollTo(index)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* LEFT — Content */}
-          <div className="relative z-10 flex flex-col justify-start md:justify-center px-6 md:px-14 lg:px-20 pt-6 md:pt-10 pb-8 md:py-0 md:w-1/2 lg:w-[52%]">
-            {/* Soft glow behind text */}
-            <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[380px] h-[380px] rounded-full pointer-events-none opacity-[0.07]" style={{ background: "radial-gradient(circle, #B06080 0%, transparent 70%)" }} />
-
-            <motion.div className="flex items-center gap-3 mb-6" initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2, ease }}>
               <div className="w-8 h-px bg-[#C9A74D]" />
-              <span className="label-caps text-[#C9A74D]">Apothecary Heritage · Tamil Nadu</span>
+              <span className="font-body text-[#C9A74D] text-[11px] tracking-[0.16em] uppercase font-medium">
+                Apothecary Heritage · Tamil Nadu
+              </span>
             </motion.div>
 
-            {/* Desktop Hero Text */}
-            <div className="overflow-hidden mb-6 hidden md:block">
-              {["Botanical", "Rituals,", "Rediscovered."].map((word, i) => (
-                <motion.div key={word} initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.35 + i * 0.12, ease }}>
-                  <span className="font-display text-[#2A1A14] block" style={{ fontSize: "clamp(38px, 5.5vw, 82px)", lineHeight: 1.05, letterSpacing: "-0.02em" }}>{word}</span>
+            {/* Headline */}
+            <div className="overflow-hidden mb-5">
+              {["Luxury Skincare,", "Rooted in Nature."].map((line, i) => (
+                <motion.div
+                  key={line}
+                  initial={{ opacity: 0, y: 56 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.85, delay: 0.3 + i * 0.13, ease }}
+                >
+                  <span
+                    className="font-display text-[#2A1A14] block"
+                    style={{ fontSize: "clamp(34px, 4.8vw, 72px)", lineHeight: 1.08, letterSpacing: "-0.025em" }}
+                  >
+                    {line}
+                  </span>
                 </motion.div>
               ))}
             </div>
 
-
-
+            {/* Sub-text */}
             <motion.p
-              className="font-body text-on-surface-variant text-[15px] md:text-[16px] leading-relaxed max-w-[280px] mb-8"
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.75, ease }}
+              className="font-body text-[#2A1A14]/55 text-[15px] leading-relaxed max-w-[260px] mb-8"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.65, ease }}
             >
-              Ancient Indian botanicals, formulated for modern skin.
+              Ancient botanical ingredients crafted<br />for naturally radiant modern skin.
             </motion.p>
 
+            {/* CTAs */}
             <motion.div
-              className="flex flex-wrap items-center gap-3 mb-10"
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.9, ease }}
+              className="flex flex-wrap items-center gap-3"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.8, ease }}
             >
-              <Link href="/products" className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-body text-[12px] tracking-[0.16em] uppercase font-semibold transition-all duration-300 hover:scale-105 active:scale-95" style={{ background: "#B06080", color: "#fff" }}>
+              <Link
+                href="/products"
+                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-body text-[12px] tracking-[0.16em] uppercase font-semibold transition-all duration-300 hover:scale-105 active:scale-95 shadow-md"
+                style={{ background: "#8B3A5E", color: "#fff" }}
+              >
                 Shop the Ritual
               </Link>
-              <Link href="/contact" className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-body text-[12px] tracking-[0.16em] uppercase font-medium border border-[#2A1A14]/25 text-[#2A1A14]/65 hover:border-[#B06080]/60 hover:text-[#B06080] transition-all duration-300">
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-body text-[12px] tracking-[0.16em] uppercase font-medium border border-[#2A1A14]/25 text-[#2A1A14]/65 hover:border-[#8B3A5E]/60 hover:text-[#8B3A5E] transition-all duration-300"
+              >
                 Our Story
               </Link>
             </motion.div>
-
-            <motion.div className="flex flex-wrap gap-x-5 gap-y-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1 }}>
-              {["100% Natural", "Cruelty Free", "Made in India"].map((t) => (
-                <div key={t} className="flex items-center gap-1.5">
-                  <span className="text-[#C9A74D] text-[10px]">✦</span>
-                  <span className="font-body text-[11px] tracking-[0.07em] uppercase text-on-surface-variant">{t}</span>
-                </div>
-              ))}
-            </motion.div>
           </div>
-
-          {/* RIGHT — Image */}
-          <motion.div
-            className="relative hidden md:block md:w-1/2 lg:w-[48%] md:h-auto md:max-h-none md:self-stretch overflow-hidden"
-            initial={{ opacity: 0, x: 48 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1.1, delay: 0.25, ease }}
-          >
-            {/* Arch on top-left corner (desktop) */}
-            <div className="absolute inset-0 md:rounded-tl-[80px] overflow-hidden">
-              <motion.div className="absolute inset-0 scale-105" style={{ y: heroY }}>
-                <Image
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8-bjDTc3Unc9zLxtNxCaE-V4cqQ_GJugaVdFZ7k4KFoHrMZfddDoI9SbnMmFVkUq5GcU29rU0VzWiHa0Zc6oSJCd4GOZ8lF6r1HYEmhwn_5HhPDr0MZacIUBhW-TCLT3JU5SLCvhhiSoamVRGF_gN2MJitxL5Zij1_MYVG0nStfey3fSV6TtXDNFAocfdkKtl_ZpwTp3aRHvH1uSmF9qVXDgU7LZhBZlOL7sqVPPZ0DlfI8dP-8jFoOETvCwKNYFT3WBtNGUCFsxo"
-                  alt="Saaral Cosmetics — Luxury botanical skincare"
-                  fill className="object-cover object-center" priority sizes="(max-width: 768px) 100vw, 50vw"
-                />
-                {/* Edge blends */}
-                <div className="absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-[#FDF6F0] to-transparent md:block hidden" />
-                <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#FDF6F0]/30 to-transparent" />
-              </motion.div>
-            </div>
-
-            {/* Floating badge */}
-            <motion.div
-              className="absolute bottom-6 left-4 md:bottom-10 md:left-6 rounded-2xl p-4 max-w-[160px] border border-[#C9A74D]/20"
-              style={{ background: "rgba(253,246,240,0.88)", backdropFilter: "blur(14px)" }}
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 1.2 }}
-            >
-              <span className="material-symbols-outlined text-[#C9A74D] text-[20px] mb-1 block">eco</span>
-              <p className="font-body text-[#2A1A14] text-[12px] leading-snug font-medium">100% Ethically Sourced Botanicals</p>
-            </motion.div>
-          </motion.div>
         </section>
+
 
         {/* ── TRUST MARQUEE ── */}
         <section className="w-full border-y overflow-hidden py-3.5" style={{ borderColor: "rgba(176,96,128,0.2)", background: "rgba(255,245,240,0.85)" }}>
+
           <div className="flex animate-marquee whitespace-nowrap gap-14">
             {[...trustSignals, ...trustSignals].map((s, i) => (
               <span key={i} className="label-caps text-[#B06080] flex items-center gap-3">

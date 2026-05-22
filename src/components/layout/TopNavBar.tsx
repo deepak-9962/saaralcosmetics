@@ -134,7 +134,8 @@ export default function TopNavBar() {
         </div>
       )}
 
-      <div className="flex justify-between items-center h-[56px] md:h-[68px] px-4 md:px-16 max-w-[1280px] mx-auto">
+      <div className="relative flex justify-between items-center h-[56px] md:h-[68px] px-4 md:px-16 max-w-[1280px] mx-auto">
+        {/* LEFT — Logo */}
         <div className="flex items-center gap-2 md:gap-3">
           <button
             className="md:hidden p-2 flex items-center justify-center cursor-pointer"
@@ -155,7 +156,8 @@ export default function TopNavBar() {
           </Link>
         </div>
 
-        <div className="hidden md:flex items-center gap-8">
+        {/* CENTER — Nav links (absolute, perfectly centred) */}
+        <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
           {navItems.map((item) => (
             <Link
               key={item.label}
