@@ -153,31 +153,18 @@ export default function HomePage() {
   const bannerY = useTransform(scrollY, [300, 1200], [-30, 30]);
 
 
-  // Mobile Hero Banner Slider setup using Embla Carousel
-  const heroAutoplay = useRef(
-    Autoplay({ delay: 2500, stopOnInteraction: false, stopOnMouseEnter: true })
-  );
-  const [heroEmblaRef, heroEmblaApi] = useEmblaCarousel(
-    { loop: true },
-    [heroAutoplay.current]
-  );
-  const [heroSelectedIndex, setHeroSelectedIndex] = useState(0);
-  const [heroScrollSnaps, setHeroScrollSnaps] = useState<number[]>([]);
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
-  const onHeroSelect = useCallback(() => {
-    if (!heroEmblaApi) return;
-    setHeroSelectedIndex(heroEmblaApi.selectedScrollSnap());
-  }, [heroEmblaApi]);
-
-  useEffect(() => {
-    if (!heroEmblaApi) return;
-    onHeroSelect();
-    setHeroScrollSnaps(heroEmblaApi.scrollSnapList());
-    heroEmblaApi.on("select", onHeroSelect);
-    return () => {
-      heroEmblaApi.off("select", onHeroSelect);
-    };
-  }, [heroEmblaApi, onHeroSelect]);
+  const handleSliderScroll = () => {
+    const container = sliderRef.current;
+    if (!container) return;
+    const scrollLeft = container.scrollLeft;
+    const width = container.clientWidth;
+    const scrollDistance = width - 24;
+    const index = Math.round(scrollLeft / scrollDistance);
+    setActiveSlideIndex(index);
+  };
 
   const scrollBestsellers = (direction: "left" | "right") => {
     const container = bestsellerScrollRef.current;
@@ -204,10 +191,143 @@ export default function HomePage() {
 
       <main className="w-full flex-grow pb-24 md:pb-0 overflow-x-hidden">
 
-        {/* ── HERO — Split Layout (Screenshot Match) ── */}
+        {/* Mobile Hero Slider (visible only on < md) */}
+        <section className="block md:hidden relative w-full bg-[#FDF6F0] pt-16 pb-6 overflow-hidden">
+          <div
+            ref={sliderRef}
+            onScroll={handleSliderScroll}
+            className="w-full overflow-x-auto flex snap-x snap-mandatory no-scrollbar gap-4 scroll-smooth px-5"
+          >
+            {/* Slide 1: Original Hero Section Content */}
+            <div
+              className="w-[calc(100vw-40px)] shrink-0 snap-center relative min-h-[520px] flex flex-col justify-center px-6 py-10 overflow-hidden rounded-2xl border border-outline-variant/15 shadow-sm"
+              style={{ background: "#FDF6F0" }}
+            >
+              {/* Hero Background Image */}
+              <div
+                className="absolute inset-0 bg-no-repeat pointer-events-none"
+                style={{
+                  backgroundImage: "url(/images/hero.png)",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center bottom",
+                }}
+              />
+
+              {/* Gradient Overlay */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundImage: `
+                    linear-gradient(to bottom,
+                      #FDF6F0 0%,
+                      rgba(253,246,240,0.92) 50%,
+                      rgba(253,246,240,0.3) 80%,
+                      transparent 100%
+                    )
+                  `,
+                }}
+              />
+
+              {/* Eyebrow */}
+              <div className="relative z-10 flex items-center gap-2 mb-4">
+                <div className="w-6 h-px bg-[#C9A74D]" />
+                <span className="font-body text-[#C9A74D] text-[10px] tracking-[0.14em] uppercase font-semibold">
+                  Apothecary Heritage
+                </span>
+              </div>
+
+              {/* Headline */}
+              <div className="relative z-10 overflow-hidden mb-4">
+                <span
+                  className="font-display text-[#2A1A14] block"
+                  style={{ fontSize: "32px", lineHeight: 1.15, letterSpacing: "-0.02em" }}
+                >
+                  Luxury Skincare,<br />Rooted in Nature.
+                </span>
+              </div>
+
+              {/* Sub-text */}
+              <p className="relative z-10 font-body text-[#2A1A14]/70 text-[14px] leading-relaxed max-w-[240px] mb-6">
+                Ancient botanical ingredients crafted for naturally radiant modern skin.
+              </p>
+
+              {/* CTAs */}
+              <div className="relative z-10 flex items-center gap-3">
+                <Link
+                  href="/products"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-body text-[11px] tracking-[0.14em] uppercase font-semibold transition-all duration-300 hover:scale-105 active:scale-95 shadow-md"
+                  style={{ background: "#8B3A5E", color: "#fff" }}
+                >
+                  Shop
+                </Link>
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-body text-[11px] tracking-[0.14em] uppercase font-medium border border-[#2A1A14]/25 text-[#2A1A14]/65 hover:border-[#8B3A5E]/60 hover:text-[#8B3A5E] transition-all duration-300"
+                >
+                  Our Story
+                </Link>
+              </div>
+            </div>
+
+            {/* Slide 2: Banner 2 */}
+            <div className="w-[calc(100vw-40px)] shrink-0 snap-center relative min-h-[520px] overflow-hidden rounded-2xl border border-outline-variant/15 shadow-sm">
+              <Link href="/products" className="absolute inset-0 block">
+                <Image
+                  src={saaralBanner2}
+                  alt="Saaral Cosmetics Banner 2"
+                  fill
+                  className="object-cover object-center"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  priority={false}
+                />
+              </Link>
+            </div>
+
+            {/* Slide 3: Banner 3 */}
+            <div className="w-[calc(100vw-40px)] shrink-0 snap-center relative min-h-[520px] overflow-hidden rounded-2xl border border-outline-variant/15 shadow-sm">
+              <Link href="/products" className="absolute inset-0 block">
+                <Image
+                  src={saaralBanner3}
+                  alt="Saaral Cosmetics Banner 3"
+                  fill
+                  className="object-cover object-center"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  priority={false}
+                />
+              </Link>
+            </div>
+          </div>
+
+          {/* Dots Indicator */}
+          <div className="flex justify-center gap-2 mt-5">
+            {[0, 1, 2].map((idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  const container = sliderRef.current;
+                  if (!container) return;
+                  const width = container.clientWidth;
+                  container.scrollTo({
+                    left: idx * (width - 24),
+                    behavior: "smooth",
+                  });
+                }}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  activeSlideIndex === idx
+                    ? "bg-[#8B3A5E] w-5"
+                    : "bg-[#2A1A14]/25"
+                }`}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* Desktop Hero (visible only on md and above) */}
         <section
           ref={heroRef}
-          className="relative w-full overflow-hidden"
+          className="hidden md:block relative w-full overflow-hidden"
           style={{
             minHeight: "clamp(500px, 88vh, 820px)",
             background: "#FDF6F0",
@@ -240,11 +360,9 @@ export default function HomePage() {
             }}
           />
 
-
           {/* ── LEFT — Text content ── */}
-
           <div
-            className="relative z-10 flex flex-col justify-center px-6 md:px-14 lg:px-20 pt-24 pb-10 md:pt-32 md:pb-12 w-full md:w-[48%] lg:w-[46%]"
+            className="relative z-10 flex flex-col justify-center px-14 lg:px-20 pt-32 pb-12 w-[48%] lg:w-[46%]"
             style={{ minHeight: "clamp(520px, 90vh, 860px)" }}
           >
             {/* Eyebrow */}
