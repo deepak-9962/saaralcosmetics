@@ -97,6 +97,30 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>;
         Relationships: [];
       };
+      customers: {
+        Row: {
+          id: string;
+          phone: string;
+          name: string | null;
+          email: string | null;
+          order_count: number;
+          total_spent: number;
+          first_seen_at: string;
+          last_seen_at: string;
+        };
+        Insert: {
+          id?: string;
+          phone: string;
+          name?: string | null;
+          email?: string | null;
+          order_count?: number;
+          total_spent?: number;
+          first_seen_at?: string;
+          last_seen_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["customers"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

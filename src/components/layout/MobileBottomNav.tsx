@@ -40,7 +40,7 @@ export default function MobileBottomNav() {
         <div className="grid grid-cols-5 items-end">
           <Link
             href="/products"
-            className="col-start-3 row-start-1 justify-self-center -translate-y-5 bg-primary text-on-primary rounded-full h-14 w-14 shadow-[0_12px_30px_-12px_rgba(176,96,128,0.75)] border-2 border-surface-container-lowest flex items-center justify-center"
+            className="col-start-3 row-start-1 justify-self-center -translate-y-5 bg-primary text-on-primary rounded-full h-14 w-14 shadow-[0_12px_30px_-12px_rgba(176,96,128,0.75)] border-2 border-surface-container-lowest flex items-center justify-center transition-all duration-200 active:scale-90"
             aria-label="Unlock offer"
           >
             <div className="text-center leading-none">
@@ -55,7 +55,7 @@ export default function MobileBottomNav() {
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex flex-col items-center gap-1 py-2 ${active ? "text-primary" : "text-on-surface-variant"}`}
+                className={`flex flex-col items-center gap-1 py-2 transition-all duration-200 active:scale-90 ${active ? "text-primary" : "text-on-surface-variant"}`}
               >
                 <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
                 <span className="font-body text-[11px] leading-none">{item.label}</span>
@@ -69,7 +69,7 @@ export default function MobileBottomNav() {
               <Link
                 key={item.label}
                 href={item.href}
-                className={`relative flex flex-col items-center gap-1 py-2 ${active ? "text-primary" : "text-on-surface-variant"}`}
+                className={`relative flex flex-col items-center gap-1 py-2 transition-all duration-200 active:scale-90 ${active ? "text-primary" : "text-on-surface-variant"}`}
               >
                 <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
                 <span className="font-body text-[11px] leading-none">{item.label}</span>

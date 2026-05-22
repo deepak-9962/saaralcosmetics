@@ -158,10 +158,10 @@ body {
   box-shadow: 0 4px 24px rgba(42, 26, 20, 0.06);
 }
 .glow-rose {
-  box-shadow: 0 0 40px rgba(176, 96, 128, 0.22), 0 0 80px rgba(176, 96, 128, 0.10);
+  box-shadow: 0 20px 48px -12px rgba(176, 96, 128, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 .glow-gold {
-  box-shadow: 0 0 32px rgba(201, 167, 77, 0.24);
+  box-shadow: 0 20px 48px -12px rgba(201, 167, 77, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 /* ============================================
@@ -171,11 +171,15 @@ body {
   background: rgba(255, 245, 240, 0.68);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 12px 32px -8px rgba(176, 96, 128, 0.04);
 }
 .glass-dark {
   background: rgba(30, 18, 10, 0.55);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 12px 32px -8px rgba(0, 0, 0, 0.2);
 }
 
 /* ============================================
@@ -441,4 +445,24 @@ body {
   transform: translateY(0) scale(1) !important;
   pointer-events: auto !important;
 }
+
+/* ============================================
+   LUXURY SEARCH & DRAWER OVERLAYS
+   ============================================ */
+.luxury-gradient-bg {
+  background: radial-gradient(circle at 10% 20%, rgba(249, 233, 231, 0.45) 0%, transparent 50%),
+              radial-gradient(circle at 90% 80%, rgba(242, 213, 224, 0.4) 0%, transparent 60%),
+              #FDF6F0;
+}
+
+.search-suggestion-chip {
+  transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.search-suggestion-chip:hover {
+  background: rgba(176, 96, 128, 0.08) !important;
+  border-color: rgba(176, 96, 128, 0.4) !important;
+  color: #B06080 !important;
+  transform: translateY(-1px);
+}
+
 

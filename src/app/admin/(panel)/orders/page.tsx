@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { listOrders, updateOrderStatus, updateOrderNotes } from "@/lib/supabase/data";
+import toast from "react-hot-toast";
+import Link from "next/link";
+import { listOrders, updateOrderStatus, updateOrderNotes, updateOrderPaymentStatus, subscribeToOrders } from "@/lib/supabase/data";
 import { formatPrice } from "@/lib/utils";
 import type { Order, OrderStatus } from "@/lib/types";
 
@@ -43,6 +45,7 @@ export default function AdminOrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const detailPanelRef = useRef<HTMLDivElement | null>(null);
+  const isFirstLoad = useRef(true);
 
   useEffect(() => {
     async function loadOrders() {
@@ -54,8 +57,23 @@ export default function AdminOrdersPage() {
         setError(loadError instanceof Error ? loadError.message : "Failed to load orders.");
       }
     }
-
     loadOrders();
+
+    // Realtime subscription
+    const unsubscribe = subscribeToOrders(
+      (newOrder) => {
+        setOrders((prev) => [newOrder, ...prev]);
+        if (!isFirstLoad.current) {
+          toast.success(`🛍️ New order: ${newOrder.order_number}`, { duration: 5000 });
+        }
+      },
+      (updatedOrder) => {
+        setOrders((prev) => prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o)));
+      }
+    );
+
+    setTimeout(() => { isFirstLoad.current = false; }, 3000);
+    return unsubscribe;
   }, []);
 
   const filteredOrders = useMemo(() => {
@@ -195,6 +213,23 @@ export default function AdminOrdersPage() {
       setEditingNotes(false);
     } catch (notesError) {
       setError(notesError instanceof Error ? notesError.message : "Failed to update order notes.");
+    } finally {
+      setIsUpdating(false);
+    }
+  }
+
+  async function handleUpdatePaymentStatus(nextStatus: Order["payment_status"]) {
+    if (!selectedOrder) return;
+    setIsUpdating(true);
+    setError(null);
+    try {
+      await updateOrderPaymentStatus(selectedOrder.id, nextStatus);
+      setOrders((prev) =>
+        prev.map((o) => (o.id === selectedOrder.id ? { ...o, payment_status: nextStatus } : o))
+      );
+      toast.success(`Payment marked as ${nextStatus}`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update payment status.");
     } finally {
       setIsUpdating(false);
     }
@@ -556,12 +591,32 @@ export default function AdminOrdersPage() {
               <h5 className="font-body text-[11px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant uppercase mb-3">
                 Customer Information
               </h5>
-              <p className="font-body text-[16px] leading-[1.6] text-on-surface font-medium">
-                {selectedOrder.customer_name}
-              </p>
-              <p className="font-body text-[14px] leading-[1.6] text-on-surface-variant">
-                {selectedOrder.customer_phone}
-              </p>
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-body text-[16px] leading-[1.6] text-on-surface font-medium">
+                  {selectedOrder.customer_name}
+                </p>
+                <Link
+                  href={`/admin/customers/${encodeURIComponent(selectedOrder.customer_phone)}`}
+                  className="text-primary font-body text-[12px] hover:underline flex items-center gap-1 flex-shrink-0"
+                >
+                  <span className="material-symbols-outlined text-[14px]">person</span>
+                  Profile
+                </Link>
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="font-body text-[14px] leading-[1.6] text-on-surface-variant">
+                  {selectedOrder.customer_phone}
+                </p>
+                <a
+                  href={`https://wa.me/91${selectedOrder.customer_phone.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-body text-[11px] font-medium hover:bg-emerald-100 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[13px]">chat</span>
+                  WhatsApp
+                </a>
+              </div>
               {selectedOrder.customer_email && (
                 <p className="font-body text-[14px] leading-[1.6] text-on-surface-variant">
                   {selectedOrder.customer_email}
@@ -713,6 +768,18 @@ export default function AdminOrdersPage() {
                 Status Actions
               </h5>
               {renderStatusActions(selectedOrder)}
+              {/* Payment status override for COD */}
+              {selectedOrder.payment_status !== "paid" && (
+                <button
+                  type="button"
+                  onClick={() => handleUpdatePaymentStatus("paid")}
+                  disabled={isUpdating}
+                  className="px-4 py-2 rounded-lg bg-emerald-50 border border-emerald-300 text-emerald-800 font-body text-[14px] leading-[1.4] disabled:opacity-50 flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[16px]">payments</span>
+                  Mark as Paid (COD)
+                </button>
+              )}
             </section>
 
             <section className="flex flex-wrap gap-2 pb-4">

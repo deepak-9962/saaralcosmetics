@@ -2,7 +2,6 @@
 
 import { generateOrderNumber, generateSlug } from "@/lib/utils";
 import type { CartItem, CategoryFilter, Order, OrderItem, Product } from "@/lib/types";
-import { MOCK_PRODUCTS } from "@/lib/products";
 import { getSupabaseBrowserClient } from "./client";
 import type { Database, Json } from "./database.types";
 
@@ -10,6 +9,26 @@ type ProductRow = Database["public"]["Tables"]["products"]["Row"];
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type OrderInsert = Database["public"]["Tables"]["orders"]["Insert"];
+type CustomerRow = Database["public"]["Tables"]["customers"]["Row"];
+
+// ============================================================
+// TYPES
+// ============================================================
+
+export interface Customer {
+  id: string;
+  phone: string;
+  name: string | null;
+  email: string | null;
+  order_count: number;
+  total_spent: number;
+  first_seen_at: string;
+  last_seen_at: string;
+}
+
+// ============================================================
+// NORMALIZERS
+// ============================================================
 
 const CATEGORY_FALLBACK_IMAGE: Record<Product["category"], string> = {
   "face-cream": "/images/cat-face-cream.webp",
@@ -44,47 +63,6 @@ function normalizeProductImages(images: string[] | null | undefined, category: P
   return [CATEGORY_FALLBACK_IMAGE[category]];
 }
 
-function normalizeStorefrontProduct(product: Product): Product {
-  return {
-    ...product,
-    images: normalizeProductImages(product.images, product.category),
-  };
-}
-
-function mergeWithMockStorefrontProducts(
-  sourceProducts: Product[],
-  category: CategoryFilter,
-  limit?: number
-) {
-  const normalizedSource = sourceProducts.map(normalizeStorefrontProduct);
-
-  const mockProducts = MOCK_PRODUCTS.filter((product) => {
-    if (!product.is_active) {
-      return false;
-    }
-
-    if (category === "all") {
-      return true;
-    }
-
-    return product.category === category;
-  }).map(normalizeStorefrontProduct);
-
-  const mergedProducts = [...normalizedSource];
-  const seenSlugs = new Set(normalizedSource.map((product) => product.slug));
-
-  for (const mockProduct of mockProducts) {
-    if (seenSlugs.has(mockProduct.slug)) {
-      continue;
-    }
-
-    mergedProducts.push(mockProduct);
-    seenSlugs.add(mockProduct.slug);
-  }
-
-  return typeof limit === "number" ? mergedProducts.slice(0, limit) : mergedProducts;
-}
-
 function normalizeProduct(row: ProductRow): Product {
   return {
     id: row.id,
@@ -106,8 +84,6 @@ function normalizeProduct(row: ProductRow): Product {
 }
 
 function normalizeOrder(row: OrderRow): Order {
-  const parsedItems = parseOrderItems(row.items);
-
   return {
     id: row.id,
     order_number: row.order_number,
@@ -119,7 +95,7 @@ function normalizeOrder(row: OrderRow): Order {
     city: row.city,
     state: row.state,
     pincode: row.pincode,
-    items: parsedItems,
+    items: parseOrderItems(row.items),
     subtotal: row.subtotal,
     shipping_charge: row.shipping_charge,
     total: row.total,
@@ -133,15 +109,24 @@ function normalizeOrder(row: OrderRow): Order {
   };
 }
 
+function normalizeCustomer(row: CustomerRow): Customer {
+  return {
+    id: row.id,
+    phone: row.phone,
+    name: row.name,
+    email: row.email,
+    order_count: row.order_count,
+    total_spent: row.total_spent,
+    first_seen_at: row.first_seen_at,
+    last_seen_at: row.last_seen_at,
+  };
+}
+
 function parseOrderItems(items: Json): OrderItem[] {
-  if (!Array.isArray(items)) {
-    return [];
-  }
+  if (!Array.isArray(items)) return [];
 
   return items.flatMap((entry) => {
-    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
-      return [];
-    }
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
 
     const productId = entry["product_id"];
     const name = entry["name"];
@@ -161,18 +146,13 @@ function parseOrderItems(items: Json): OrderItem[] {
       return [];
     }
 
-    return [
-      {
-        product_id: productId,
-        name,
-        variant,
-        qty,
-        price,
-        image,
-      },
-    ];
+    return [{ product_id: productId, name, variant, qty, price, image }];
   });
 }
+
+// ============================================================
+// PRODUCTS — READ
+// ============================================================
 
 export async function listProducts(category: CategoryFilter = "all"): Promise<Product[]> {
   const supabase = getSupabaseBrowserClient();
@@ -187,12 +167,8 @@ export async function listProducts(category: CategoryFilter = "all"): Promise<Pr
   }
 
   const { data, error } = await query;
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const products = (data ?? []).map(normalizeProduct);
-  return mergeWithMockStorefrontProducts(products, category);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(normalizeProduct);
 }
 
 export async function listFeaturedProducts(limit = 3): Promise<Product[]> {
@@ -204,12 +180,8 @@ export async function listFeaturedProducts(limit = 3): Promise<Product[]> {
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const products = (data ?? []).map(normalizeProduct);
-  return mergeWithMockStorefrontProducts(products, "all", limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(normalizeProduct);
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
@@ -221,22 +193,21 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     .eq("is_active", true)
     .maybeSingle();
 
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+  return normalizeProduct(data);
+}
 
-  if (!data) {
-    const fallbackProduct = MOCK_PRODUCTS.find(
-      (product) => product.slug === slug && product.is_active
-    );
+export async function getProductById(id: string): Promise<Product | null> {
+  const supabase = getSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
 
-    if (fallbackProduct) {
-      return normalizeStorefrontProduct(fallbackProduct);
-    }
-
-    return null;
-  }
-
+  if (error) throw new Error(error.message);
+  if (!data) return null;
   return normalizeProduct(data);
 }
 
@@ -255,17 +226,108 @@ export async function listRelatedProducts(
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const relatedProducts = mergeWithMockStorefrontProducts(
-    (data ?? []).map(normalizeProduct),
-    category
-  ).filter((product) => product.slug !== currentSlug);
-
-  return relatedProducts.slice(0, limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(normalizeProduct);
 }
+
+export async function listAllProductsForAdmin(): Promise<Product[]> {
+  const supabase = getSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(normalizeProduct);
+}
+
+// ============================================================
+// PRODUCTS — WRITE
+// ============================================================
+
+interface CreateProductInput {
+  name: string;
+  category: Product["category"];
+  variant_name: string | null;
+  price: number;
+  compare_price: number | null;
+  description: string | null;
+  ingredients: string | null;
+  how_to_use: string | null;
+  images: string[];
+  stock: number;
+  is_active: boolean;
+}
+
+export async function createProduct(input: CreateProductInput): Promise<Product> {
+  const supabase = getSupabaseBrowserClient();
+  const payload: ProductInsert = {
+    name: input.name,
+    slug: generateSlug(input.name, input.variant_name ?? undefined),
+    category: input.category,
+    variant_name: input.variant_name,
+    price: input.price,
+    compare_price: input.compare_price,
+    description: input.description,
+    ingredients: input.ingredients,
+    how_to_use: input.how_to_use,
+    images: input.images,
+    stock: input.stock,
+    is_active: input.is_active,
+  };
+
+  const { data, error } = await supabase
+    .from("products")
+    .insert(payload)
+    .select("*")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return normalizeProduct(data);
+}
+
+interface UpdateProductInput extends Partial<CreateProductInput> {}
+
+export async function updateProduct(productId: string, input: UpdateProductInput): Promise<Product> {
+  const supabase = getSupabaseBrowserClient();
+
+  const { data, error } = await supabase
+    .from("products")
+    .update({
+      ...input,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", productId)
+    .select("*")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return normalizeProduct(data);
+}
+
+export async function updateProductActive(productId: string, isActive: boolean): Promise<void> {
+  const supabase = getSupabaseBrowserClient();
+  const { error } = await supabase
+    .from("products")
+    .update({ is_active: isActive })
+    .eq("id", productId);
+
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteProduct(productId: string): Promise<void> {
+  const supabase = getSupabaseBrowserClient();
+  const { error } = await supabase
+    .from("products")
+    .delete()
+    .eq("id", productId);
+
+  if (error) throw new Error(error.message);
+}
+
+// ============================================================
+// ORDERS — READ & WRITE
+// ============================================================
 
 interface CreateOrderInput {
   customer_name: string;
@@ -317,10 +379,8 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
     .select("*")
     .single();
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
+  if (error) throw new Error(error.message);
+  // The DB trigger `trg_sync_customer_on_order` auto-upserts the customer row
   return normalizeOrder(data);
 }
 
@@ -332,14 +392,8 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
     .eq("id", orderId)
     .maybeSingle();
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  if (!data) {
-    return null;
-  }
-
+  if (error) throw new Error(error.message);
+  if (!data) return null;
   return normalizeOrder(data);
 }
 
@@ -350,26 +404,31 @@ export async function listOrders(): Promise<Order[]> {
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
+  if (error) throw new Error(error.message);
   return (data ?? []).map(normalizeOrder);
 }
 
-export async function updateOrderStatus(
-  orderId: string,
-  status: Order["order_status"]
-): Promise<void> {
+export async function updateOrderStatus(orderId: string, status: Order["order_status"]): Promise<void> {
   const supabase = getSupabaseBrowserClient();
   const { error } = await supabase
     .from("orders")
     .update({ order_status: status })
     .eq("id", orderId);
 
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
+}
+
+export async function updateOrderPaymentStatus(
+  orderId: string,
+  status: Order["payment_status"]
+): Promise<void> {
+  const supabase = getSupabaseBrowserClient();
+  const { error } = await supabase
+    .from("orders")
+    .update({ payment_status: status })
+    .eq("id", orderId);
+
+  if (error) throw new Error(error.message);
 }
 
 export async function updateOrderNotes(orderId: string, notes: string | null): Promise<void> {
@@ -379,10 +438,98 @@ export async function updateOrderNotes(orderId: string, notes: string | null): P
     .update({ notes })
     .eq("id", orderId);
 
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
 }
+
+// ============================================================
+// CUSTOMERS — READ
+// ============================================================
+
+export async function listCustomers(): Promise<Customer[]> {
+  const supabase = getSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from("customers")
+    .select("*")
+    .order("last_seen_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(normalizeCustomer);
+}
+
+export async function getCustomerByPhone(phone: string): Promise<Customer | null> {
+  const supabase = getSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from("customers")
+    .select("*")
+    .eq("phone", phone)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+  return normalizeCustomer(data);
+}
+
+export async function listOrdersByPhone(phone: string): Promise<Order[]> {
+  const supabase = getSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("customer_phone", phone)
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(normalizeOrder);
+}
+
+// ============================================================
+// REALTIME SUBSCRIPTIONS
+// ============================================================
+
+export function subscribeToOrders(
+  onInsert: (order: Order) => void,
+  onUpdate?: (order: Order) => void
+) {
+  const supabase = getSupabaseBrowserClient();
+  const channel = supabase
+    .channel("orders-realtime")
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "orders" },
+      (payload) => onInsert(normalizeOrder(payload.new as OrderRow))
+    )
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "orders" },
+      (payload) => onUpdate?.(normalizeOrder(payload.new as OrderRow))
+    )
+    .subscribe();
+
+  return () => { void supabase.removeChannel(channel); };
+}
+
+export function subscribeToProducts(onAnyChange: () => void) {
+  const supabase = getSupabaseBrowserClient();
+  const channel = supabase
+    .channel("products-realtime")
+    .on("postgres_changes", { event: "*", schema: "public", table: "products" }, onAnyChange)
+    .subscribe();
+
+  return () => { void supabase.removeChannel(channel); };
+}
+
+export function subscribeToCustomers(onAnyChange: () => void) {
+  const supabase = getSupabaseBrowserClient();
+  const channel = supabase
+    .channel("customers-realtime")
+    .on("postgres_changes", { event: "*", schema: "public", table: "customers" }, onAnyChange)
+    .subscribe();
+
+  return () => { void supabase.removeChannel(channel); };
+}
+
+// ============================================================
+// AUTH
+// ============================================================
 
 export async function getAdminSessionUser() {
   const supabase = getSupabaseBrowserClient();
@@ -391,79 +538,6 @@ export async function getAdminSessionUser() {
     error,
   } = await supabase.auth.getUser();
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
+  if (error) throw new Error(error.message);
   return user;
-}
-
-interface CreateProductInput {
-  name: string;
-  category: Product["category"];
-  variant_name: string | null;
-  price: number;
-  compare_price: number | null;
-  description: string | null;
-  ingredients: string | null;
-  how_to_use: string | null;
-  images: string[];
-  stock: number;
-  is_active: boolean;
-}
-
-export async function createProduct(input: CreateProductInput): Promise<Product> {
-  const supabase = getSupabaseBrowserClient();
-  const payload: ProductInsert = {
-    name: input.name,
-    slug: generateSlug(input.name, input.variant_name ?? undefined),
-    category: input.category,
-    variant_name: input.variant_name,
-    price: input.price,
-    compare_price: input.compare_price,
-    description: input.description,
-    ingredients: input.ingredients,
-    how_to_use: input.how_to_use,
-    images: input.images,
-    stock: input.stock,
-    is_active: input.is_active,
-  };
-
-  const { data, error } = await supabase
-    .from("products")
-    .insert(payload)
-    .select("*")
-    .single();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return normalizeProduct(data);
-}
-
-export async function listAllProductsForAdmin(): Promise<Product[]> {
-  const supabase = getSupabaseBrowserClient();
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return (data ?? []).map(normalizeProduct);
-}
-
-export async function updateProductActive(productId: string, isActive: boolean): Promise<void> {
-  const supabase = getSupabaseBrowserClient();
-  const { error } = await supabase
-    .from("products")
-    .update({ is_active: isActive })
-    .eq("id", productId);
-
-  if (error) {
-    throw new Error(error.message);
-  }
 }

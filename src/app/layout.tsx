@@ -57,7 +57,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${playfairDisplay.variable} ${dmSans.variable} font-body text-on-surface antialiased min-h-screen`}
+        className={`${playfairDisplay.variable} ${dmSans.variable} font-body text-on-surface antialiased min-h-[100dvh]`}
       >
         <Providers>{children}</Providers>
         <Analytics />

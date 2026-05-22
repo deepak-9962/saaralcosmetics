@@ -75,7 +75,7 @@ export default function ProductDetailPage({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col grain-overlay">
+      <div className="min-h-[100dvh] flex flex-col grain-overlay">
         <GradientBackground />
         <TopNavBar />
         <main className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)] flex-grow">
@@ -90,7 +90,7 @@ export default function ProductDetailPage({
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col grain-overlay">
+      <div className="min-h-[100dvh] flex flex-col grain-overlay">
         <GradientBackground />
         <TopNavBar />
         <main className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)] flex-grow">
@@ -109,7 +109,7 @@ export default function ProductDetailPage({
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col grain-overlay">
+      <div className="min-h-[100dvh] flex flex-col grain-overlay">
         <GradientBackground />
         <TopNavBar />
         <main className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)] flex-grow">
@@ -127,7 +127,7 @@ export default function ProductDetailPage({
   }
 
   return (
-    <div className="min-h-screen flex flex-col grain-overlay">
+    <div className="min-h-[100dvh] flex flex-col grain-overlay">
       <GradientBackground />
       <TopNavBar />
 
@@ -230,7 +230,7 @@ export default function ProductDetailPage({
                 Size
               </h3>
               <div className="flex gap-3">
-                <button className="px-6 py-3 border border-tertiary-container rounded-lg font-body text-[16px] leading-[1.6] bg-surface text-on-surface shadow-[0_0_10px_rgba(201,169,110,0.1)]">
+                <button className="px-6 py-3 border border-primary/30 rounded-lg font-body text-[16px] leading-[1.6] bg-surface text-on-surface shadow-[0_2px_8px_rgba(176,96,128,0.06)] active:scale-98 transition-transform">
                   {product.variant_name}
                 </button>
               </div>
@@ -256,7 +256,7 @@ export default function ProductDetailPage({
               </div>
                 <button
                   onClick={handleAddToCart}
-                  className="hidden md:flex w-full bg-tertiary-container hover:bg-[#b8965c] text-on-tertiary-container font-body text-[16px] leading-[1.6] py-4 rounded-lg items-center justify-center gap-2 transition-colors duration-200"
+                  className="hidden md:flex w-full bg-primary hover:bg-[#9d4d6e] text-on-primary font-body text-[16px] leading-[1.6] py-4 rounded-lg items-center justify-center gap-2 transition-all duration-200 active:scale-95"
                 >
                   <span className="material-symbols-outlined">shopping_bag</span>
                   Add to Cart
@@ -323,7 +323,7 @@ export default function ProductDetailPage({
           </div>
           <button
             onClick={handleAddToCart}
-            className="flex-1 h-9 rounded-lg bg-tertiary-container text-on-tertiary-container font-body text-[12px] tracking-[0.08em] uppercase font-semibold flex items-center justify-center gap-1"
+            className="flex-1 h-9 rounded-lg bg-primary hover:bg-[#9d4d6e] text-on-primary font-body text-[12px] tracking-[0.08em] uppercase font-semibold flex items-center justify-center gap-1 active:scale-95 transition-transform"
           >
             <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
             Add {quantity > 1 ? `${quantity} items` : "to cart"}

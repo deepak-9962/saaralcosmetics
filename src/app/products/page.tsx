@@ -40,6 +40,11 @@ function ProductsContent() {
     loadProducts();
   }, [activeCategory]);
 
+  useEffect(() => {
+    const q = searchParams.get("search") || searchParams.get("q") || "";
+    setSearchTerm(q);
+  }, [searchParams]);
+
   const visibleProducts = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -79,7 +84,7 @@ function ProductsContent() {
   const activeCategoryLabel = CATEGORIES.find((cat) => cat.slug === activeCategory)?.label ?? "All";
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-[100dvh] flex flex-col">
       <GradientBackground />
       <TopNavBar />
 
@@ -312,7 +317,7 @@ export default function ProductsPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-[100dvh] flex flex-col">
           <GradientBackground />
           <TopNavBar />
           <main className="flex-grow" />

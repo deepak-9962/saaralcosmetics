@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
@@ -13,6 +15,8 @@ import ProductCard from "@/components/product/ProductCard";
 import { listProducts } from "@/lib/supabase/data";
 import type { Product } from "@/lib/types";
 import radiantBeauty from "../../public/images/radiant-beauty.png";
+import saaralBanner2 from "../../public/images/saaral-banner-2.png";
+import saaralBanner3 from "../../public/images/saaral-banner-3.png";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -91,6 +95,58 @@ export default function HomePage() {
   const heroY = useTransform(scrollY, [0, 700], [0, 180]);
   const bannerY = useTransform(scrollY, [300, 1200], [-30, 30]);
 
+  // Mobile Banner Slider setup using Embla Carousel
+  const bottomAutoplay = useRef(
+    Autoplay({ delay: 2500, stopOnInteraction: false, stopOnMouseEnter: true })
+  );
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true },
+    [bottomAutoplay.current]
+  );
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    setScrollSnaps(emblaApi.scrollSnapList());
+    emblaApi.on("select", onSelect);
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi, onSelect]);
+
+  // Mobile Hero Banner Slider setup using Embla Carousel
+  const heroAutoplay = useRef(
+    Autoplay({ delay: 2500, stopOnInteraction: false, stopOnMouseEnter: true })
+  );
+  const [heroEmblaRef, heroEmblaApi] = useEmblaCarousel(
+    { loop: true },
+    [heroAutoplay.current]
+  );
+  const [heroSelectedIndex, setHeroSelectedIndex] = useState(0);
+  const [heroScrollSnaps, setHeroScrollSnaps] = useState<number[]>([]);
+
+  const onHeroSelect = useCallback(() => {
+    if (!heroEmblaApi) return;
+    setHeroSelectedIndex(heroEmblaApi.selectedScrollSnap());
+  }, [heroEmblaApi]);
+
+  useEffect(() => {
+    if (!heroEmblaApi) return;
+    onHeroSelect();
+    setHeroScrollSnaps(heroEmblaApi.scrollSnapList());
+    heroEmblaApi.on("select", onHeroSelect);
+    return () => {
+      heroEmblaApi.off("select", onHeroSelect);
+    };
+  }, [heroEmblaApi, onHeroSelect]);
+
   const scrollBestsellers = (direction: "left" | "right") => {
     const container = bestsellerScrollRef.current;
     if (!container) {
@@ -110,7 +166,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col grain-overlay">
+    <div className="min-h-[100dvh] flex flex-col grain-overlay">
       <GradientBackground />
       <TopNavBar />
 
@@ -119,11 +175,74 @@ export default function HomePage() {
         {/* ── HERO — Split Layout ── */}
         <section
           ref={heroRef}
-          className="relative w-full flex flex-col md:flex-row md:min-h-screen md:max-h-[1000px] overflow-hidden"
+          className="relative w-full flex flex-col md:flex-row md:min-h-[100dvh] md:max-h-[1000px] overflow-hidden"
           style={{ background: "#FDF6F0" }}
         >
+          {/* Mobile Hero Image Slider - Placed at the very top of the section */}
+          <div className="block md:hidden w-full">
+            <div 
+              className="overflow-hidden w-full bg-surface-container" 
+              ref={heroEmblaRef}
+              role="region"
+              aria-roledescription="carousel"
+              aria-label="Hero Image Carousel"
+              onFocus={() => heroAutoplay.current.stop()}
+              onBlur={() => heroAutoplay.current.play()}
+            >
+              <div className="flex">
+                {[
+                  { src: radiantBeauty, alt: "Your New Ritual For Radiant Beauty — Saaral Cosmetics" },
+                  { src: saaralBanner2, alt: "Pure Botanical Actives · Nature's Cleanest Formulas" },
+                  { src: saaralBanner3, alt: "100% Cruelty-Free · Ethically Handcrafted" }
+                ].map((slide, index) => (
+                  <div 
+                    id={`hero-slide-${index}`}
+                    className="flex-[0_0_100%] min-w-0 relative aspect-[2172/724]" 
+                    key={index}
+                    role="tabpanel"
+                    aria-labelledby={`hero-tab-${index}`}
+                    aria-roledescription="slide"
+                    aria-label={`Slide ${index + 1} of 3`}
+                  >
+                    <Image
+                      src={slide.src}
+                      alt={slide.alt}
+                      fill
+                      className="object-contain"
+                      priority={index === 0}
+                      sizes="100vw"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Slider Pagination Dots */}
+            {heroScrollSnaps.length > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-3" role="tablist" aria-label="Hero slider pagination">
+                {heroScrollSnaps.map((_, index) => (
+                  <button
+                    key={index}
+                    id={`hero-tab-${index}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={index === heroSelectedIndex}
+                    aria-label={`Go to slide ${index + 1}`}
+                    aria-controls={`hero-slide-${index}`}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      index === heroSelectedIndex
+                        ? "bg-[#B06080] w-6 scale-110 shadow-[0_2px_6px_rgba(176,96,128,0.25)]"
+                        : "bg-[#B06080]/30 w-2 hover:bg-[#B06080]/60 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#B06080]/50"
+                    }`}
+                    onClick={() => heroEmblaApi?.scrollTo(index)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* LEFT — Content */}
-          <div className="relative z-10 flex flex-col justify-start md:justify-center px-6 md:px-14 lg:px-20 pt-10 pb-8 md:py-0 md:w-1/2 lg:w-[52%]">
+          <div className="relative z-10 flex flex-col justify-start md:justify-center px-6 md:px-14 lg:px-20 pt-6 md:pt-10 pb-8 md:py-0 md:w-1/2 lg:w-[52%]">
             {/* Soft glow behind text */}
             <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[380px] h-[380px] rounded-full pointer-events-none opacity-[0.07]" style={{ background: "radial-gradient(circle, #B06080 0%, transparent 70%)" }} />
 
@@ -132,13 +251,16 @@ export default function HomePage() {
               <span className="label-caps text-[#C9A74D]">Apothecary Heritage · Tamil Nadu</span>
             </motion.div>
 
-            <div className="overflow-hidden mb-6">
+            {/* Desktop Hero Text */}
+            <div className="overflow-hidden mb-6 hidden md:block">
               {["Botanical", "Rituals,", "Rediscovered."].map((word, i) => (
                 <motion.div key={word} initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.35 + i * 0.12, ease }}>
                   <span className="font-display text-[#2A1A14] block" style={{ fontSize: "clamp(38px, 5.5vw, 82px)", lineHeight: 1.05, letterSpacing: "-0.02em" }}>{word}</span>
                 </motion.div>
               ))}
             </div>
+
+
 
             <motion.p
               className="font-body text-on-surface-variant text-[15px] md:text-[16px] leading-relaxed max-w-[280px] mb-8"
@@ -171,7 +293,7 @@ export default function HomePage() {
 
           {/* RIGHT — Image */}
           <motion.div
-            className="relative md:w-1/2 lg:w-[48%] h-[85vw] max-h-[420px] md:h-auto md:max-h-none md:self-stretch overflow-hidden"
+            className="relative hidden md:block md:w-1/2 lg:w-[48%] md:h-auto md:max-h-none md:self-stretch overflow-hidden"
             initial={{ opacity: 0, x: 48 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1.1, delay: 0.25, ease }}
           >
             {/* Arch on top-left corner (desktop) */}
@@ -342,18 +464,73 @@ export default function HomePage() {
 
         {/* ── BANNER ── */}
         <section
-          aria-label="Saaral — Your New Ritual For Radiant Beauty"
-          className="w-full flex justify-center items-center pt-8 pb-12 md:pt-14 md:pb-20"
+          aria-label="Saaral Banners and Promotions"
+          className="w-full pt-8 pb-12 md:pt-14 md:pb-20"
           style={{ background: "#F9EFED" }}
         >
-          <Image
-            src={radiantBeauty}
-            alt="Your New Ritual For Radiant Beauty — Saaral Cosmetics"
-            className="w-[90%] md:w-[85%] h-auto block rounded-2xl mx-auto"
-            style={{ maxWidth: "1100px" }}
-            priority={false}
-            sizes="(max-width: 768px) 90vw, 85vw"
-          />
+          {/* Desktop/Tablet View (> 768px) - Static Layout */}
+          <div className="hidden md:block w-full">
+            <Image
+              src={radiantBeauty}
+              alt="Your New Ritual For Radiant Beauty — Saaral Cosmetics"
+              className="w-[90%] md:w-[85%] h-auto block rounded-2xl mx-auto"
+              style={{ maxWidth: "1100px" }}
+              priority={false}
+              sizes="85vw"
+            />
+          </div>
+
+          {/* Mobile View (<= 768px) - Embla Slider */}
+          <div className="block md:hidden w-full px-5">
+            <div className="overflow-hidden rounded-2xl w-full" ref={emblaRef}>
+              <div className="flex">
+                {[
+                  { src: radiantBeauty, alt: "Your New Ritual For Radiant Beauty — Saaral Cosmetics" },
+                  { src: saaralBanner2, alt: "Pure Botanical Actives · Nature's Cleanest Formulas" },
+                  { src: saaralBanner3, alt: "100% Cruelty-Free · Ethically Handcrafted" }
+                ].map((slide, index) => (
+                  <div 
+                    className="flex-[0_0_100%] min-w-0 relative aspect-[2172/724]" 
+                    key={index}
+                    role="group"
+                    aria-roledescription="slide"
+                    aria-label={`Slide ${index + 1} of 3`}
+                  >
+                    <Image
+                      src={slide.src}
+                      alt={slide.alt}
+                      fill
+                      className="object-cover rounded-2xl"
+                      priority={index === 0}
+                      sizes="90vw"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Pagination Dots */}
+            {scrollSnaps.length > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-4" role="tablist" aria-label="Slideshow pagination">
+                {scrollSnaps.map((_, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    role="tab"
+                    aria-selected={index === selectedIndex}
+                    aria-label={`Go to slide ${index + 1}`}
+                    aria-controls={`slide-${index}`}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      index === selectedIndex
+                        ? "bg-[#B06080] w-4"
+                        : "bg-[#B06080]/30 hover:bg-[#B06080]/60"
+                    }`}
+                    onClick={() => emblaApi?.scrollTo(index)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </section>
 
         {/* ── STORYTELLING ── */}

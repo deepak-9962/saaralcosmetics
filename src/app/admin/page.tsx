@@ -60,7 +60,7 @@ export default function AdminLoginPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-[var(--spacing-margin-mobile)]">
+    <div className="min-h-[100dvh] flex items-center justify-center px-[var(--spacing-margin-mobile)]">
       <GradientBackground />
       <motion.div
         className="w-full max-w-md bg-surface p-8 md:p-10 rounded-xl border border-outline-variant/50 custom-shadow"
@@ -114,7 +114,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-tertiary-container text-on-tertiary-container py-4 rounded-xl font-body text-[16px] leading-[1.6] font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full bg-primary text-on-primary py-4 rounded-xl font-body text-[16px] leading-[1.6] font-medium hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>

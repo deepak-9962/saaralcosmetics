@@ -120,7 +120,7 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-[100dvh] flex flex-col">
         <GradientBackground />
         <TopNavBar />
         <main className="flex-grow flex flex-col items-center justify-center gap-6 py-24">
@@ -132,7 +132,7 @@ export default function CheckoutPage() {
           </p>
           <Link
             href="/products"
-            className="bg-tertiary-container text-on-tertiary-container px-8 py-3 rounded-full font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium"
+            className="bg-primary text-on-primary px-8 py-3 rounded-full font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200"
           >
             Browse Products
           </Link>
@@ -143,7 +143,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-[100dvh] flex flex-col">
       <GradientBackground />
       <TopNavBar />
 
@@ -293,7 +293,7 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full mt-6 bg-tertiary-container text-on-tertiary-container font-body text-[16px] md:text-[18px] leading-[1.6] py-4 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-2 custom-shadow disabled:opacity-50"
+                className="w-full mt-6 bg-primary text-on-primary font-body text-[16px] md:text-[18px] leading-[1.6] py-4 rounded-xl hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 custom-shadow disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>

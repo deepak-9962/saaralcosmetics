@@ -13,7 +13,7 @@ export default function WishlistPage() {
   const { items: wishlistItems, itemCount } = useWishlist();
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-[100dvh] flex flex-col">
       <GradientBackground />
       <TopNavBar />
 

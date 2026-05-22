@@ -10,7 +10,7 @@ import GradientBackground from "@/components/layout/GradientBackground";
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-[100dvh] flex flex-col">
       <GradientBackground />
       <TopNavBar />
 
@@ -107,7 +107,7 @@ export default function ContactPage() {
                 href="https://wa.me/918428251423?text=Hi%2C%20I%20have%20a%20question%20about%20Saaral%20Cosmetics"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto bg-tertiary-container text-on-tertiary-container px-8 py-4 rounded-full font-body text-[16px] leading-[1.6] font-medium flex items-center justify-center gap-3 hover:bg-[#b8973c] transition-colors duration-200"
+                className="w-full sm:w-auto bg-primary text-on-primary px-8 py-4 rounded-full font-body text-[16px] leading-[1.6] font-medium flex items-center justify-center gap-3 hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200"
               >
                 <span className="material-symbols-outlined">chat</span>
                 Start WhatsApp Chat

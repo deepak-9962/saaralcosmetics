@@ -57,7 +57,7 @@ export default function OrderConfirmationPage({
   }, [id]);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-[100dvh] flex flex-col">
       <GradientBackground />
       <TopNavBar />
 
@@ -117,14 +117,14 @@ export default function OrderConfirmationPage({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-[#25D366] text-white px-8 py-3 rounded-full font-body text-[16px] leading-[1.6] font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                  className="bg-[#25D366] text-white px-8 py-3 rounded-full font-body text-[16px] leading-[1.6] font-medium flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all duration-200"
                 >
                   <span className="material-symbols-outlined">chat</span>
                   Chat on WhatsApp
                 </a>
                 <Link
                   href="/products"
-                  className="border border-on-surface text-on-surface px-8 py-3 rounded-full font-body text-[16px] leading-[1.6] font-medium flex items-center justify-center gap-2 hover:bg-on-surface hover:text-surface transition-all"
+                  className="border border-on-surface text-on-surface px-8 py-3 rounded-full font-body text-[16px] leading-[1.6] font-medium flex items-center justify-center gap-2 hover:bg-on-surface hover:text-surface active:scale-95 transition-all duration-200"
                 >
                   Continue Shopping
                 </Link>

@@ -15,7 +15,7 @@ export default function CartPage() {
   const { items, total, updateQuantity, removeItem } = useCart();
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-[100dvh] flex flex-col">
       <GradientBackground />
       <TopNavBar />
 
@@ -51,7 +51,7 @@ export default function CartPage() {
             </p>
             <Link
               href="/products"
-              className="bg-tertiary-container text-on-tertiary-container font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium px-8 py-3 rounded-full hover:bg-tertiary transition-colors"
+              className="bg-primary text-on-primary font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium px-8 py-3 rounded-full hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200"
             >
               Shop Now
             </Link>
@@ -104,7 +104,7 @@ export default function CartPage() {
                           <div className="flex items-center border border-outline-variant rounded-lg bg-surface">
                             <button
                               onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                              className="w-7 h-7 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
+                              className="w-7 h-7 flex items-center justify-center text-on-surface-variant hover:text-on-surface active:scale-75 transition-all duration-150"
                               aria-label="Decrease quantity"
                             >
                               <span className="material-symbols-outlined text-[14px]">remove</span>
@@ -112,7 +112,7 @@ export default function CartPage() {
                             <span className="w-7 text-center font-body text-[14px]">{item.quantity}</span>
                             <button
                               onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                              className="w-7 h-7 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
+                              className="w-7 h-7 flex items-center justify-center text-on-surface-variant hover:text-on-surface active:scale-75 transition-all duration-150"
                               aria-label="Increase quantity"
                             >
                               <span className="material-symbols-outlined text-[14px]">add</span>
@@ -120,7 +120,7 @@ export default function CartPage() {
                           </div>
                           <button
                             onClick={() => removeItem(item.product_id)}
-                            className="text-outline hover:text-error transition-colors p-1"
+                            className="text-outline hover:text-error active:scale-75 transition-all duration-150 p-1"
                             aria-label="Remove item"
                           >
                             <span className="material-symbols-outlined text-[18px]">close</span>
@@ -150,7 +150,7 @@ export default function CartPage() {
                         <div className="flex items-center border border-outline-variant rounded-lg p-1 bg-surface">
                           <button
                             onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                            className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
+                            className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-on-surface active:scale-75 transition-all duration-150"
                             aria-label="Decrease quantity"
                           >
                             <span className="material-symbols-outlined text-sm">remove</span>
@@ -158,7 +158,7 @@ export default function CartPage() {
                           <span className="w-8 text-center font-body text-[16px] leading-[1.6]">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                            className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors"
+                            className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-on-surface active:scale-75 transition-all duration-150"
                             aria-label="Increase quantity"
                           >
                             <span className="material-symbols-outlined text-sm">add</span>
@@ -171,7 +171,7 @@ export default function CartPage() {
                       <div className="col-span-1 flex justify-center">
                         <button
                           onClick={() => removeItem(item.product_id)}
-                          className="text-outline hover:text-error transition-colors p-2"
+                          className="text-outline hover:text-error active:scale-75 transition-all duration-150 p-2"
                           aria-label="Remove item"
                         >
                           <span className="material-symbols-outlined">close</span>
@@ -208,7 +208,7 @@ export default function CartPage() {
               </div>
               <Link
                 href="/checkout"
-                className="w-full py-4 bg-tertiary-container text-on-tertiary-container font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium rounded-lg hover:bg-tertiary-fixed transition-colors duration-200 flex justify-center items-center gap-2"
+                className="w-full py-4 bg-primary text-on-primary font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium rounded-lg hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200 flex justify-center items-center gap-2"
               >
                 Proceed to Checkout
               </Link>
@@ -234,7 +234,7 @@ export default function CartPage() {
             </div>
             <Link
               href="/checkout"
-              className="flex-1 h-11 rounded-xl bg-tertiary-container text-on-tertiary-container font-body text-[13px] tracking-[0.08em] uppercase font-semibold flex items-center justify-center gap-1.5"
+              className="flex-1 h-11 rounded-xl bg-primary text-on-primary font-body text-[13px] tracking-[0.08em] uppercase font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-all duration-200"
             >
               <span className="material-symbols-outlined text-[18px]">payments</span>
               Checkout
