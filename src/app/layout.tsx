@@ -49,6 +49,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="light">
       <head>
+        <meta name="color-scheme" content="only light" />
         {/* Material Symbols Outlined */}
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link

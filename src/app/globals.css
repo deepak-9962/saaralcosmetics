@@ -106,6 +106,10 @@
 /* ============================================
    GLOBAL BASE
    ============================================ */
+:root {
+  color-scheme: only light;
+}
+
 ::selection {
   background-color: #F2D5E0;
   color: #3E1828;
