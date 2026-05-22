@@ -38,6 +38,8 @@ export default function TopNavBar() {
   const showPromoBar = !isAdminRoute;
 
   useEffect(() => {
+    const isHomepage = pathname === "/";
+
     // Sync initial scroll state on mount
     const initScrollY = window.scrollY;
     scrolledRef.current = initScrollY > 20;
@@ -45,11 +47,18 @@ export default function TopNavBar() {
 
     if (navRef.current) {
       if (scrolledRef.current) {
-        navRef.current.classList.remove("bg-[#FDF6F0]/80", "border-transparent");
+        navRef.current.classList.remove("bg-transparent", "bg-[#FDF6F0]/80", "backdrop-blur-none", "border-transparent");
         navRef.current.classList.add("bg-[#FDF6F0]/95", "shadow-lg", "backdrop-blur-xl", "border-b");
       } else {
-        navRef.current.classList.add("bg-[#FDF6F0]/80", "border-transparent");
-        navRef.current.classList.remove("bg-[#FDF6F0]/95", "shadow-lg", "backdrop-blur-xl", "border-b");
+        navRef.current.classList.add(isHomepage ? "bg-transparent" : "bg-[#FDF6F0]/80", "border-transparent");
+        if (isHomepage) {
+          navRef.current.classList.add("backdrop-blur-none");
+          navRef.current.classList.remove("backdrop-blur-xl");
+        } else {
+          navRef.current.classList.add("backdrop-blur-xl");
+          navRef.current.classList.remove("backdrop-blur-none");
+        }
+        navRef.current.classList.remove("bg-[#FDF6F0]/95", "shadow-lg", "border-b");
       }
     }
 
@@ -62,11 +71,18 @@ export default function TopNavBar() {
         if (isScrolled !== scrolledRef.current) {
           scrolledRef.current = isScrolled;
           if (isScrolled) {
-            navRef.current.classList.remove("bg-[#FDF6F0]/80", "border-transparent");
+            navRef.current.classList.remove("bg-transparent", "bg-[#FDF6F0]/80", "backdrop-blur-none", "border-transparent");
             navRef.current.classList.add("bg-[#FDF6F0]/95", "shadow-lg", "backdrop-blur-xl", "border-b");
           } else {
-            navRef.current.classList.add("bg-[#FDF6F0]/80", "border-transparent");
-            navRef.current.classList.remove("bg-[#FDF6F0]/95", "shadow-lg", "backdrop-blur-xl", "border-b");
+            navRef.current.classList.add(isHomepage ? "bg-transparent" : "bg-[#FDF6F0]/80", "border-transparent");
+            if (isHomepage) {
+              navRef.current.classList.add("backdrop-blur-none");
+              navRef.current.classList.remove("backdrop-blur-xl");
+            } else {
+              navRef.current.classList.add("backdrop-blur-xl");
+              navRef.current.classList.remove("backdrop-blur-none");
+            }
+            navRef.current.classList.remove("bg-[#FDF6F0]/95", "shadow-lg", "border-b");
           }
         }
       }
@@ -77,7 +93,7 @@ export default function TopNavBar() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [pathname]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,7 +137,11 @@ export default function TopNavBar() {
   return (
     <nav
       ref={navRef}
-      className="sticky top-0 w-full z-50 transition-all duration-300 bg-[#FDF6F0]/80 backdrop-blur-xl border-transparent"
+      className={
+        pathname === "/"
+          ? "fixed top-0 w-full z-50 transition-all duration-300 bg-transparent border-transparent"
+          : "sticky top-0 w-full z-50 transition-all duration-300 bg-[#FDF6F0]/80 backdrop-blur-xl border-transparent"
+      }
       style={{
         borderImage: "linear-gradient(to right, rgba(176,96,128,0.15) 0%, rgba(201,167,77,0.3) 50%, rgba(176,96,128,0.15) 100%) 1"
       }}

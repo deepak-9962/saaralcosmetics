@@ -244,7 +244,7 @@ export default function HomePage() {
           {/* ── LEFT — Text content ── */}
 
           <div
-            className="relative z-10 flex flex-col justify-center px-6 md:px-14 lg:px-20 pt-10 pb-10 md:py-0 w-full md:w-[48%] lg:w-[46%]"
+            className="relative z-10 flex flex-col justify-center px-6 md:px-14 lg:px-20 pt-24 pb-10 md:pt-32 md:pb-12 w-full md:w-[48%] lg:w-[46%]"
             style={{ minHeight: "clamp(520px, 90vh, 860px)" }}
           >
             {/* Eyebrow */}
