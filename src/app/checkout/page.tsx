@@ -1,23 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import GradientBackground from "@/components/layout/GradientBackground";
 import { useCart } from "@/lib/cart";
-import { createOrder } from "@/lib/supabase/data";
+import { createOrder, getActiveProductIds } from "@/lib/supabase/data";
 import { INDIAN_STATES } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
 export default function CheckoutPage() {
-  const { items, total, clearCart } = useCart();
+  const { items, total, clearCart, removeItem } = useCart();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const validatedRef = useRef(false);
+
+  // Validate cart on mount — remove any items that have since been deactivated
+  useEffect(() => {
+    if (validatedRef.current || items.length === 0) return;
+    validatedRef.current = true;
+    const productIds = items.map((i) => i.product_id);
+    getActiveProductIds(productIds)
+      .then((activeIds) => {
+        items.forEach((item) => {
+          if (!activeIds.has(item.product_id)) {
+            removeItem(item.product_id);
+            toast.error(`"${item.name}" is no longer available and was removed.`, { duration: 5000, icon: "🚫" });
+          }
+        });
+      })
+      .catch(() => { /* silently ignore network errors */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.length]);
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -93,6 +113,22 @@ export default function CheckoutPage() {
 
     try {
       setIsSubmitting(true);
+
+      // Re-validate all cart items right before placing the order
+      const productIds = items.map((i) => i.product_id);
+      const activeIds = await getActiveProductIds(productIds);
+      const unavailableItems = items.filter((i) => !activeIds.has(i.product_id));
+
+      if (unavailableItems.length > 0) {
+        unavailableItems.forEach((item) => {
+          removeItem(item.product_id);
+          toast.error(`"${item.name}" is no longer available and was removed.`, { duration: 5000, icon: "🚫" });
+        });
+        setSubmitError("Some items in your cart are no longer available and have been removed. Please review your cart before proceeding.");
+        setIsSubmitting(false);
+        return;
+      }
+
       const order = await createOrder({
         customer_name: formData.name.trim(),
         customer_phone: formData.phone.trim(),

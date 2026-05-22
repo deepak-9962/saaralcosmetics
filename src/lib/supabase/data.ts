@@ -241,6 +241,26 @@ export async function listAllProductsForAdmin(): Promise<Product[]> {
   return (data ?? []).map(normalizeProduct);
 }
 
+/**
+ * Given a list of product IDs already in the cart, returns the subset that
+ * are still active in the database. Used to auto-remove deactivated items.
+ * A single .in() query is used — no N+1 problem.
+ */
+export async function getActiveProductIds(productIds: string[]): Promise<Set<string>> {
+  if (productIds.length === 0) return new Set();
+  const supabase = getSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("id")
+    .in("id", productIds)
+    .eq("is_active", true);
+
+  if (error) throw new Error(error.message);
+  return new Set((data ?? []).map((row) => row.id));
+}
+
+
+
 // ============================================================
 // PRODUCTS — WRITE
 // ============================================================
@@ -307,12 +327,20 @@ export async function updateProduct(productId: string, input: UpdateProductInput
 
 export async function updateProductActive(productId: string, isActive: boolean): Promise<void> {
   const supabase = getSupabaseBrowserClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("products")
-    .update({ is_active: isActive })
-    .eq("id", productId);
+    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .eq("id", productId)
+    .select("id");
 
   if (error) throw new Error(error.message);
+  // If no rows returned, the update was silently blocked (RLS policy)
+  if (!data || data.length === 0) {
+    throw new Error(
+      "Update failed: no rows were modified. Check that your Supabase RLS policy allows UPDATE on the products table."
+    );
+  }
+
 }
 
 export async function deleteProduct(productId: string): Promise<void> {
@@ -490,8 +518,9 @@ export function subscribeToOrders(
   onUpdate?: (order: Order) => void
 ) {
   const supabase = getSupabaseBrowserClient();
+  const uniqueId = Math.random().toString(36).substring(2, 9);
   const channel = supabase
-    .channel("orders-realtime")
+    .channel(`orders-realtime-${uniqueId}`)
     .on(
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "orders" },
@@ -509,8 +538,9 @@ export function subscribeToOrders(
 
 export function subscribeToProducts(onAnyChange: () => void) {
   const supabase = getSupabaseBrowserClient();
+  const uniqueId = Math.random().toString(36).substring(2, 9);
   const channel = supabase
-    .channel("products-realtime")
+    .channel(`products-realtime-${uniqueId}`)
     .on("postgres_changes", { event: "*", schema: "public", table: "products" }, onAnyChange)
     .subscribe();
 
@@ -519,8 +549,9 @@ export function subscribeToProducts(onAnyChange: () => void) {
 
 export function subscribeToCustomers(onAnyChange: () => void) {
   const supabase = getSupabaseBrowserClient();
+  const uniqueId = Math.random().toString(36).substring(2, 9);
   const channel = supabase
-    .channel("customers-realtime")
+    .channel(`customers-realtime-${uniqueId}`)
     .on("postgres_changes", { event: "*", schema: "public", table: "customers" }, onAnyChange)
     .subscribe();
 

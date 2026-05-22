@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
@@ -10,9 +12,37 @@ import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import GradientBackground from "@/components/layout/GradientBackground";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/utils";
+import { getActiveProductIds } from "@/lib/supabase/data";
 
 export default function CartPage() {
   const { items, total, updateQuantity, removeItem } = useCart();
+  const validatedRef = useRef(false);
+
+  // On mount: validate all cart items against Supabase.
+  // Auto-remove any that have been deactivated or deleted.
+  useEffect(() => {
+    if (validatedRef.current || items.length === 0) return;
+    validatedRef.current = true;
+
+    const productIds = items.map((i) => i.product_id);
+
+    getActiveProductIds(productIds)
+      .then((activeIds) => {
+        items.forEach((item) => {
+          if (!activeIds.has(item.product_id)) {
+            removeItem(item.product_id);
+            toast.error(`"${item.name}" is no longer available and was removed from your cart.`, {
+              duration: 5000,
+              icon: "🚫",
+            });
+          }
+        });
+      })
+      .catch(() => {
+        // Silently ignore network errors — don't block the cart page
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.length]);
 
   return (
     <div className="min-h-[100dvh] flex flex-col">

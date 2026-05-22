@@ -85,6 +85,61 @@ function ScallopArch() {
   );
 }
 
+function ValuePicksSVG() {
+  return (
+    <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-[-10px] bottom-[-10px] w-24 h-24 text-[#4A7C59]/12 pointer-events-none transform rotate-[-15deg]">
+      <path d="M25 85 C 35 75, 45 50, 50 15" />
+      <path d="M42 60 C 48 55, 68 50, 78 45" />
+      <path d="M78 45 C 84 40, 74 35, 68 40 Z" fill="currentColor" fillOpacity="0.05" />
+      <path d="M38 42 C 30 38, 15 35, 8 30" />
+      <path d="M8 30 C 2 25, 12 20, 18 25 Z" fill="currentColor" fillOpacity="0.05" />
+      <path d="M50 15 C 52 5, 45 0, 40 5 C 38 10, 45 15, 50 15 Z" fill="currentColor" fillOpacity="0.05" />
+      <path d="M46 38 C 50 30, 65 25, 70 20 C 72 23, 62 30, 46 38 Z" fill="currentColor" fillOpacity="0.05" />
+    </svg>
+  );
+}
+
+function FreshRitualsSVG() {
+  return (
+    <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-[-8px] bottom-[-8px] w-24 h-24 text-[#4B6B94]/12 pointer-events-none transform rotate-[5deg]">
+      <path d="M20 85 Q 50 78 80 85" strokeWidth="0.8" />
+      <path d="M50 82 C 50 60, 46 35, 38 20" />
+      <path d="M46 55 C 32 45, 18 45, 12 50 C 14 62, 32 62, 46 55 Z" fill="currentColor" fillOpacity="0.05" />
+      <path d="M44 38 C 58 30, 72 32, 78 40 C 70 50, 52 45, 44 38 Z" fill="currentColor" fillOpacity="0.05" />
+      <path d="M38 20 C 35 12, 45 8, 48 15 C 48 22, 42 22, 38 20 Z" fill="currentColor" fillOpacity="0.05" />
+    </svg>
+  );
+}
+
+function BestsellersSVG() {
+  return (
+    <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-[-10px] bottom-[-10px] w-24 h-24 text-[#B06080]/12 pointer-events-none">
+      <path d="M50 80 C 20 75, 15 50, 25 35 C 35 20, 65 20, 75 35 C 85 50, 80 75, 50 80 Z" fill="currentColor" fillOpacity="0.03" />
+      <path d="M50 70 C 32 65, 28 48, 35 38 C 42 28, 58 28, 65 38 C 72 48, 68 65, 50 70 Z" fill="currentColor" fillOpacity="0.03" />
+      <path d="M50 60 C 40 57, 38 48, 42 42 C 46 36, 54 36, 58 42 C 62 48, 60 57, 50 60 Z" fill="currentColor" fillOpacity="0.03" />
+      <path d="M47 48 C 47 46, 53 46, 50 50 C 48 52, 52 52, 50 49" />
+      <path d="M50 80 C 50 85, 48 90, 45 92" strokeWidth="0.8" />
+    </svg>
+  );
+}
+
+function GenZFavouritesSVG() {
+  return (
+    <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-[-10px] bottom-[-10px] w-24 h-24 text-[#7E6B9A]/12 pointer-events-none transform rotate-[10deg]">
+      <path d="M50 90 L 50 15" strokeWidth="1.5" />
+      <path d="M50 15 C 20 25, 15 55, 22 80 C 28 85, 42 88, 50 90 C 58 88, 72 85, 78 80 C 85 55, 80 25, 50 15 Z" fill="currentColor" fillOpacity="0.03" />
+      <path d="M48 30 C 40 32, 28 28, 24 26" />
+      <path d="M48 45 C 38 48, 22 45, 16 42" />
+      <path d="M48 60 C 36 65, 20 62, 14 60" />
+      <path d="M48 75 C 40 80, 26 82, 20 80" />
+      <path d="M52 30 C 60 32, 72 28, 76 26" />
+      <path d="M52 45 C 62 48, 78 45, 84 42" />
+      <path d="M52 60 C 64 65, 80 62, 86 60" />
+      <path d="M52 75 C 60 80, 74 82, 80 80" />
+    </svg>
+  );
+}
+
 
 export default function HomePage() {
   const [bestsellingProducts, setBestsellingProducts] = useState<Product[]>([]);
@@ -95,31 +150,6 @@ export default function HomePage() {
   const heroY = useTransform(scrollY, [0, 700], [0, 180]);
   const bannerY = useTransform(scrollY, [300, 1200], [-30, 30]);
 
-  // Mobile Banner Slider setup using Embla Carousel
-  const bottomAutoplay = useRef(
-    Autoplay({ delay: 2500, stopOnInteraction: false, stopOnMouseEnter: true })
-  );
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    { loop: true },
-    [bottomAutoplay.current]
-  );
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
-
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return;
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-  }, [emblaApi]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    onSelect();
-    setScrollSnaps(emblaApi.scrollSnapList());
-    emblaApi.on("select", onSelect);
-    return () => {
-      emblaApi.off("select", onSelect);
-    };
-  }, [emblaApi, onSelect]);
 
   // Mobile Hero Banner Slider setup using Embla Carousel
   const heroAutoplay = useRef(
@@ -350,16 +380,30 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3 mt-4">
-            {quickPromoTiles.map((tile) => (
-              <Link
-                key={tile.title}
-                href={tile.href}
-                className={`rounded-2xl p-4 min-h-[108px] bg-gradient-to-br ${tile.tone} border border-outline-variant/20 flex flex-col justify-between`}
-              >
-                <span className="font-body text-[11px] tracking-[0.08em] uppercase text-on-surface-variant">{tile.subtitle}</span>
-                <h3 className="font-display text-[20px] leading-[1.15] text-on-surface">{tile.title}</h3>
-              </Link>
-            ))}
+            {quickPromoTiles.map((tile) => {
+              let promoSvg;
+              if (tile.subtitle === "Value Picks") {
+                promoSvg = <ValuePicksSVG />;
+              } else if (tile.subtitle === "Fresh Rituals") {
+                promoSvg = <FreshRitualsSVG />;
+              } else if (tile.subtitle === "Most Loved") {
+                promoSvg = <BestsellersSVG />;
+              } else {
+                promoSvg = <GenZFavouritesSVG />;
+              }
+
+              return (
+                <Link
+                  key={tile.title}
+                  href={tile.href}
+                  className={`relative overflow-hidden rounded-2xl p-4 min-h-[108px] bg-gradient-to-br ${tile.tone} border border-outline-variant/20 shadow-[inset_0_1px_2px_rgba(255,255,255,0.85),0_4px_12px_-4px_rgba(42,26,20,0.03)] flex flex-col justify-between active:scale-[0.97] transition-all duration-300`}
+                >
+                  <span className="relative z-10 font-body text-[11px] tracking-[0.08em] uppercase text-on-surface-variant/80">{tile.subtitle}</span>
+                  <h3 className="relative z-10 font-display text-[20px] leading-[1.15] text-on-surface pt-4">{tile.title}</h3>
+                  {promoSvg}
+                </Link>
+              );
+            })}
           </div>
         </section>
 
@@ -468,68 +512,15 @@ export default function HomePage() {
           className="w-full pt-8 pb-12 md:pt-14 md:pb-20"
           style={{ background: "#F9EFED" }}
         >
-          {/* Desktop/Tablet View (> 768px) - Static Layout */}
-          <div className="hidden md:block w-full">
+          <div className="w-full px-5 md:px-0">
             <Image
               src={radiantBeauty}
               alt="Your New Ritual For Radiant Beauty — Saaral Cosmetics"
-              className="w-[90%] md:w-[85%] h-auto block rounded-2xl mx-auto"
+              className="w-full md:w-[85%] h-auto block rounded-2xl mx-auto"
               style={{ maxWidth: "1100px" }}
               priority={false}
-              sizes="85vw"
+              sizes="(max-width: 768px) 90vw, 85vw"
             />
-          </div>
-
-          {/* Mobile View (<= 768px) - Embla Slider */}
-          <div className="block md:hidden w-full px-5">
-            <div className="overflow-hidden rounded-2xl w-full" ref={emblaRef}>
-              <div className="flex">
-                {[
-                  { src: radiantBeauty, alt: "Your New Ritual For Radiant Beauty — Saaral Cosmetics" },
-                  { src: saaralBanner2, alt: "Pure Botanical Actives · Nature's Cleanest Formulas" },
-                  { src: saaralBanner3, alt: "100% Cruelty-Free · Ethically Handcrafted" }
-                ].map((slide, index) => (
-                  <div 
-                    className="flex-[0_0_100%] min-w-0 relative aspect-[2172/724]" 
-                    key={index}
-                    role="group"
-                    aria-roledescription="slide"
-                    aria-label={`Slide ${index + 1} of 3`}
-                  >
-                    <Image
-                      src={slide.src}
-                      alt={slide.alt}
-                      fill
-                      className="object-cover rounded-2xl"
-                      priority={index === 0}
-                      sizes="90vw"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Pagination Dots */}
-            {scrollSnaps.length > 1 && (
-              <div className="flex justify-center items-center gap-2 mt-4" role="tablist" aria-label="Slideshow pagination">
-                {scrollSnaps.map((_, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    role="tab"
-                    aria-selected={index === selectedIndex}
-                    aria-label={`Go to slide ${index + 1}`}
-                    aria-controls={`slide-${index}`}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      index === selectedIndex
-                        ? "bg-[#B06080] w-4"
-                        : "bg-[#B06080]/30 hover:bg-[#B06080]/60"
-                    }`}
-                    onClick={() => emblaApi?.scrollTo(index)}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         </section>
 
