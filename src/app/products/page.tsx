@@ -23,52 +23,7 @@ const trustBadges = [
   { icon: "verified", label: "Dermatologically Tested" },
 ];
 
-/* ── Floating botanical SVG decoration ── */
-function FloatingBotanical() {
-  return (
-    <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-[42%] pointer-events-none overflow-hidden" aria-hidden="true">
-      {/* Layered glow blob */}
-      <div className="absolute top-1/2 right-[-8%] -translate-y-1/2 w-[520px] h-[520px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(176,96,128,0.18) 0%, rgba(201,167,77,0.08) 50%, transparent 70%)", filter: "blur(60px)" }} />
-      {/* Cream circle frame */}
-      <div className="absolute top-1/2 right-[4%] -translate-y-1/2 w-[380px] h-[380px] rounded-full border border-[#C9A74D]/20"
-        style={{ boxShadow: "0 0 80px rgba(201,167,77,0.08), inset 0 0 60px rgba(176,96,128,0.04)" }} />
-      {/* Inner ring */}
-      <div className="absolute top-1/2 right-[4%] -translate-y-1/2 w-[340px] h-[340px] rounded-full border border-[#B06080]/12" />
-      {/* Decorative botanical SVG */}
-      <svg className="absolute top-1/2 right-[6%] -translate-y-1/2 w-[320px] h-[320px] opacity-[0.09]"
-        viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="100" cy="100" r="80" stroke="#B06080" strokeWidth="1" />
-        <circle cx="100" cy="100" r="60" stroke="#C9A74D" strokeWidth="0.7" strokeDasharray="4 3" />
-        <path d="M100 20 C100 20 80 60 100 100 C120 60 100 20 100 20Z" stroke="#B06080" strokeWidth="1.5" />
-        <path d="M20 100 C20 100 60 80 100 100 C60 120 20 100 20 100Z" stroke="#C9A74D" strokeWidth="1.5" />
-        <path d="M180 100 C180 100 140 80 100 100 C140 120 180 100 180 100Z" stroke="#B06080" strokeWidth="1" />
-        <path d="M100 180 C100 180 80 140 100 100 C120 140 100 180 100 180Z" stroke="#C9A74D" strokeWidth="1" />
-        <path d="M147 53 C147 53 120 80 100 100 C130 108 147 53 147 53Z" stroke="#7E6B9A" strokeWidth="1" />
-        <path d="M53 53 C53 53 80 80 100 100 C70 108 53 53 53 53Z" stroke="#7E6B9A" strokeWidth="1" />
-        <circle cx="100" cy="100" r="8" fill="#C9A74D" opacity="0.3" />
-        <circle cx="100" cy="100" r="4" fill="#B06080" opacity="0.5" />
-      </svg>
-      {/* Floating ingredient dots */}
-      {[
-        { top: "18%", right: "18%", size: 10, color: "rgba(201,167,77,0.45)", delay: "0s" },
-        { top: "72%", right: "28%", size: 7, color: "rgba(176,96,128,0.45)", delay: "1.2s" },
-        { top: "35%", right: "8%", size: 6, color: "rgba(126,107,154,0.45)", delay: "0.6s" },
-        { top: "58%", right: "6%", size: 9, color: "rgba(201,167,77,0.35)", delay: "1.8s" },
-        { top: "82%", right: "16%", size: 5, color: "rgba(176,96,128,0.35)", delay: "0.9s" },
-      ].map((dot, i) => (
-        <div key={i} className="absolute rounded-full animate-bubble-1"
-          style={{ top: dot.top, right: dot.right, width: dot.size, height: dot.size,
-            background: dot.color, animationDelay: dot.delay, filter: "blur(1px)" }} />
-      ))}
-      {/* Botanical text label */}
-      <div className="absolute bottom-[15%] right-[10%] flex flex-col items-end gap-1">
-        <div className="w-6 h-px bg-[#C9A74D]/40" />
-        <span className="font-body text-[9px] tracking-[0.22em] text-[#8A6A5A]/50 uppercase">Botanical Formulas</span>
-      </div>
-    </div>
-  );
-}
+
 
 function ProductsContent() {
   const searchParams = useSearchParams();
@@ -150,7 +105,56 @@ function ProductsContent() {
           <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
             style={{ backgroundImage: "repeating-linear-gradient(0deg, #B06080 0px, #B06080 1px, transparent 1px, transparent 48px)" }} />
 
-          <FloatingBotanical />
+          {/* Hero Background Image - Desktop */}
+          <div
+            className="absolute inset-0 bg-no-repeat pointer-events-none hidden md:block"
+            style={{
+              backgroundImage: "url(/images/hero1.png)",
+              backgroundSize: "auto 100%",
+              backgroundPosition: "right bottom",
+              transform: "translateX(3.5%)",
+            }}
+          />
+          {/* Left-to-Right Blend Gradient Overlay - Desktop */}
+          <div
+            className="absolute inset-0 pointer-events-none hidden md:block"
+            style={{
+              backgroundImage: `
+                linear-gradient(to right,
+                  #FDF6F0 0%,
+                  #FDF6F0 40%,
+                  rgba(253,246,240,0.85) 52%,
+                  rgba(253,246,240,0.3) 65%,
+                  transparent 78%
+                )
+              `,
+            }}
+          />
+
+          {/* Hero Background Image - Mobile */}
+          <div
+            className="absolute inset-0 bg-no-repeat pointer-events-none block md:hidden"
+            style={{
+              backgroundImage: "url(/images/hero1.png)",
+              backgroundSize: "cover",
+              backgroundPosition: "center bottom",
+              opacity: 0.45,
+            }}
+          />
+          {/* Top-to-Bottom Blend Gradient Overlay - Mobile */}
+          <div
+            className="absolute inset-0 pointer-events-none block md:hidden"
+            style={{
+              backgroundImage: `
+                linear-gradient(to bottom,
+                  #FDF6F0 0%,
+                  rgba(253,246,240,0.92) 50%,
+                  rgba(253,246,240,0.3) 80%,
+                  transparent 100%
+                )
+              `,
+            }}
+          />
 
           <div className="relative z-10 max-w-[1280px] mx-auto px-5 md:px-[72px] pt-20 md:pt-32 pb-10 md:pb-14">
             <motion.div
