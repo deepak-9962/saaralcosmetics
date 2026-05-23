@@ -114,10 +114,11 @@ export default function ContactPage() {
               </a>
             </motion.div>
 
-            {/* Email & Location Cards */}
+            {/* Contact Info Cards */}
             <div className="flex flex-col gap-[var(--spacing-gutter)]">
+              {/* Email Card */}
               <motion.div
-                className="bg-surface-container-lowest rounded-xl p-[var(--spacing-stack-md)] flex flex-col gap-[var(--spacing-stack-sm)] border border-outline-variant/40 shadow-[0_5px_15px_rgba(26,26,26,0.02)] h-full justify-center"
+                className="bg-surface-container-lowest rounded-xl p-[var(--spacing-stack-md)] flex flex-col gap-[var(--spacing-stack-sm)] border border-outline-variant/40 shadow-[0_5px_15px_rgba(26,26,26,0.02)] flex-1 justify-center"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -140,6 +141,32 @@ export default function ContactPage() {
                 </a>
               </motion.div>
 
+              {/* Instagram Card */}
+              <motion.div
+                className="bg-surface-container-lowest rounded-xl p-[var(--spacing-stack-md)] flex flex-col gap-[var(--spacing-stack-sm)] border border-outline-variant/40 shadow-[0_5px_15px_rgba(26,26,26,0.02)] flex-1 justify-center"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+              >
+                <span className="material-symbols-outlined text-tertiary-container text-3xl">
+                  photo_camera
+                </span>
+                <h4 className="font-body text-[18px] leading-[1.6] font-medium text-on-surface mt-2">
+                  Follow Our Journey
+                </h4>
+                <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant mb-2">
+                  See our behind-the-scenes, rituals, and new launches.
+                </p>
+                <a
+                  href="https://www.instagram.com/saaral_cosmetics/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-body text-[16px] leading-[1.6] text-primary hover:text-tertiary transition-colors border-b border-transparent hover:border-tertiary inline-block w-max break-all pb-1"
+                >
+                  @saaral_cosmetics
+                </a>
+              </motion.div>
             </div>
           </div>
         </section>

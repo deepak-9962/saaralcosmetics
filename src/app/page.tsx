@@ -12,6 +12,9 @@ import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import GradientBackground from "@/components/layout/GradientBackground";
 import ProductCard from "@/components/product/ProductCard";
+import CuratedRituals from "@/components/home/CuratedRituals";
+import GoldCurveDivider from "@/components/home/GoldCurveDivider";
+import LuxuryRibbon from "@/components/home/LuxuryRibbon";
 import { listProducts } from "@/lib/supabase/data";
 import type { Product } from "@/lib/types";
 import radiantBeauty from "../../public/images/radiant-beauty.png";
@@ -67,20 +70,12 @@ function ScallopArch() {
 
   return (
     <>
-      {/* Mobile arch — single wide shallow dome, pulls up exactly 45px */}
+      {/* Mobile arch only — desktop uses GoldCurveDivider */}
       <div className="block md:hidden w-full overflow-hidden pointer-events-none" style={{ marginTop: "-45px", height: "45px" }} aria-hidden="true">
         <svg viewBox="0 0 400 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: "45px" }}>
           <path d={mobileFill} fill="#FAF0EE" />
           <path d={mobileD} fill="none" stroke="#C9A74D" strokeWidth="2.5" opacity="0.9" strokeLinecap="round" />
           <path d={mobileD} fill="none" stroke="#FFFFFF" strokeWidth="1.0" opacity="0.95" strokeLinecap="round" />
-        </svg>
-      </div>
-      {/* Desktop arch — single wide shallow dome, pulls up exactly 80px */}
-      <div className="hidden md:block w-full overflow-hidden pointer-events-none" style={{ marginTop: "-80px", height: "80px" }} aria-hidden="true">
-        <svg viewBox="0 0 1440 96" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: "80px" }}>
-          <path d={desktopFill} fill="#FAF0EE" />
-          <path d={desktopD} fill="none" stroke="#C9A74D" strokeWidth="3.5" opacity="0.9" strokeLinecap="round" />
-          <path d={desktopD} fill="none" stroke="#FFFFFF" strokeWidth="1.2" opacity="0.95" strokeLinecap="round" />
         </svg>
       </div>
     </>
@@ -432,17 +427,11 @@ export default function HomePage() {
         </section>
 
 
-        {/* ── TRUST MARQUEE ── */}
-        <section className="w-full border-y overflow-hidden py-3.5" style={{ borderColor: "rgba(176,96,128,0.2)", background: "rgba(255,245,240,0.85)" }}>
+        {/* ── LUXURY RIBBON ── */}
+        <LuxuryRibbon />
 
-          <div className="flex animate-marquee whitespace-nowrap gap-14">
-            {[...trustSignals, ...trustSignals].map((s, i) => (
-              <span key={i} className="label-caps text-[#B06080] flex items-center gap-3">
-                <span className="text-[#C9A74D] text-xs">✦</span> {s}
-              </span>
-            ))}
-          </div>
-        </section>
+        {/* ── CURATED RITUALS ── */}
+        <CuratedRituals />
 
         {/* ── MOBILE QUICK SHOP ── */}
         <section className="md:hidden max-w-[1280px] mx-auto px-5 py-8">
@@ -488,8 +477,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ── CATEGORY GRID ── */}
-        <section className="max-w-[1280px] mx-auto px-5 md:px-[72px] py-16 md:py-24">
+        {/* ── CATEGORY GRID — mobile only; desktop uses CuratedRituals ── */}
+        <section className="md:hidden max-w-[1280px] mx-auto px-5 py-14">
           <motion.div className="mb-10 md:mb-14" {...fadeUp(0)}>
             <span className="label-caps text-[#C9A74D] block mb-3">The Collection</span>
             <h2 className="font-display text-[#2A1A14]" style={{ fontSize: "clamp(32px, 4vw, 52px)", lineHeight: 1.15, letterSpacing: "-0.01em" }}>Curated Essentials</h2>
@@ -511,8 +500,10 @@ export default function HomePage() {
             ))}
           </div>
         </section>
+        {/* ── GOLD CURVE DIVIDER — desktop (bridges CuratedRituals → Bestsellers) ── */}
+        <GoldCurveDivider />
 
-        {/* ── FEATURED PRODUCTS — Scallop Arch ── */}
+        {/* ── FEATURED PRODUCTS — mobile scallop arch ── */}
         <section className="relative w-full" style={{ background: "#FAF0EE" }}>
           <ScallopArch />
           <div className="max-w-[1280px] mx-auto px-5 md:px-[72px] pt-12 pb-4 md:pt-16 md:pb-6">
@@ -547,7 +538,7 @@ export default function HomePage() {
                       return (
                         <motion.div
                           key={product.id}
-                          className="snap-center shrink-0 w-[260px] md:snap-align-none md:shrink md:w-auto"
+                          className="snap-center shrink-0 w-[260px] md:snap-align-none md:shrink md:w-auto h-full"
                           initial={{ opacity: 0, y: 28 }}
                           whileInView={{ opacity: 1, y: 0 }}
                           viewport={{ once: true, amount: 0.35 }}

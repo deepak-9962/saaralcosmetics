@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { motion, AnimatePresence, LayoutGroup, animate } from "framer-motion";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
@@ -20,7 +20,6 @@ const trustBadges = [
   { icon: "pets", label: "Cruelty Free" },
   { icon: "science", label: "Sulphate Free" },
   { icon: "handyman", label: "Handmade" },
-  { icon: "verified", label: "Dermatologically Tested" },
 ];
 
 
@@ -32,10 +31,34 @@ function ProductsContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortMode, setSortMode] = useState<SortMode>("featured");
   const [priceFilter, setPriceFilter] = useState<PriceFilter>("all-prices");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>("featured");
+  const mobileActiveRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const chip = mobileActiveRef.current;
+    if (!chip) return;
+    const container = chip.closest(".overflow-x-auto");
+    if (!container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const chipRect = chip.getBoundingClientRect();
+    const targetScrollLeft = container.scrollLeft + (chipRect.left - containerRect.left) - (containerRect.width / 2) + (chipRect.width / 2);
+
+    const controls = animate(container.scrollLeft, targetScrollLeft, {
+      type: "spring",
+      stiffness: 180,
+      damping: 24,
+      mass: 0.9,
+      onUpdate: (value) => {
+        container.scrollLeft = value;
+      },
+    });
+
+    return () => controls.stop();
+  }, [activeCategory]);
 
   useEffect(() => {
     async function loadProducts() {
@@ -97,7 +120,11 @@ function ProductsContent() {
       <main className="flex-grow w-full overflow-x-hidden pb-24 md:pb-0">
 
         {/* ── HERO SECTION ── */}
-        <section className="relative w-full overflow-hidden" style={{ minHeight: "clamp(320px, 48vh, 500px)" }}>
+        <section
+          className="relative w-full overflow-hidden"
+          style={{ minHeight: "clamp(360px, 45vh, 460px)" }}
+          aria-label="Products hero"
+        >
           {/* Warm ivory radial glow behind hero text */}
           <div className="absolute inset-0 pointer-events-none"
             style={{ background: "radial-gradient(ellipse 70% 90% at 30% 50%, rgba(249,232,219,0.9) 0%, rgba(253,246,240,0.6) 55%, transparent 100%)" }} />
@@ -115,64 +142,64 @@ function ProductsContent() {
               transform: "translateX(3.5%)",
             }}
           />
-          {/* Left-to-Right Blend Gradient Overlay - Desktop */}
+          {/* Left-to-Right Blend Gradient Overlay - Desktop (on top of image to ensure text legibility) */}
           <div
             className="absolute inset-0 pointer-events-none hidden md:block"
             style={{
               backgroundImage: `
                 linear-gradient(to right,
                   #FDF6F0 0%,
-                  #FDF6F0 40%,
-                  rgba(253,246,240,0.85) 52%,
-                  rgba(253,246,240,0.3) 65%,
-                  transparent 78%
+                  #FDF6F0 45%,
+                  rgba(253,246,240,0.9) 55%,
+                  rgba(253,246,240,0.3) 68%,
+                  transparent 80%
                 )
               `,
             }}
           />
 
-          {/* Hero Background Image - Mobile */}
+          {/* Hero Background Image - Mobile: clear and bright */}
           <div
             className="absolute inset-0 bg-no-repeat pointer-events-none block md:hidden"
             style={{
               backgroundImage: "url(/images/hero1.png)",
-              backgroundSize: "cover",
-              backgroundPosition: "center bottom",
-              opacity: 0.45,
+              backgroundSize: "auto 95%",
+              backgroundPosition: "right bottom",
+              opacity: 1.0,
             }}
           />
-          {/* Top-to-Bottom Blend Gradient Overlay - Mobile */}
+          {/* Mobile gradient: soft fade from left to right (on top of image to make text fully legible on the left) */}
           <div
             className="absolute inset-0 pointer-events-none block md:hidden"
             style={{
-              backgroundImage: `
-                linear-gradient(to bottom,
-                  #FDF6F0 0%,
-                  rgba(253,246,240,0.92) 50%,
-                  rgba(253,246,240,0.3) 80%,
-                  transparent 100%
-                )
-              `,
+              background: "linear-gradient(to right, #FDF6F0 0%, #FDF6F0 55%, rgba(253,246,240,0.9) 65%, rgba(253,246,240,0.3) 76%, transparent 88%)",
+            }}
+          />
+          {/* Bottom fade overlay for mobile */}
+          <div
+            className="absolute inset-0 pointer-events-none block md:hidden"
+            style={{
+              background: "linear-gradient(to bottom, transparent 82%, #FDF6F0 100%)",
             }}
           />
 
-          <div className="relative z-10 max-w-[1280px] mx-auto px-5 md:px-[72px] pt-20 md:pt-32 pb-10 md:pb-14">
+          <div className="relative z-10 max-w-[1280px] mx-auto px-5 md:px-[72px] pt-14 md:pt-32 pb-6 md:pb-14">
             <motion.div
               initial={{ opacity: 0, x: -32 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="flex items-center gap-3 mb-5"
+              className="flex items-center gap-2.5 mb-3 md:mb-5"
             >
-              <div className="w-8 h-px bg-[#C9A74D]" />
-              <span className="font-body text-[#C9A74D] text-[11px] tracking-[0.22em] uppercase font-medium">
+              <div className="w-6 md:w-8 h-px bg-[#C9A74D]" />
+              <span className="font-body text-[#C9A74D] text-[10px] md:text-[11px] tracking-[0.22em] uppercase font-medium">
                 Saaral Cosmetics
               </span>
             </motion.div>
 
-            <div className="lg:max-w-[55%]">
+            <div className="max-w-[62%] md:max-w-[55%]">
               <motion.h1
-                className="font-display text-[#2A1A14] mb-4"
-                style={{ fontSize: "clamp(40px, 5.5vw, 76px)", lineHeight: 1.06, letterSpacing: "-0.025em" }}
+                className="font-display text-[#2A1A14] mb-2 md:mb-4"
+                style={{ fontSize: "clamp(32px, 5.5vw, 76px)", lineHeight: 1.06, letterSpacing: "-0.025em" }}
                 initial={{ opacity: 0, y: 32 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.85, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
@@ -181,18 +208,23 @@ function ProductsContent() {
               </motion.h1>
 
               <motion.p
-                className="font-body mb-3"
-                style={{ fontSize: "clamp(13px, 1.4vw, 16px)", letterSpacing: "0.18em", color: "rgba(176,96,128,0.8)" }}
+                className="font-body mb-2 md:mb-3 flex flex-wrap gap-x-2 gap-y-0.5 items-center"
+                style={{ color: "rgba(176,96,128,0.8)" }}
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
               >
-                Authentic &nbsp;·&nbsp; Transparent &nbsp;·&nbsp; Sustainable
+                {["Authentic", "Transparent", "Sustainable"].map((word, i) => (
+                  <span key={word} className="flex items-center gap-x-2">
+                    <span className="font-body text-[10px] md:text-[13px] tracking-[0.14em] md:tracking-[0.18em] uppercase">{word}</span>
+                    {i < 2 && <span className="text-[#C9A74D]/60 text-[10px] md:text-[13px]">&middot;</span>}
+                  </span>
+                ))}
               </motion.p>
 
               <motion.p
-                className="font-body text-[#5A3A2C]/65 leading-relaxed"
-                style={{ fontSize: "clamp(13px, 1.2vw, 15px)", maxWidth: "44ch" }}
+                className="font-body text-[#5A3A2C]/65 leading-relaxed text-[12px] md:text-[15px]"
+                style={{ maxWidth: "44ch" }}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.48, ease: [0.22, 1, 0.36, 1] }}
@@ -201,9 +233,9 @@ function ProductsContent() {
               </motion.p>
             </div>
 
-            {/* ── Premium Search Bar ── */}
+            {/* ── Premium Search Bar (visible on both mobile and desktop inside hero) ── */}
             <motion.div
-              className="mt-8 lg:max-w-[55%]"
+              className="mt-5 md:mt-8 max-w-[65%] md:max-w-[55%]"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -226,7 +258,7 @@ function ProductsContent() {
                     transition: "all 0.35s cubic-bezier(0.22,1,0.36,1)",
                   }}
                 >
-                  <span className="material-symbols-outlined pl-5 text-[22px] shrink-0 transition-colors duration-300"
+                  <span className="material-symbols-outlined pl-4 md:pl-5 text-[18px] md:text-[22px] shrink-0 transition-colors duration-300"
                     style={{ color: searchFocused ? "#B06080" : "rgba(138,106,90,0.55)" }}>
                     search
                   </span>
@@ -236,19 +268,19 @@ function ProductsContent() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => setSearchFocused(true)}
                     onBlur={() => setSearchFocused(false)}
-                    placeholder="Search skincare rituals, herbal products, ingredients..."
-                    className="w-full bg-transparent pl-4 pr-5 py-4 font-body text-[15px] text-[#2A1A14] placeholder:text-[#8A6A5A]/45 focus:outline-none"
+                    placeholder="Search products..."
+                    className="w-full bg-transparent pl-3 pr-4 py-2.5 md:py-4 font-body text-[13px] md:text-[15px] text-[#2A1A14] placeholder:text-[#8A6A5A]/45 focus:outline-none"
                     style={{ caretColor: "#B06080" }}
                   />
                   {searchTerm && (
                     <button
                       type="button"
                       onClick={() => setSearchTerm("")}
-                      className="mr-4 w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors hover:bg-[#B06080]/10"
+                      className="mr-3 md:mr-4 w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors hover:bg-[#B06080]/10"
                       style={{ color: "rgba(138,106,90,0.6)" }}
                       aria-label="Clear search"
                     >
-                      <span className="material-symbols-outlined text-[16px]">close</span>
+                      <span className="material-symbols-outlined text-[14px] md:text-[16px]">close</span>
                     </button>
                   )}
                 </div>
@@ -257,8 +289,8 @@ function ProductsContent() {
           </div>
 
           {/* Bottom fade */}
-          <div className="absolute bottom-0 left-0 right-0 h-12 pointer-events-none"
-            style={{ background: "linear-gradient(to bottom, transparent, rgba(253,246,240,0.6))" }} />
+          <div className="absolute bottom-0 left-0 right-0 h-10 pointer-events-none"
+            style={{ background: "linear-gradient(to bottom, transparent, rgba(253,246,240,0.8))" }} />
         </section>
 
         {/* ── FILTER & CATEGORY SECTION ── */}
@@ -349,6 +381,7 @@ function ProductsContent() {
                   return (
                     <button
                       key={cat.slug}
+                      ref={isActive ? mobileActiveRef : undefined}
                       role="tab"
                       aria-selected={isActive}
                       onClick={() => {
@@ -357,10 +390,10 @@ function ProductsContent() {
                       }}
                       className="relative flex items-center gap-1.5 whitespace-nowrap font-body text-[11px] tracking-[0.1em] uppercase shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B06080]/50 focus-visible:ring-offset-1"
                       style={{
-                        height: "34px",
-                        padding: "0 14px",
-                        borderRadius: "17px",
-                        border: isActive ? "1.5px solid transparent" : "1.5px solid rgba(138,106,90,0.22)",
+                        height: "36px",
+                        padding: "0 16px",
+                        borderRadius: "18px",
+                        border: isActive ? "1.5px solid transparent" : "1.5px solid rgba(138,106,90,0.18)",
                         background: isActive ? "transparent" : "rgba(255,250,247,0.7)",
                         color: isActive ? "#fff" : "rgba(90,58,44,0.72)",
                         fontWeight: isActive ? 600 : 500,
@@ -369,13 +402,13 @@ function ProductsContent() {
                         boxShadow: isActive ? "0 2px 10px rgba(176,96,128,0.22)" : "none",
                       }}
                     >
-                      {/* Sliding active background — shared layout magic */}
+                      {/* Sliding active background */}
                       {isActive && (
                         <motion.span
                           layoutId="chip-active-bg-mobile"
                           className="absolute inset-0"
                           style={{
-                            borderRadius: "17px",
+                            borderRadius: "18px",
                             background: "linear-gradient(135deg, #B06080 0%, #8B3A5E 100%)",
                             boxShadow: "0 2px 12px rgba(176,96,128,0.32), inset 0 1px 0 rgba(255,255,255,0.2)",
                           }}
@@ -386,8 +419,8 @@ function ProductsContent() {
                       <span
                         className="relative z-10 material-symbols-outlined"
                         style={{
-                          fontSize: "13px",
-                          color: isActive ? "rgba(255,255,255,0.88)" : "rgba(176,96,128,0.7)",
+                          fontSize: "12px",
+                          color: isActive ? "rgba(255,255,255,0.88)" : "rgba(176,96,128,0.65)",
                           fontVariationSettings: `'FILL' ${isActive ? 1 : 0}`,
                           transition: "color 0.22s ease",
                         }}
@@ -496,26 +529,39 @@ function ProductsContent() {
                 </div>
               </div>
 
-              {/* Mobile filter trigger */}
-              <div className="flex md:hidden items-center gap-2">
+              {/* Mobile filter trigger — dual pill capsule layout matching Image 1 */}
+              <div className="flex md:hidden items-center gap-3 w-full" style={{ padding: "0 20px 14px 20px" }}>
                 <button
                   onClick={() => setFiltersOpen(true)}
-                  className="flex-1 flex items-center justify-center gap-1.5 font-body text-[11px] tracking-[0.1em] uppercase"
+                  className="flex-grow flex items-center justify-center gap-2 font-body text-[11px] tracking-[0.14em] uppercase active:scale-[0.98] transition-all duration-150"
                   style={{
-                    height: "32px",
-                    borderRadius: "16px",
-                    border: "1px solid rgba(138,106,90,0.22)",
-                    color: "rgba(90,58,44,0.68)",
-                    background: "rgba(255,250,247,0.6)",
-                    transition: "all 0.2s ease",
+                    height: "44px",
+                    borderRadius: "22px",
+                    border: "1px solid rgba(176,96,128,0.22)",
+                    color: "#8B3A5E",
+                    background: "rgba(176,96,128,0.05)",
+                    fontWeight: 600,
+                    boxShadow: "0 2px 8px rgba(176,96,128,0.06)",
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: "15px" }}>tune</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>tune</span>
                   Filter & Sort
                 </button>
-                <span className="font-body text-[11px] px-2" style={{ color: "rgba(138,106,90,0.55)" }}>
-                  {visibleProducts.length} item{visibleProducts.length !== 1 ? "s" : ""}
-                </span>
+                
+                <button
+                  onClick={() => setFiltersOpen(true)}
+                  className="flex items-center justify-center rounded-full active:scale-[0.95] transition-transform duration-150 shrink-0"
+                  style={{
+                    width: "44px",
+                    height: "44px",
+                    border: "1px solid rgba(138,106,90,0.15)",
+                    background: "rgba(255,250,247,0.8)",
+                    color: "rgba(90,58,44,0.7)",
+                  }}
+                  aria-label="Filter options"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>tune</span>
+                </button>
               </div>
             </div>
 
@@ -529,26 +575,34 @@ function ProductsContent() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.85 }}
         >
-          <div className="max-w-[1280px] mx-auto px-5 md:px-[72px] py-5 md:py-6">
-            <div className="flex items-center gap-3 md:gap-6 overflow-x-auto no-scrollbar">
-              {trustBadges.map((badge, i) => (
-                <div key={badge.label} className="flex items-center gap-2 shrink-0 group">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110"
-                    style={{ background: i % 2 === 0 ? "rgba(176,96,128,0.1)" : "rgba(201,167,77,0.1)",
-                      border: "1px solid " + (i % 2 === 0 ? "rgba(176,96,128,0.2)" : "rgba(201,167,77,0.2)") }}>
-                    <span className="material-symbols-outlined text-[16px]"
-                      style={{ color: i % 2 === 0 ? "#B06080" : "#8A6A00", fontVariationSettings: "'FILL' 1" }}>
-                      {badge.icon}
+          <div className="max-w-[1280px] mx-auto px-5 md:px-[72px] py-4 md:py-6">
+            <div 
+              className="w-full rounded-[24px] bg-[rgba(255,250,247,0.45)] px-4 md:px-6 py-4 border"
+              style={{
+                borderColor: "rgba(201,167,77,0.15)",
+                boxShadow: "0 4px 20px rgba(42,26,20,0.03)",
+              }}
+            >
+              <div className="flex items-center justify-around gap-3 md:gap-6 overflow-x-auto no-scrollbar">
+                {trustBadges.map((badge, i) => (
+                  <div key={badge.label} className="flex items-center gap-2 shrink-0 group">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110"
+                      style={{ background: i % 2 === 0 ? "rgba(176,96,128,0.1)" : "rgba(201,167,77,0.1)",
+                        border: "1px solid " + (i % 2 === 0 ? "rgba(176,96,128,0.2)" : "rgba(201,167,77,0.2)") }}>
+                      <span className="material-symbols-outlined text-[16px]"
+                        style={{ color: i % 2 === 0 ? "#B06080" : "#8A6A00", fontVariationSettings: "'FILL' 1" }}>
+                        {badge.icon}
+                      </span>
+                    </div>
+                    <span className="font-body text-[10px] md:text-[11px] tracking-[0.08em] text-[#5A3A2C]/65 whitespace-nowrap uppercase">
+                      {badge.label}
                     </span>
+                    {i < trustBadges.length - 1 && (
+                      <div className="ml-1 md:ml-3 w-px h-4 shrink-0" style={{ background: "rgba(138,106,90,0.15)" }} />
+                    )}
                   </div>
-                  <span className="font-body text-[11px] tracking-[0.08em] text-[#5A3A2C]/65 whitespace-nowrap uppercase">
-                    {badge.label}
-                  </span>
-                  {i < trustBadges.length - 1 && (
-                    <div className="ml-1 md:ml-3 w-px h-4 shrink-0" style={{ background: "rgba(138,106,90,0.18)" }} />
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </motion.section>
@@ -616,7 +670,7 @@ function ProductsContent() {
                 exit={{ opacity: 0, transition: { duration: 0.2 } }}
               >
                 {visibleProducts.map((product, index) => (
-                  <motion.div key={product.id} variants={itemVariants}>
+                  <motion.div key={product.id} variants={itemVariants} className="h-full">
                     <ProductCard
                       product={product}
                       index={index}

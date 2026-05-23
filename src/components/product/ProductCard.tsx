@@ -67,7 +67,7 @@ export default function ProductCard({
   return (
     <>
       <article
-        className="flex flex-col group cursor-pointer"
+        className="flex flex-col group cursor-pointer h-full"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -253,8 +253,8 @@ export default function ProductCard({
             </div>
 
             {/* Price row */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-baseline gap-2">
+            <div className="flex items-end justify-between gap-2">
+              <div className="flex items-baseline gap-2 flex-wrap">
                 <span className="font-display text-[18px] md:text-[20px]" style={{ color: "#B06080", letterSpacing: "-0.01em" }}>
                   {formatPrice(product.price)}
                 </span>

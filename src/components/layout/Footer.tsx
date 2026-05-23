@@ -67,7 +67,7 @@ export default function Footer() {
               <span className="material-symbols-outlined text-[18px]">chat</span>
             </a>
             <a
-              href="https://www.instagram.com/"
+              href="https://www.instagram.com/saaral_cosmetics/"
               target="_blank"
               rel="noopener noreferrer"
               className="w-9 h-9 rounded-full border border-white/12 flex items-center justify-center text-white/50 hover:text-[#B06080] hover:border-[#B06080]/40 transition-all"
