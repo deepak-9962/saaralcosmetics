@@ -1,12 +1,10 @@
-"use client";
-
 import Image from "next/image";
-import { motion } from "framer-motion";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import GradientBackground from "@/components/layout/GradientBackground";
+import FadeIn from "@/components/layout/FadeIn";
 
 export default function ContactPage() {
   return (
@@ -17,7 +15,7 @@ export default function ContactPage() {
       <main className="flex-grow flex flex-col pb-24 md:pb-0">
         {/* Brand Story Section */}
         <section className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-10 md:py-24 w-full grid grid-cols-1 md:grid-cols-2 gap-[var(--spacing-gutter)] items-center">
-          <motion.div
+          <FadeIn
             className="flex flex-col gap-[var(--spacing-stack-md)] order-2 md:order-1"
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -39,8 +37,8 @@ export default function ContactPage() {
               blended to elevate your daily self-care into a restorative
               ritual.
             </p>
-          </motion.div>
-          <motion.div
+          </FadeIn>
+          <FadeIn
             className="order-1 md:order-2 w-full h-[320px] md:h-[500px] rounded-xl overflow-hidden shadow-[0_20px_40px_rgba(26,26,26,0.04)] bg-surface-container"
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -53,7 +51,7 @@ export default function ContactPage() {
               height={500}
               className="w-full h-full object-cover"
             />
-          </motion.div>
+          </FadeIn>
         </section>
 
         {/* Divider */}
@@ -63,7 +61,7 @@ export default function ContactPage() {
 
         {/* Contact Bento Grid */}
         <section className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-lg)] w-full flex flex-col gap-[var(--spacing-stack-lg)]">
-          <motion.div
+          <FadeIn
             className="text-center max-w-2xl mx-auto flex flex-col gap-[var(--spacing-stack-sm)]"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -76,11 +74,11 @@ export default function ContactPage() {
               Our concierge team is available to assist you with bespoke
               product recommendations and order inquiries.
             </p>
-          </motion.div>
+          </FadeIn>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-[var(--spacing-gutter)]">
             {/* WhatsApp CTA Card */}
-            <motion.div
+            <FadeIn
               className="md:col-span-2 bg-surface-container-low rounded-xl p-[var(--spacing-margin-mobile)] md:p-[var(--spacing-margin-desktop)] flex flex-col justify-between items-start gap-[var(--spacing-stack-lg)] border border-outline-variant/20 shadow-[0_10px_30px_rgba(26,26,26,0.03)] group transition-all duration-300 hover:shadow-[0_15px_40px_rgba(201,169,110,0.08)]"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -112,12 +110,12 @@ export default function ContactPage() {
                 <span className="material-symbols-outlined">chat</span>
                 Start WhatsApp Chat
               </a>
-            </motion.div>
+            </FadeIn>
 
             {/* Contact Info Cards */}
             <div className="flex flex-col gap-[var(--spacing-gutter)]">
               {/* Email Card */}
-              <motion.div
+              <FadeIn
                 className="bg-surface-container-lowest rounded-xl p-[var(--spacing-stack-md)] flex flex-col gap-[var(--spacing-stack-sm)] border border-outline-variant/40 shadow-[0_5px_15px_rgba(26,26,26,0.02)] flex-1 justify-center"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -139,10 +137,10 @@ export default function ContactPage() {
                 >
                   saaralcosmetics@gmail.com
                 </a>
-              </motion.div>
+              </FadeIn>
 
               {/* Instagram Card */}
-              <motion.div
+              <FadeIn
                 className="bg-surface-container-lowest rounded-xl p-[var(--spacing-stack-md)] flex flex-col gap-[var(--spacing-stack-sm)] border border-outline-variant/40 shadow-[0_5px_15px_rgba(26,26,26,0.02)] flex-1 justify-center"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -166,7 +164,7 @@ export default function ContactPage() {
                 >
                   @saaral_cosmetics
                 </a>
-              </motion.div>
+              </FadeIn>
             </div>
           </div>
         </section>

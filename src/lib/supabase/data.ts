@@ -1,5 +1,3 @@
-"use client";
-
 import { generateOrderNumber, generateSlug } from "@/lib/utils";
 import type { CartItem, CategoryFilter, Order, OrderItem, Product } from "@/lib/types";
 import { getSupabaseBrowserClient } from "./client";
@@ -160,7 +158,7 @@ export async function listProducts(category: CategoryFilter = "all"): Promise<Pr
     .from("products")
     .select("*")
     .eq("is_active", true)
-    .order("created_at", { ascending: false });
+    .order("price", { ascending: true });
 
   if (category !== "all") {
     query = query.eq("category", category);
@@ -168,7 +166,18 @@ export async function listProducts(category: CategoryFilter = "all"): Promise<Pr
 
   const { data, error } = await query;
   if (error) throw new Error(error.message);
-  return (data ?? []).map(normalizeProduct);
+
+  const uniqueProducts: Product[] = [];
+  const seenNames = new Set<string>();
+  (data ?? []).forEach((row) => {
+    const normalized = normalizeProduct(row);
+    if (!seenNames.has(normalized.name)) {
+      seenNames.add(normalized.name);
+      uniqueProducts.push(normalized);
+    }
+  });
+
+  return uniqueProducts;
 }
 
 export async function listFeaturedProducts(limit = 3): Promise<Product[]> {
@@ -177,8 +186,31 @@ export async function listFeaturedProducts(limit = 3): Promise<Product[]> {
     .from("products")
     .select("*")
     .eq("is_active", true)
-    .order("created_at", { ascending: false })
-    .limit(limit);
+    .order("price", { ascending: true });
+
+  if (error) throw new Error(error.message);
+
+  const uniqueProducts: Product[] = [];
+  const seenNames = new Set<string>();
+  (data ?? []).forEach((row) => {
+    const normalized = normalizeProduct(row);
+    if (!seenNames.has(normalized.name)) {
+      seenNames.add(normalized.name);
+      uniqueProducts.push(normalized);
+    }
+  });
+
+  return uniqueProducts.slice(0, limit);
+}
+
+export async function getProductVariants(name: string): Promise<Product[]> {
+  const supabase = getSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("name", name)
+    .eq("is_active", true)
+    .order("price", { ascending: true });
 
   if (error) throw new Error(error.message);
   return (data ?? []).map(normalizeProduct);

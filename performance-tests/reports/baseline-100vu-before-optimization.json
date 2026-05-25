@@ -1,0 +1,750 @@
+{
+  "root_group": {
+    "checks": [
+      {
+        "fails": 0,
+        "name": "Homepage HTML status is 200/201/204",
+        "path": "::Homepage HTML status is 200/201/204",
+        "id": "99a6e969c9ad7fe4e493226c59f6c8c0",
+        "passes": 657
+      },
+      {
+        "fails": 0,
+        "name": "Homepage HTML not timed out",
+        "path": "::Homepage HTML not timed out",
+        "id": "d057fa2378172585675b914f074da0b0",
+        "passes": 657
+      },
+      {
+        "name": "Featured Products API status is 200/201/204",
+        "path": "::Featured Products API status is 200/201/204",
+        "id": "fb780165dffa8d94a24c00980c509da9",
+        "passes": 657,
+        "fails": 0
+      },
+      {
+        "name": "Featured Products API not timed out",
+        "path": "::Featured Products API not timed out",
+        "id": "b9cfa946dc34d251709fff113b8010cc",
+        "passes": 657,
+        "fails": 0
+      },
+      {
+        "name": "Featured Products API body is valid JSON",
+        "path": "::Featured Products API body is valid JSON",
+        "id": "bf5406155d8cd64a2ff1fb84696bf36a",
+        "passes": 657,
+        "fails": 0
+      },
+      {
+        "passes": 657,
+        "fails": 0,
+        "name": "Collections HTML status is 200/201/204",
+        "path": "::Collections HTML status is 200/201/204",
+        "id": "b0f66fa5caf3f429aed195b8ea92ff73"
+      },
+      {
+        "fails": 0,
+        "name": "Collections HTML not timed out",
+        "path": "::Collections HTML not timed out",
+        "id": "58030a7895dc5ac320aab05fad84f02e",
+        "passes": 657
+      },
+      {
+        "name": "All Products API status is 200/201/204",
+        "path": "::All Products API status is 200/201/204",
+        "id": "c0a5cd2b6abcd77c7ef4e791254228f3",
+        "passes": 657,
+        "fails": 0
+      },
+      {
+        "name": "All Products API not timed out",
+        "path": "::All Products API not timed out",
+        "id": "b6bc8fbb585f2975abdb8e584b63a035",
+        "passes": 657,
+        "fails": 0
+      },
+      {
+        "passes": 657,
+        "fails": 0,
+        "name": "All Products API body is valid JSON",
+        "path": "::All Products API body is valid JSON",
+        "id": "3a73fc20dc1323015e9843b90869a2f0"
+      },
+      {
+        "name": "Category Filter API [face-wash] status is 200/201/204",
+        "path": "::Category Filter API [face-wash] status is 200/201/204",
+        "id": "cf5c80a9c9253f5ba1a9c3dc900fce99",
+        "passes": 166,
+        "fails": 0
+      },
+      {
+        "fails": 0,
+        "name": "Category Filter API [face-wash] not timed out",
+        "path": "::Category Filter API [face-wash] not timed out",
+        "id": "4884b4c638ceee4c93fbd3439f6f6641",
+        "passes": 166
+      },
+      {
+        "name": "Category Filter API [face-wash] body is valid JSON",
+        "path": "::Category Filter API [face-wash] body is valid JSON",
+        "id": "13893d43dfa66f72bf349b7e7f3323ca",
+        "passes": 166,
+        "fails": 0
+      },
+      {
+        "name": "Category Filter API [soap] status is 200/201/204",
+        "path": "::Category Filter API [soap] status is 200/201/204",
+        "id": "790cffe7c0111f59ebdb230c581886a0",
+        "passes": 160,
+        "fails": 0
+      },
+      {
+        "fails": 0,
+        "name": "Category Filter API [soap] not timed out",
+        "path": "::Category Filter API [soap] not timed out",
+        "id": "3b27484be0edf306d93841e4b235dd37",
+        "passes": 160
+      },
+      {
+        "id": "d6295b1640264937daa29b8054fe55f0",
+        "passes": 160,
+        "fails": 0,
+        "name": "Category Filter API [soap] body is valid JSON",
+        "path": "::Category Filter API [soap] body is valid JSON"
+      },
+      {
+        "passes": 136,
+        "fails": 0,
+        "name": "Search API [saaral] status is 200/201/204",
+        "path": "::Search API [saaral] status is 200/201/204",
+        "id": "47dbfb6085f70b900592630fe896a492"
+      },
+      {
+        "name": "Search API [saaral] not timed out",
+        "path": "::Search API [saaral] not timed out",
+        "id": "92dc9a314b1fbd70cae314909951d93d",
+        "passes": 136,
+        "fails": 0
+      },
+      {
+        "id": "c5511034933c3e8ca8b82eb92e2a2f63",
+        "passes": 136,
+        "fails": 0,
+        "name": "Search API [saaral] body is valid JSON",
+        "path": "::Search API [saaral] body is valid JSON"
+      },
+      {
+        "name": "Category Filter API [nalangu-maavu] status is 200/201/204",
+        "path": "::Category Filter API [nalangu-maavu] status is 200/201/204",
+        "id": "498b04c0aa10256e616aa4c9c575e349",
+        "passes": 167,
+        "fails": 0
+      },
+      {
+        "name": "Category Filter API [nalangu-maavu] not timed out",
+        "path": "::Category Filter API [nalangu-maavu] not timed out",
+        "id": "ef713f879d7679deb86e61ab86ba41f8",
+        "passes": 167,
+        "fails": 0
+      },
+      {
+        "name": "Category Filter API [nalangu-maavu] body is valid JSON",
+        "path": "::Category Filter API [nalangu-maavu] body is valid JSON",
+        "id": "9ce4b073cc6aca198e4db8bf20ba1716",
+        "passes": 167,
+        "fails": 0
+      },
+      {
+        "fails": 0,
+        "name": "Category Filter API [face-cream] status is 200/201/204",
+        "path": "::Category Filter API [face-cream] status is 200/201/204",
+        "id": "3a5a4baee1b23eeeae98cbc6d379f541",
+        "passes": 164
+      },
+      {
+        "id": "dcc1d09defa9b7724ed7392e897899b7",
+        "passes": 164,
+        "fails": 0,
+        "name": "Category Filter API [face-cream] not timed out",
+        "path": "::Category Filter API [face-cream] not timed out"
+      },
+      {
+        "name": "Category Filter API [face-cream] body is valid JSON",
+        "path": "::Category Filter API [face-cream] body is valid JSON",
+        "id": "54730ff8eb92bec326a6153f480fd0a6",
+        "passes": 164,
+        "fails": 0
+      },
+      {
+        "name": "Search API [cream] status is 200/201/204",
+        "path": "::Search API [cream] status is 200/201/204",
+        "id": "70e0a065600589e3214fea365b292a6f",
+        "passes": 135,
+        "fails": 0
+      },
+      {
+        "passes": 135,
+        "fails": 0,
+        "name": "Search API [cream] not timed out",
+        "path": "::Search API [cream] not timed out",
+        "id": "5ffb2252e20435297f16ea9e1451af73"
+      },
+      {
+        "name": "Search API [cream] body is valid JSON",
+        "path": "::Search API [cream] body is valid JSON",
+        "id": "3124e67cc560ca1b4facf3bbc4d316f8",
+        "passes": 135,
+        "fails": 0
+      },
+      {
+        "id": "fea1d677b44257bb600bc7267db9340f",
+        "passes": 137,
+        "fails": 0,
+        "name": "Product Details Page HTML [redwine-facewash] status is 200/201/204",
+        "path": "::Product Details Page HTML [redwine-facewash] status is 200/201/204"
+      },
+      {
+        "name": "Product Details Page HTML [redwine-facewash] not timed out",
+        "path": "::Product Details Page HTML [redwine-facewash] not timed out",
+        "id": "9f053fb7728df8e9f2fb1e64a6107e35",
+        "passes": 137,
+        "fails": 0
+      },
+      {
+        "name": "Product Detail API [redwine-facewash] status is 200/201/204",
+        "path": "::Product Detail API [redwine-facewash] status is 200/201/204",
+        "id": "8d92ce929bc186b5086e2143d2fde01d",
+        "passes": 137,
+        "fails": 0
+      },
+      {
+        "name": "Product Detail API [redwine-facewash] not timed out",
+        "path": "::Product Detail API [redwine-facewash] not timed out",
+        "id": "0275bc7247d7b6efaf6eccd58493d69f",
+        "passes": 137,
+        "fails": 0
+      },
+      {
+        "path": "::Product Detail API [redwine-facewash] body is valid JSON",
+        "id": "820be518aee2d3021e1542c79aef048d",
+        "passes": 137,
+        "fails": 0,
+        "name": "Product Detail API [redwine-facewash] body is valid JSON"
+      },
+      {
+        "name": "Search API [soap] status is 200/201/204",
+        "path": "::Search API [soap] status is 200/201/204",
+        "id": "ca09b78596af819388991fada9f03f4f",
+        "passes": 134,
+        "fails": 0
+      },
+      {
+        "name": "Search API [soap] not timed out",
+        "path": "::Search API [soap] not timed out",
+        "id": "4f92c1b218b63aecfc8ef161dd27a313",
+        "passes": 134,
+        "fails": 0
+      },
+      {
+        "passes": 134,
+        "fails": 0,
+        "name": "Search API [soap] body is valid JSON",
+        "path": "::Search API [soap] body is valid JSON",
+        "id": "fa14063b6364b87b00430058161ce3c9"
+      },
+      {
+        "name": "Search API [herbal] status is 200/201/204",
+        "path": "::Search API [herbal] status is 200/201/204",
+        "id": "50ea9c6648ae8818ebf93f632e2d5301",
+        "passes": 128,
+        "fails": 0
+      },
+      {
+        "passes": 128,
+        "fails": 0,
+        "name": "Search API [herbal] not timed out",
+        "path": "::Search API [herbal] not timed out",
+        "id": "5230b3206066f1376a04e8bf8c90ecbb"
+      },
+      {
+        "id": "2809b04049412559e03615b14c157149",
+        "passes": 128,
+        "fails": 0,
+        "name": "Search API [herbal] body is valid JSON",
+        "path": "::Search API [herbal] body is valid JSON"
+      },
+      {
+        "fails": 0,
+        "name": "Search API [face wash] status is 200/201/204",
+        "path": "::Search API [face wash] status is 200/201/204",
+        "id": "13df53c4325e53dcfe9a819449dd9fbf",
+        "passes": 124
+      },
+      {
+        "name": "Search API [face wash] not timed out",
+        "path": "::Search API [face wash] not timed out",
+        "id": "dadc11119e9065c371349a4196c1f4d7",
+        "passes": 124,
+        "fails": 0
+      },
+      {
+        "path": "::Search API [face wash] body is valid JSON",
+        "id": "15355fe18c3749346022af4a4c4c72f8",
+        "passes": 124,
+        "fails": 0,
+        "name": "Search API [face wash] body is valid JSON"
+      },
+      {
+        "name": "Cart Page HTML status is 200/201/204",
+        "path": "::Cart Page HTML status is 200/201/204",
+        "id": "c63dfad9fe5abaef9c1607f48c3b39e0",
+        "passes": 656,
+        "fails": 0
+      },
+      {
+        "name": "Cart Page HTML not timed out",
+        "path": "::Cart Page HTML not timed out",
+        "id": "b116895c17ed7d17bc26366e2b834281",
+        "passes": 656,
+        "fails": 0
+      },
+      {
+        "name": "Product Details Page HTML [saaral-skin-whitening-cream-30g] status is 200/201/204",
+        "path": "::Product Details Page HTML [saaral-skin-whitening-cream-30g] status is 200/201/204",
+        "id": "17e0d826f8721b8baaff8f9a62ad35a4",
+        "passes": 126,
+        "fails": 0
+      },
+      {
+        "passes": 126,
+        "fails": 0,
+        "name": "Product Details Page HTML [saaral-skin-whitening-cream-30g] not timed out",
+        "path": "::Product Details Page HTML [saaral-skin-whitening-cream-30g] not timed out",
+        "id": "8b116c8265741bb7bc17b57c17e5d26e"
+      },
+      {
+        "id": "af465f8d39e49251f4a2d01f3d482164",
+        "passes": 146,
+        "fails": 0,
+        "name": "Product Details Page HTML [nalangu-maavu-soap] status is 200/201/204",
+        "path": "::Product Details Page HTML [nalangu-maavu-soap] status is 200/201/204"
+      },
+      {
+        "name": "Product Details Page HTML [nalangu-maavu-soap] not timed out",
+        "path": "::Product Details Page HTML [nalangu-maavu-soap] not timed out",
+        "id": "9d5d50eadae98261efcfe205f2e6bca9",
+        "passes": 146,
+        "fails": 0
+      },
+      {
+        "name": "Product Details Page HTML [kuppaimeni-soap] status is 200/201/204",
+        "path": "::Product Details Page HTML [kuppaimeni-soap] status is 200/201/204",
+        "id": "df0cad6bf415331ae61682f67f0bacfb",
+        "passes": 137,
+        "fails": 0
+      },
+      {
+        "fails": 0,
+        "name": "Product Details Page HTML [kuppaimeni-soap] not timed out",
+        "path": "::Product Details Page HTML [kuppaimeni-soap] not timed out",
+        "id": "2e735c9dd0788653ce8260e1ab89e713",
+        "passes": 137
+      },
+      {
+        "name": "Product Detail API [nalangu-maavu-soap] status is 200/201/204",
+        "path": "::Product Detail API [nalangu-maavu-soap] status is 200/201/204",
+        "id": "e014a47a4ae6bfc0b8ad61d3033624af",
+        "passes": 146,
+        "fails": 0
+      },
+      {
+        "name": "Product Detail API [nalangu-maavu-soap] not timed out",
+        "path": "::Product Detail API [nalangu-maavu-soap] not timed out",
+        "id": "1f6eedbf7912fdc0587646cc3f16a7a5",
+        "passes": 146,
+        "fails": 0
+      },
+      {
+        "passes": 146,
+        "fails": 0,
+        "name": "Product Detail API [nalangu-maavu-soap] body is valid JSON",
+        "path": "::Product Detail API [nalangu-maavu-soap] body is valid JSON",
+        "id": "e9bc344c37cc1200c94e5ddae695f368"
+      },
+      {
+        "path": "::Product Detail API [kuppaimeni-soap] status is 200/201/204",
+        "id": "433264e1d2dcd03e53d5da26a88d18f9",
+        "passes": 137,
+        "fails": 0,
+        "name": "Product Detail API [kuppaimeni-soap] status is 200/201/204"
+      },
+      {
+        "name": "Product Detail API [kuppaimeni-soap] not timed out",
+        "path": "::Product Detail API [kuppaimeni-soap] not timed out",
+        "id": "a6fd8b4c30a11147483d3679b158a270",
+        "passes": 137,
+        "fails": 0
+      },
+      {
+        "name": "Product Detail API [kuppaimeni-soap] body is valid JSON",
+        "path": "::Product Detail API [kuppaimeni-soap] body is valid JSON",
+        "id": "d4ad8dcbc8bda2af190b18553f014061",
+        "passes": 137,
+        "fails": 0
+      },
+      {
+        "fails": 0,
+        "name": "Product Detail API [saaral-skin-whitening-cream-30g] status is 200/201/204",
+        "path": "::Product Detail API [saaral-skin-whitening-cream-30g] status is 200/201/204",
+        "id": "b4569e5f69d8c8b7aac6b21ff00d5c59",
+        "passes": 126
+      },
+      {
+        "id": "e3d0f9071bf7ce8e093c13421c6a3709",
+        "passes": 126,
+        "fails": 0,
+        "name": "Product Detail API [saaral-skin-whitening-cream-30g] not timed out",
+        "path": "::Product Detail API [saaral-skin-whitening-cream-30g] not timed out"
+      },
+      {
+        "fails": 0,
+        "name": "Product Detail API [saaral-skin-whitening-cream-30g] body is valid JSON",
+        "path": "::Product Detail API [saaral-skin-whitening-cream-30g] body is valid JSON",
+        "id": "e33d1d924a4d2a2fe173e308f568e429",
+        "passes": 126
+      },
+      {
+        "name": "Product Details Page HTML [activated-charcoal-soap] status is 200/201/204",
+        "path": "::Product Details Page HTML [activated-charcoal-soap] status is 200/201/204",
+        "id": "3bcc07e055baac500cb5590271991706",
+        "passes": 111,
+        "fails": 0
+      },
+      {
+        "path": "::Product Details Page HTML [activated-charcoal-soap] not timed out",
+        "id": "d7e6a1b55b5e158d82fa68542c761d1c",
+        "passes": 111,
+        "fails": 0,
+        "name": "Product Details Page HTML [activated-charcoal-soap] not timed out"
+      },
+      {
+        "id": "2ec74da454a22cfd86669dd3a40fe209",
+        "passes": 111,
+        "fails": 0,
+        "name": "Product Detail API [activated-charcoal-soap] status is 200/201/204",
+        "path": "::Product Detail API [activated-charcoal-soap] status is 200/201/204"
+      },
+      {
+        "fails": 0,
+        "name": "Product Detail API [activated-charcoal-soap] not timed out",
+        "path": "::Product Detail API [activated-charcoal-soap] not timed out",
+        "id": "507af73fe80d5155935c197822dc0bce",
+        "passes": 111
+      },
+      {
+        "passes": 111,
+        "fails": 0,
+        "name": "Product Detail API [activated-charcoal-soap] body is valid JSON",
+        "path": "::Product Detail API [activated-charcoal-soap] body is valid JSON",
+        "id": "554888aa20a2439ad9f61399dda61579"
+      },
+      {
+        "path": "::Checkout Page HTML status is 200/201/204",
+        "id": "bf5a3e267d10b687f105f1971d9ab23b",
+        "passes": 653,
+        "fails": 0,
+        "name": "Checkout Page HTML status is 200/201/204"
+      },
+      {
+        "name": "Checkout Page HTML not timed out",
+        "path": "::Checkout Page HTML not timed out",
+        "id": "27688ba7f79da9bd6b324fd7a1be9029",
+        "passes": 653,
+        "fails": 0
+      },
+      {
+        "name": "Checkout Cart Verification API status is 200/201/204",
+        "path": "::Checkout Cart Verification API status is 200/201/204",
+        "id": "ce3155cce8e430d136cf9cfea23ebda7",
+        "passes": 653,
+        "fails": 0
+      },
+      {
+        "name": "Checkout Cart Verification API not timed out",
+        "path": "::Checkout Cart Verification API not timed out",
+        "id": "a40daacd630917e798930c5d11f07d2a",
+        "passes": 653,
+        "fails": 0
+      },
+      {
+        "name": "Checkout Cart Verification API body is valid JSON",
+        "path": "::Checkout Cart Verification API body is valid JSON",
+        "id": "5fe44d0432d9075defd88a6d1a2ca69f",
+        "passes": 653,
+        "fails": 0
+      },
+      {
+        "name": "Checkout Order Submission API status is 200/201/204",
+        "path": "::Checkout Order Submission API status is 200/201/204",
+        "id": "015d3d53a20741033e0750fc60cb07bf",
+        "passes": 653,
+        "fails": 0
+      },
+      {
+        "name": "Checkout Order Submission API not timed out",
+        "path": "::Checkout Order Submission API not timed out",
+        "id": "5c934fb704773f7b6814a3ede44cc284",
+        "passes": 653,
+        "fails": 0
+      },
+      {
+        "id": "a1545fc972d17bac0808a282c3eae712",
+        "passes": 651,
+        "fails": 0,
+        "name": "Return Homepage HTML status is 200/201/204",
+        "path": "::Return Homepage HTML status is 200/201/204"
+      },
+      {
+        "path": "::Return Homepage HTML not timed out",
+        "id": "b666035d4ea1b35e11e5678df77d1ff5",
+        "passes": 651,
+        "fails": 0,
+        "name": "Return Homepage HTML not timed out"
+      }
+    ],
+    "name": "",
+    "path": "",
+    "id": "d41d8cd98f00b204e9800998ecf8427e",
+    "groups": []
+  },
+  "options": {
+    "summaryTimeUnit": "",
+    "noColor": false,
+    "summaryTrendStats": [
+      "avg",
+      "min",
+      "med",
+      "max",
+      "p(90)",
+      "p(95)"
+    ]
+  },
+  "state": {
+    "isStdErrTTY": false,
+    "testRunDurationMs": 325819.667,
+    "isStdOutTTY": false
+  },
+  "metrics": {
+    "http_req_failed": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0,
+        "passes": 0,
+        "fails": 8522
+      },
+      "thresholds": {
+        "rate>=0.0": {
+          "ok": true
+        }
+      }
+    },
+    "http_req_blocked": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "min": 0,
+        "med": 0,
+        "max": 6168.0413,
+        "p(90)": 0,
+        "p(95)": 0.513695,
+        "avg": 11.42237950011735
+      }
+    },
+    "data_sent": {
+      "type": "counter",
+      "contains": "data",
+      "values": {
+        "count": 2767444,
+        "rate": 8493.790523700953
+      }
+    },
+    "api_response_duration": {
+      "type": "trend",
+      "contains": "default",
+      "values": {
+        "min": 136.1807,
+        "med": 265.5003,
+        "max": 4443.5276,
+        "p(90)": 811.5056,
+        "p(95)": 1050.4270999999999,
+        "avg": 405.17173360923425
+      }
+    },
+    "http_reqs": {
+      "values": {
+        "count": 8522,
+        "rate": 26.155572738953172
+      },
+      "type": "counter",
+      "contains": "default"
+    },
+    "http_req_tls_handshaking": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "med": 0,
+        "max": 693.8644,
+        "p(90)": 0,
+        "p(95)": 0,
+        "avg": 1.62178973245717,
+        "min": 0
+      }
+    },
+    "data_received": {
+      "type": "counter",
+      "contains": "data",
+      "values": {
+        "count": 150457427,
+        "rate": 461781.29265597713
+      }
+    },
+    "http_req_connecting": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(95)": 0.508095,
+        "avg": 9.784282363295015,
+        "min": 0,
+        "med": 0,
+        "max": 6026.9862,
+        "p(90)": 0
+      }
+    },
+    "http_req_duration": {
+      "thresholds": {
+        "p(95)>=0": {
+          "ok": true
+        }
+      },
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 1524.03163405304,
+        "min": 35.7144,
+        "med": 503.58259999999996,
+        "max": 6883.6601,
+        "p(90)": 4303.52468,
+        "p(95)": 4867.81905
+      }
+    },
+    "vus": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "max": 100,
+        "value": 1,
+        "min": 1
+      }
+    },
+    "http_req_receiving": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "max": 5849.2276,
+        "p(90)": 3013.8006800000007,
+        "p(95)": 3878.15969,
+        "avg": 849.4644690565591,
+        "min": 0,
+        "med": 131.7898
+      }
+    },
+    "user_journey_duration": {
+      "type": "trend",
+      "contains": "default",
+      "values": {
+        "avg": 41093.49769585254,
+        "min": 23452,
+        "med": 41475,
+        "max": 53037,
+        "p(90)": 48356,
+        "p(95)": 49262.5
+      }
+    },
+    "http_req_waiting": {
+      "values": {
+        "avg": 673.2186513846489,
+        "min": 31.8925,
+        "med": 290.5609,
+        "max": 4842.7855,
+        "p(90)": 1862.5494000000008,
+        "p(95)": 2320.932025
+      },
+      "type": "trend",
+      "contains": "time"
+    },
+    "http_req_duration{expected_response:true}": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "max": 6883.6601,
+        "p(90)": 4303.52468,
+        "p(95)": 4867.81905,
+        "avg": 1524.03163405304,
+        "min": 35.7144,
+        "med": 503.58259999999996
+      }
+    },
+    "iteration_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "max": 56279.3378,
+        "p(90)": 51440.95612,
+        "p(95)": 52213.276679999995,
+        "avg": 44133.65365906978,
+        "min": 25831.5487,
+        "med": 44237.7798
+      }
+    },
+    "iterations": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 645,
+        "rate": 1.9796226726853785
+      }
+    },
+    "http_req_sending": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(95)": 0.5178549999999998,
+        "avg": 1.34851361182821,
+        "min": 0,
+        "med": 0,
+        "max": 1699.0465,
+        "p(90)": 0
+      }
+    },
+    "checks": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 1,
+        "passes": 20982,
+        "fails": 0
+      }
+    },
+    "vus_max": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "min": 100,
+        "max": 100,
+        "value": 100
+      }
+    }
+  }
+}

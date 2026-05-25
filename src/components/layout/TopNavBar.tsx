@@ -6,6 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { motion, AnimatePresence } from "framer-motion";
+import MobilePromoStrip from "@/components/home/MobilePromoStrip";
+import MobileTrustBar from "@/components/home/MobileTrustBar";
 
 const navItems = [
   { label: "Shop", href: "/products" },
@@ -23,6 +25,7 @@ export default function TopNavBar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const navRef = useRef<HTMLElement>(null);
   const prevScrollY = useRef(0);
@@ -42,7 +45,9 @@ export default function TopNavBar() {
 
     // Sync initial scroll state on mount
     const initScrollY = window.scrollY;
-    scrolledRef.current = initScrollY > 20;
+    const isInitialScrolled = initScrollY > 20;
+    scrolledRef.current = isInitialScrolled;
+    setIsScrolled(isInitialScrolled);
     prevScrollY.current = initScrollY;
 
     if (navRef.current) {
@@ -67,10 +72,11 @@ export default function TopNavBar() {
 
       // 1. Scrolled styling for Navbar
       if (navRef.current) {
-        const isScrolled = latest > 20;
-        if (isScrolled !== scrolledRef.current) {
-          scrolledRef.current = isScrolled;
-          if (isScrolled) {
+        const scrolled = latest > 20;
+        if (scrolled !== scrolledRef.current) {
+          scrolledRef.current = scrolled;
+          setIsScrolled(scrolled);
+          if (scrolled) {
             navRef.current.classList.remove("bg-transparent", "bg-[#FDF6F0]/80", "backdrop-blur-none", "border-transparent");
             navRef.current.classList.add("bg-[#FDF6F0]/95", "shadow-lg", "backdrop-blur-xl", "border-b");
           } else {
@@ -147,15 +153,31 @@ export default function TopNavBar() {
       }}
     >
       {showPromoBar && (
-        <div className="h-6 bg-primary text-on-primary px-4 flex items-center justify-center">
-          <p className="font-body text-[10px] tracking-[0.08em] uppercase text-center">
-            Product of the month: use code <strong>HURRY20</strong> for 20% off
-          </p>
-        </div>
+        <>
+          {/* Desktop Promo Bar */}
+          <div className="hidden md:flex h-6 bg-primary text-on-primary px-4 items-center justify-center">
+            <p className="font-body text-[10px] tracking-[0.08em] uppercase text-center">
+              Product of the month: use code <strong>HURRY20</strong> for 20% off
+            </p>
+          </div>
+          {/* Mobile Stacking Headers */}
+          <div
+            className="block md:hidden overflow-hidden transition-all duration-300 ease-in-out"
+            style={{
+              maxHeight: isScrolled ? "0px" : "112px",
+              opacity: isScrolled ? 0 : 1,
+            }}
+          >
+            {/* 1. Mobile Trust Bar (Green Marquee) */}
+            <MobileTrustBar />
+            {/* 2. Mobile Promo Strip (Terracotta Announcement) */}
+            <MobilePromoStrip />
+          </div>
+        </>
       )}
 
       <div className="relative flex justify-between items-center h-[56px] md:h-[68px] px-4 md:px-16 max-w-[1280px] mx-auto">
-        {/* LEFT — Logo */}
+        {/* LEFT — Hamburger (mobile) / Logo+hamburger (desktop) */}
         <div className="flex items-center gap-2 md:gap-3">
           <button
             className="md:hidden p-2 flex items-center justify-center cursor-pointer"
@@ -167,16 +189,27 @@ export default function TopNavBar() {
             </span>
           </button>
 
+          {/* Logo — desktop: inline with hamburger, mobile: hidden here (shown in center) */}
           <Link
             href="/"
-            className="font-display text-on-surface tracking-tight transition-all duration-200 active:scale-98"
+            className="hidden md:block font-display text-on-surface tracking-tight transition-all duration-200 active:scale-98"
             style={{ fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 600 }}
           >
             Saaral
           </Link>
         </div>
 
-        {/* CENTER — Nav links (absolute, perfectly centred) */}
+        {/* CENTER — Logo (mobile only, absolutely centered) */}
+        <Link
+          href="/"
+          className="md:hidden absolute left-1/2 -translate-x-1/2 font-display text-on-surface tracking-tight transition-all duration-200 active:scale-95"
+          style={{ fontSize: "26px", fontWeight: 600, letterSpacing: "-0.02em" }}
+          aria-label="Saaral Cosmetics home"
+        >
+          Saaral
+        </Link>
+
+        {/* CENTER — Nav links (desktop only, absolute) */}
         <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
           {navItems.map((item) => (
             <Link
@@ -273,6 +306,7 @@ export default function TopNavBar() {
           </Link>
         </div>
       </div>
+
 
       {/* ── IMMERSIVE FULL-SCREEN SEARCH PORTAL ── */}
       <AnimatePresence>

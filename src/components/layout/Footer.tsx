@@ -1,8 +1,10 @@
+"use client";
+
 import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="relative overflow-hidden" style={{ background: "linear-gradient(160deg, #140808 0%, #1E0D10 50%, #120815 100%)" }}>
+    <footer className="relative overflow-hidden pb-24 md:pb-0" style={{ background: "linear-gradient(160deg, #140808 0%, #1E0D10 50%, #120815 100%)" }}>
 
       {/* Atmospheric glows */}
       <div className="absolute top-0 left-0 w-[400px] h-[300px] rounded-full blur-[120px] opacity-10 pointer-events-none" style={{ background: "radial-gradient(circle, #B06080 0%, transparent 70%)" }} />

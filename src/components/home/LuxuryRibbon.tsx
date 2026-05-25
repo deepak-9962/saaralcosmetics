@@ -1,6 +1,4 @@
-"use client";
-
-import { memo, useState } from "react";
+import { memo } from "react";
 
 /* ─────────────────────────────────────────────
    SIGNAL DATA
@@ -97,11 +95,7 @@ const LuxuryParticles = memo(function LuxuryParticles() {
 /* ─────────────────────────────────────────────
    SHIMMER SWEEP — isolated CSS animation
 ───────────────────────────────────────────── */
-const ShimmerSweep = memo(function ShimmerSweep({
-  hovered,
-}: {
-  hovered: boolean;
-}) {
+const ShimmerSweep = memo(function ShimmerSweep() {
   return (
     <div
       className="absolute inset-0 pointer-events-none overflow-hidden"
@@ -117,7 +111,7 @@ const ShimmerSweep = memo(function ShimmerSweep({
           background:
             "linear-gradient(105deg, transparent 20%, rgba(255,245,230,0.28) 45%, rgba(255,252,245,0.18) 55%, transparent 80%)",
           animation: "shimmer-ribbon 9s cubic-bezier(0.45, 0, 0.55, 1) infinite",
-          opacity: hovered ? 0.95 : 0.65,
+          opacity: "var(--shimmer-1)",
           transition: "opacity 0.7s ease",
           pointerEvents: "none",
         }}
@@ -133,7 +127,7 @@ const ShimmerSweep = memo(function ShimmerSweep({
           background:
             "linear-gradient(108deg, transparent 20%, rgba(201,167,77,0.10) 50%, transparent 80%)",
           animation: "shimmer-ribbon 9s cubic-bezier(0.45, 0, 0.55, 1) 4.5s infinite",
-          opacity: hovered ? 0.9 : 0.55,
+          opacity: "var(--shimmer-2)",
           transition: "opacity 0.7s ease",
           pointerEvents: "none",
         }}
@@ -143,16 +137,35 @@ const ShimmerSweep = memo(function ShimmerSweep({
 });
 
 /* ─────────────────────────────────────────────
-   MAIN EXPORT
+   MAIN EXPORT — 100% Server Component with pure CSS hover
 ───────────────────────────────────────────── */
 export default function LuxuryRibbon() {
-  const [hovered, setHovered] = useState(false);
-
   /* Duplicate for seamless loop: animates 0 → -50% */
   const marqueeItems = [...signals, ...signals];
 
   return (
     <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .luxury-ribbon-sec {
+          --bg-glow-1: 0.5;
+          --bg-glow-2: 0.45;
+          --shimmer-1: 0.65;
+          --shimmer-2: 0.55;
+          --border-1: 0.7;
+          --border-2: 0.6;
+          --text-glow: 0 0 6px rgba(176,96,128,0.08);
+        }
+        .luxury-ribbon-sec:hover {
+          --bg-glow-1: 0.9;
+          --bg-glow-2: 0.9;
+          --shimmer-1: 0.95;
+          --shimmer-2: 0.9;
+          --border-1: 1;
+          --border-2: 1;
+          --text-glow: 0 0 14px rgba(176,96,128,0.22);
+        }
+      `}} />
+
       {/* ══════════════════════════════════════
           MOBILE — clean premium marquee, no FX
           ══════════════════════════════════════ */}
@@ -180,10 +193,8 @@ export default function LuxuryRibbon() {
           DESKTOP — full cinematic luxury ribbon
           ══════════════════════════════════════ */}
       <section
-        className="hidden md:block relative w-full overflow-hidden select-none"
+        className="hidden md:block relative w-full overflow-hidden select-none luxury-ribbon-sec"
         style={{ height: "58px" }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
         aria-label="Saaral Cosmetics brand values"
       >
         {/* ── Layer 1: Cinematic background gradient ── */}
@@ -219,7 +230,7 @@ export default function LuxuryRibbon() {
             background:
               "radial-gradient(ellipse, rgba(176,96,128,0.22) 0%, transparent 70%)",
             filter: "blur(24px)",
-            opacity: hovered ? 0.9 : 0.5,
+            opacity: "var(--bg-glow-1)",
             transition: "opacity 1s ease",
             pointerEvents: "none",
           }}
@@ -235,7 +246,7 @@ export default function LuxuryRibbon() {
             background:
               "radial-gradient(ellipse, rgba(201,167,77,0.2) 0%, transparent 70%)",
             filter: "blur(20px)",
-            opacity: hovered ? 0.9 : 0.45,
+            opacity: "var(--bg-glow-2)",
             transition: "opacity 1s ease",
             pointerEvents: "none",
           }}
@@ -273,7 +284,7 @@ export default function LuxuryRibbon() {
         />
 
         {/* ── Layer 4: Shimmer sweep ── */}
-        <ShimmerSweep hovered={hovered} />
+        <ShimmerSweep />
 
         {/* ── Layer 5: Particles ── */}
         <LuxuryParticles />
@@ -309,9 +320,7 @@ export default function LuxuryRibbon() {
                       i % 4 < 2
                         ? "rgba(140,64,96,0.88)"
                         : "rgba(130,90,55,0.82)",
-                    textShadow: hovered
-                      ? "0 0 14px rgba(176,96,128,0.22)"
-                      : "0 0 6px rgba(176,96,128,0.08)",
+                    textShadow: "var(--text-glow)",
                     transition: "text-shadow 0.7s ease",
                   }}
                 >
@@ -334,7 +343,7 @@ export default function LuxuryRibbon() {
             background:
               "linear-gradient(90deg, transparent 0%, rgba(201,167,77,0.45) 20%, rgba(176,96,128,0.55) 50%, rgba(201,167,77,0.45) 80%, transparent 100%)",
             boxShadow: "0 0 8px rgba(201,167,77,0.25)",
-            opacity: hovered ? 1 : 0.7,
+            opacity: "var(--border-1)",
             transition: "opacity 0.6s ease",
             zIndex: 10,
             pointerEvents: "none",
@@ -352,7 +361,7 @@ export default function LuxuryRibbon() {
             background:
               "linear-gradient(90deg, transparent 0%, rgba(176,96,128,0.38) 30%, rgba(201,167,77,0.48) 50%, rgba(176,96,128,0.38) 70%, transparent 100%)",
             boxShadow: "0 0 6px rgba(176,96,128,0.2)",
-            opacity: hovered ? 1 : 0.6,
+            opacity: "var(--border-2)",
             transition: "opacity 0.6s ease",
             zIndex: 10,
             pointerEvents: "none",
