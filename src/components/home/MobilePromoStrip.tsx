@@ -21,7 +21,7 @@ export default function MobilePromoStrip() {
   const [current, setCurrent] = useState(0);
   const [animating, setAnimating] = useState(false);
 
-  const go = useCallback((next: number) => {
+  const go = useCallback((next: number | ((prev: number) => number)) => {
     setAnimating(true);
     setTimeout(() => {
       setCurrent(next);

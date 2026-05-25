@@ -7,6 +7,7 @@ import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import GradientBackground from "@/components/layout/GradientBackground";
 import ProductCatalogPanel from "@/components/product/ProductCatalogPanel";
 import { listProducts } from "@/lib/supabase/data";
+import { Product } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Shop All Products | Saaral Cosmetics",
@@ -63,7 +64,7 @@ function CatalogSkeleton() {
 }
 
 export default async function ProductsPage() {
-  let products = [];
+  let products: Product[] = [];
   try {
     // Fetch all products on the server side
     products = await listProducts();
