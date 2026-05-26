@@ -10,29 +10,6 @@ export default function Footer() {
       <div className="absolute top-0 left-0 w-[400px] h-[300px] rounded-full blur-[120px] opacity-10 pointer-events-none" style={{ background: "radial-gradient(circle, #B06080 0%, transparent 70%)" }} />
       <div className="absolute bottom-0 right-0 w-[350px] h-[300px] rounded-full blur-[100px] opacity-8 pointer-events-none" style={{ background: "radial-gradient(circle, #7E6B9A 0%, transparent 70%)" }} />
 
-      {/* Newsletter band */}
-      <div className="relative border-b border-white/8">
-        <div className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-10 flex flex-col md:flex-row items-center gap-5 justify-between">
-          <div>
-            <span className="label-caps text-[#C9A74D] block mb-1">Stay Connected</span>
-            <p className="font-display text-white text-[22px] leading-tight">Rituals, in your inbox.</p>
-          </div>
-          <form className="flex w-full md:w-auto gap-2" onSubmit={(e) => e.preventDefault()}>
-            <input
-              type="email"
-              placeholder="Your email address"
-              className="flex-1 md:w-64 bg-white/6 border border-white/15 rounded-full px-5 py-2.5 font-body text-[14px] text-white/80 placeholder:text-white/35 focus:outline-none focus:border-[#B06080]/50"
-            />
-            <button
-              type="submit"
-              className="px-6 py-2.5 rounded-full font-body text-[12px] tracking-[0.15em] uppercase font-semibold transition-all hover:opacity-90"
-              style={{ background: "#B06080", color: "#fff" }}
-            >
-              Subscribe
-            </button>
-          </form>
-        </div>
-      </div>
 
       {/* Main footer grid */}
       <div className="relative max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-14 grid grid-cols-1 md:grid-cols-4 gap-10">

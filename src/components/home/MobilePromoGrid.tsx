@@ -3,71 +3,48 @@ import Image from "next/image";
 
 /* ─────────────────────────────────────────────
    Promo cards data
+   Luxury photographic campaign backgrounds
 ───────────────────────────────────────────── */
 const promoCards = [
   {
     id: "new-launches",
-    title: "New Launches",
-    subtitle: "Fresh Rituals",
+    title: "Modern Glow Essentials",
+    subtitle: "New Launches",
     href: "/products",
-    bg: "linear-gradient(135deg, #E8F0E0 0%, #D4E8C4 100%)",
-    accentColor: "#4A6B3A",
-    icon: (
-      <svg viewBox="0 0 32 32" fill="none" className="w-8 h-8" aria-hidden="true">
-        <circle cx="16" cy="16" r="6" stroke="currentColor" strokeWidth="1.5" />
-        <line x1="16" y1="2" x2="16" y2="8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="16" y1="24" x2="16" y2="30" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="2" y1="16" x2="8" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="24" y1="16" x2="30" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="6.1" y1="6.1" x2="10.3" y2="10.3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="21.7" y1="21.7" x2="25.9" y2="25.9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-    ),
-    productImage: "/images/cat-face-cream.webp",
+    bgImage: "/images/card1.webp",
+    accentColor: "#A97882",
+    cta: "Discover Now",
+    objectPosition: "right 22%",
   },
   {
     id: "bestsellers",
-    title: "Best Sellers",
-    subtitle: "Most Loved",
+    title: "Most Loved Skincare",
+    subtitle: "Best Sellers",
     href: "/products",
-    bg: "linear-gradient(135deg, #F5E8E0 0%, #EDCFBC 100%)",
-    accentColor: "#8B3A5E",
-    icon: (
-      <svg viewBox="0 0 32 32" fill="none" className="w-8 h-8" aria-hidden="true">
-        <path d="M16 4 L18.5 12 L27 12 L20.5 17 L23 25 L16 20 L9 25 L11.5 17 L5 12 L13.5 12 Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-    productImage: "/images/cat-face-wash.webp",
+    bgImage: "/images/card2.webp",
+    accentColor: "#A97882",
+    cta: "Shop Now",
+    objectPosition: "right 18%",
   },
   {
     id: "combos",
-    title: "Combos Under ₹999",
-    subtitle: "Bundle Deals",
+    title: "Glow Ritual Collection",
+    subtitle: "Limited Edition",
     href: "/products",
-    bg: "linear-gradient(135deg, #E8E0F0 0%, #D4C8E8 100%)",
-    accentColor: "#5A4A7E",
-    icon: (
-      <svg viewBox="0 0 32 32" fill="none" className="w-8 h-8" aria-hidden="true">
-        <rect x="4" y="10" width="24" height="18" rx="3" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M10 10V8a6 6 0 0112 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="10" y1="19" x2="22" y2="19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-    ),
-    productImage: "/images/cat-soap.webp",
+    bgImage: "/images/card3.webp",
+    accentColor: "#A97882",
+    cta: "Explore Now",
+    objectPosition: "right 12%",
   },
   {
     id: "genz",
-    title: "Gen Z Favourites",
-    subtitle: "Trending Now",
+    title: "Hydration Essentials",
+    subtitle: "Summer Skin",
     href: "/products",
-    bg: "linear-gradient(135deg, #FBF0D8 0%, #F5E0A8 100%)",
-    accentColor: "#7A5A20",
-    icon: (
-      <svg viewBox="0 0 32 32" fill="none" className="w-8 h-8" aria-hidden="true">
-        <path d="M16 4C10 4 6 8 6 13c0 5 3 8 7 10 1 .5 2 1.5 3 3 1-1.5 2-2.5 3-3 4-2 7-5 7-10 0-5-4-9-10-9z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-    productImage: "/images/cat-nalangu-maavu.webp",
+    bgImage: "/images/card4.webp",
+    accentColor: "#A97882",
+    cta: "Shop Now",
+    objectPosition: "right 25%",
   },
 ];
 
@@ -78,80 +55,84 @@ function PromoCard({ card }: { card: (typeof promoCards)[number] }) {
   return (
     <Link
       href={card.href}
-      className="relative overflow-hidden flex flex-col justify-between active:scale-[0.97] transition-transform duration-200"
+      className="group relative overflow-hidden flex flex-col justify-between active:scale-[0.98] transition-all duration-300"
       style={{
         borderRadius: "20px",
-        background: card.bg,
-        minHeight: "130px",
-        padding: "16px 14px 14px",
-        border: "1px solid rgba(255,255,255,0.7)",
-        boxShadow:
-          "0 2px 12px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.8)",
+        minHeight: "165px",
+        padding: "20px 14px 14px",
+        border: "1px solid rgba(255,255,255,0.45)",
+        boxShadow: "0 4px 16px rgba(169, 120, 130, 0.04)",
       }}
     >
-      {/* Top row: icon + product image */}
-      <div className="flex items-start justify-between">
-        <div style={{ color: card.accentColor, opacity: 0.75 }}>
-          {card.icon}
-        </div>
+      {/* Immersive Background Image (fills entire card) */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden rounded-[20px]">
+        <Image
+          src={card.bgImage}
+          alt={card.title}
+          fill
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          style={{ objectPosition: card.objectPosition }}
+          sizes="(max-width: 768px) 50vw, 25vw"
+          priority
+        />
+        {/* Soft elegant gradient overlay to ensure text contrast and legibility */}
         <div
-          className="relative"
-          style={{ width: "56px", height: "56px" }}
-        >
-          <Image
-            src={card.productImage}
-            alt={card.title}
-            fill
-            className="object-contain object-center"
-            sizes="56px"
-          />
-        </div>
+          className="absolute inset-0"
+          style={{
+            background: "linear-gradient(to right, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.05) 50%, transparent 100%)",
+          }}
+        />
       </div>
 
-      {/* Bottom text */}
-      <div className="mt-auto">
-        <p
+      {/* Foreground Content */}
+      <div className="relative z-10 h-full flex flex-col justify-between flex-grow">
+        {/* Top Text Block */}
+        <div>
+          <span
+            className="label-caps block text-[#A97882]"
+            style={{
+              fontSize: "8.5px",
+              fontWeight: 600,
+              letterSpacing: "0.2em",
+              opacity: 0.85,
+            }}
+          >
+            {card.subtitle}
+          </span>
+          
+          {/* Small horizontal divider line under the subtitle */}
+          <div className="w-6 h-[1.2px] bg-[#A97882]/40 my-2" />
+
+          <h3
+            className="font-display text-[#2A1A14]"
+            style={{
+              fontSize: "16px",
+              fontWeight: 700,
+              lineHeight: 1.22,
+              letterSpacing: "-0.01em",
+              maxWidth: "58%",
+            }}
+          >
+            {card.title}
+          </h3>
+        </div>
+
+        {/* Minimal Luxury CTA */}
+        <div
+          className="mt-6 flex items-center gap-1.5 text-[#A97882] font-body"
           style={{
-            fontFamily: "var(--font-body)",
             fontSize: "9px",
             fontWeight: 600,
             letterSpacing: "0.14em",
             textTransform: "uppercase",
-            color: card.accentColor,
-            opacity: 0.7,
-            marginBottom: "3px",
           }}
         >
-          {card.subtitle}
-        </p>
-        <h3
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "16px",
-            fontWeight: 600,
-            lineHeight: 1.2,
-            color: "#2A1A14",
-            letterSpacing: "-0.01em",
-          }}
-        >
-          {card.title}
-        </h3>
+          {card.cta}
+          <span className="material-symbols-outlined text-[12px] group-hover:translate-x-1 transition-transform">
+            arrow_forward
+          </span>
+        </div>
       </div>
-
-      {/* Decorative blob */}
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          bottom: "-20px",
-          right: "-20px",
-          width: "80px",
-          height: "80px",
-          borderRadius: "50%",
-          background: "rgba(255,255,255,0.35)",
-          filter: "blur(12px)",
-        }}
-        aria-hidden="true"
-      />
     </Link>
   );
 }
@@ -162,33 +143,33 @@ function PromoCard({ card }: { card: (typeof promoCards)[number] }) {
 export default function MobilePromoGrid() {
   return (
     <div
-      className="block md:hidden w-full px-4 py-5"
-      style={{ background: "#FDF6F0" }}
+      className="block md:hidden w-full px-4 py-6"
+      style={{ background: "#FAF0EE" }}
     >
       {/* Section header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-5">
         <span
+          className="label-caps text-[#A97882]"
           style={{
-            fontFamily: "var(--font-body)",
-            fontSize: "11px",
+            fontSize: "14px",
             fontWeight: 600,
             letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: "#B06080",
           }}
         >
           Explore
         </span>
         <Link
           href="/products"
+          className="font-body text-[#A97882] hover:text-[#B06080] transition-colors flex items-center gap-1"
           style={{
-            fontFamily: "var(--font-body)",
             fontSize: "11px",
             fontWeight: 500,
-            color: "#8B3A5E",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
           }}
         >
           View All
+          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
         </Link>
       </div>
 

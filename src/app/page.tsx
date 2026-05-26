@@ -9,7 +9,6 @@ import ProductCard from "@/components/product/ProductCard";
 import CuratedRituals from "@/components/home/CuratedRituals";
 import GoldCurveDivider from "@/components/home/GoldCurveDivider";
 import LuxuryRibbon from "@/components/home/LuxuryRibbon";
-import Prod1Banner from "@/components/home/Prod1Banner";
 import MobileHeroBanner from "@/components/home/MobileHeroBanner";
 import MobileCategoryScroll from "@/components/home/MobileCategoryScroll";
 import MobilePromoGrid from "@/components/home/MobilePromoGrid";
@@ -338,102 +337,195 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ── STORYTELLING — desktop only ── */}
-        <section className="hidden md:block relative overflow-hidden py-16 md:py-28" style={{ background: "linear-gradient(135deg, #1A0A05 0%, #2C1010 50%, #1C0A18 100%)", paddingBottom: "140px" }}>
-          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full blur-[120px] opacity-20 pointer-events-none" style={{ background: "radial-gradient(circle, #B06080 0%, transparent 70%)" }} />
-          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full blur-[100px] opacity-15 pointer-events-none" style={{ background: "radial-gradient(circle, #C9A74D 0%, transparent 70%)" }} />
+        {/* ── EDITORIAL BEAUTY — Made To Elevate Everyday Skin ── */}
+        <section
+          className="relative z-10 -mt-[2px] overflow-hidden pt-20 pb-36 md:py-28"
+          style={{
+            background: "linear-gradient(to bottom, #FAF0EE 0%, #FFF8F5 25%, #F6ECE8 60%, #F1DFDA 100%)",
+          }}
+        >
+          {/* Ambient glow blobs */}
+          <div
+            className="absolute top-[-80px] right-[-60px] w-[400px] h-[400px] rounded-full blur-[120px] opacity-30 pointer-events-none"
+            style={{ background: "radial-gradient(circle, #CFA8A1 0%, transparent 70%)" }}
+          />
+          <div
+            className="absolute bottom-[-60px] left-[-40px] w-[350px] h-[350px] rounded-full blur-[100px] opacity-20 pointer-events-none"
+            style={{ background: "radial-gradient(circle, #E6D1CB 0%, transparent 70%)" }}
+          />
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] rounded-full blur-[140px] opacity-15 pointer-events-none"
+            style={{ background: "radial-gradient(circle, #D4B0A8 0%, transparent 70%)" }}
+          />
+
           <div className="relative z-10 max-w-[1280px] mx-auto px-5 md:px-[72px]">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-center">
-              <FadeIn className="relative" {...fadeUp(0)}>
-                <div className="relative aspect-[3/4] rounded-2xl overflow-hidden">
-                  <Image
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiIogpeqf76_gbzRe9Hinh27WCwhfgCqPT8rDerBzACK6CzamuNf1iSPL9GMgWDBr9yeBKhUyX7PgHtpNxD3IknPRubtP80xhUwaau-YNbHOCZeWi-n7rFKkrPtvMTHgC6OSlpw-EVMXcd5rKRLxNVHf19B9wN4nqSNtKNxRup49z0rgRj-Uq5u4Uwh0LuKOkkOrvJJopFzlwEsKLMqJrYR4VQdJ9yJBVuYoIlsy-RxPT3Jq_n3j9IEgTR4Jeo9pokvam8ynhaFdGw"
-                    alt="Ancient botanical ingredients" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1A0A05]/60 via-transparent to-transparent" />
-                </div>
-                <div className="absolute -bottom-6 right-4 md:-right-8 glass-dark border border-white/10 rounded-2xl p-5 max-w-[180px] z-10">
-                  <span className="material-symbols-outlined text-[#C9A74D] text-2xl mb-2 block">eco</span>
-                  <p className="font-body text-white/80 text-[13px] leading-snug">100% Ethically Sourced Botanicals</p>
-                </div>
-              </FadeIn>
-              <div className="pt-8 md:pt-0">
-                <FadeIn className="label-caps text-[#C9A74D] block mb-5" {...fadeUp(0.1)}>Our Heritage</FadeIn>
-                <FadeIn className="font-display text-white mb-6" style={{ fontSize: "clamp(32px, 4vw, 52px)", lineHeight: 1.1, letterSpacing: "-0.015em" }} {...fadeUp(0.2)}>
-                  <h2>Rooted in<br /><em>Ancient Rituals.</em></h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
+
+              {/* RIGHT — Editorial Content */}
+              <div className="order-2 md:order-2">
+                <FadeIn className="block mb-5" {...fadeUp(0.1)}>
+                  <span
+                    className="font-body text-[#A97882] block"
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: 600,
+                      letterSpacing: "0.2em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Modern Skincare Essentials
+                  </span>
                 </FadeIn>
-                <FadeIn className="font-body text-white/60 text-[16px] leading-relaxed mb-5" {...fadeUp(0.3)}>
-                  <p>At Saaral Cosmetics, we believe true luxury lies in simplicity and authenticity. Our formulations are deeply rooted in ancient Indian apothecary traditions, using potent, unrefined botanicals that have nourished skin for generations.</p>
+
+                <FadeIn
+                  className="font-display text-[#2A1A14] mb-7"
+                  style={{
+                    fontSize: "clamp(30px, 4vw, 50px)",
+                    lineHeight: 1.1,
+                    letterSpacing: "-0.02em",
+                  }}
+                  {...fadeUp(0.2)}
+                >
+                  <h2>
+                    Made To Elevate<br />
+                    <em>Everyday Skin.</em>
+                  </h2>
                 </FadeIn>
-                <FadeIn className="font-body text-white/45 text-[15px] leading-relaxed mb-8" {...fadeUp(0.4)}>
-                  <p>Every jar is a testament to heritage wisdom blended with contemporary dermatological science.</p>
+
+                <FadeIn
+                  className="font-body text-[#2A1A14]/55 text-[15px] md:text-[16px] leading-relaxed mb-5 max-w-[440px]"
+                  {...fadeUp(0.3)}
+                >
+                  <p>
+                    Thoughtfully crafted skincare essentials designed to hydrate,
+                    nourish, and enhance your natural glow. Lightweight textures,
+                    clean formulations, and luxurious everyday care — made for
+                    modern self-care moments.
+                  </p>
                 </FadeIn>
+
+                <FadeIn
+                  className="font-body text-[#2A1A14]/40 text-[14px] md:text-[15px] leading-relaxed mb-9 max-w-[400px]"
+                  {...fadeUp(0.4)}
+                >
+                  <p>
+                    Minimal routines. Maximum confidence. Saaral Cosmetics blends
+                    beauty, comfort, and simplicity into products designed for
+                    everyday radiance.
+                  </p>
+                </FadeIn>
+
                 <FadeIn {...fadeUp(0.5)}>
-                  <Link href="/contact" className="inline-flex items-center gap-2 border border-white/25 text-white/80 px-7 py-3 rounded-full font-body text-[12px] tracking-[0.15em] uppercase hover:border-[#B06080]/70 hover:text-white transition-all duration-300 group">
-                    Discover Our Story
-                    <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                  <Link
+                    href="/products"
+                    className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full font-body text-[12px] tracking-[0.15em] uppercase font-semibold text-white transition-all duration-300 hover:scale-[1.03] hover:shadow-lg active:scale-[0.97] group"
+                    style={{
+                      background: "linear-gradient(135deg, #A97882 0%, #C89B9D 100%)",
+                      boxShadow: "0 4px 20px rgba(169, 120, 130, 0.3)",
+                    }}
+                  >
+                    Explore Collection
+                    <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">
+                      arrow_forward
+                    </span>
                   </Link>
                 </FadeIn>
               </div>
+
+              {/* LEFT — Editorial Product Image */}
+              <FadeIn className="relative order-1 md:order-1" {...fadeUp(0)}>
+                <div className="relative aspect-[4/5] md:aspect-[3/4] rounded-3xl overflow-hidden">
+                  <Image
+                    src="/images/card3.webp"
+                    alt="Premium skincare products — collection by Saaral Cosmetics"
+                    fill
+                    className="object-cover object-right"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                  {/* Soft bottom fade */}
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: "linear-gradient(to top, rgba(246,236,232,0.5) 0%, transparent 30%)",
+                    }}
+                  />
+                </div>
+
+                {/* Floating glassmorphic badge */}
+                <div
+                  className="absolute -bottom-4 left-4 md:-right-6 rounded-2xl p-4 max-w-[170px] z-10"
+                  style={{
+                    background: "rgba(255, 255, 255, 0.65)",
+                    backdropFilter: "blur(16px)",
+                    WebkitBackdropFilter: "blur(16px)",
+                    border: "1px solid rgba(255, 255, 255, 0.5)",
+                    boxShadow: "0 8px 32px rgba(169, 120, 130, 0.12)",
+                  }}
+                >
+                  <span
+                    className="material-symbols-outlined text-[#A97882] text-xl mb-1.5 block"
+                  >
+                    eco
+                  </span>
+                  <p className="font-body text-[#2A1A14]/70 text-[12px] leading-snug">
+                    Clean Formulations. Dermatologically Tested.
+                  </p>
+                </div>
+              </FadeIn>
+
             </div>
           </div>
 
-          {/* ── Reversed Arch ── */}
+          {/* Elegant soft curve divider at bottom */}
           <div className="absolute bottom-0 left-0 w-full pointer-events-none" aria-hidden="true">
-            {/* Mobile — 4 wide domes */}
-            <div className="block md:hidden" style={{ width: "100%", height: "65px" }}>
-              <svg
-                viewBox="0 0 400 90"
-                xmlns="http://www.w3.org/2000/svg"
-                preserveAspectRatio="none"
-                style={{ display: "block", width: "100%", height: "65px" }}
-              >
-                <path d="M0,90 Q50,40 100,90 Q150,40 200,90 Q250,40 300,90 Q350,40 400,90 L400,90 L0,90 Z" fill="#FDF6F0" />
-                <path d="M0,90 Q50,40 100,90 Q150,40 200,90 Q250,40 300,90 Q350,40 400,90" fill="none" stroke="#D4A0B0" strokeWidth="3" opacity="0.4" strokeLinecap="round" />
-                <path d="M0,90 Q50,40 100,90 Q150,40 200,90 Q250,40 300,90 Q350,40 400,90" fill="none" stroke="#C9A74D" strokeWidth="2.2" opacity="1" strokeLinecap="round" />
-                <path d="M0,90 Q50,40 100,90 Q150,40 200,90 Q250,40 300,90 Q350,40 400,90" fill="none" stroke="#FFF5DC" strokeWidth="1" opacity="0.85" strokeLinecap="round" />
-              </svg>
-            </div>
-            {/* Desktop — 6 wide domes */}
-            <div className="hidden md:block" style={{ width: "100%", height: "110px" }}>
-              <svg
-                viewBox="0 0 1440 110"
-                xmlns="http://www.w3.org/2000/svg"
-                preserveAspectRatio="none"
-                style={{ display: "block", width: "100%", height: "110px" }}
-              >
-                <path d="M0,110 Q120,0 240,110 Q360,0 480,110 Q600,0 720,110 Q840,0 960,110 Q1080,0 1200,110 Q1320,0 1440,110 L1440,110 L0,110 Z" fill="#FDF6F0" />
-                <path d="M0,110 Q120,0 240,110 Q360,0 480,110 Q600,0 720,110 Q840,0 960,110 Q1080,0 1200,110 Q1320,0 1440,110" fill="none" stroke="#D4A0B0" strokeWidth="3" opacity="0.4" strokeLinecap="round" />
-                <path d="M0,110 Q120,0 240,110 Q360,0 480,110 Q600,0 720,110 Q840,0 960,110 Q1080,0 1200,110 Q1320,0 1440,110" fill="none" stroke="#C9A74D" strokeWidth="2.2" opacity="1" strokeLinecap="round" />
-                <path d="M0,110 Q120,0 240,110 Q360,0 480,110 Q600,0 720,110 Q840,0 960,110 Q1080,0 1200,110 Q1320,0 1440,110" fill="none" stroke="#FFF5DC" strokeWidth="0.8" opacity="0.85" strokeLinecap="round" />
-              </svg>
-            </div>
+            <svg
+              viewBox="0 0 1440 60"
+              xmlns="http://www.w3.org/2000/svg"
+              preserveAspectRatio="none"
+              className="block w-full"
+              style={{ height: "clamp(42px, 6vw, 60px)" }}
+            >
+              <path
+                d="M0,60 C360,0 1080,0 1440,60 L1440,60 L0,60 Z"
+                fill="#FAF0EE"
+              />
+            </svg>
           </div>
         </section>
 
-        {/* ── PROD1 EDITORIAL BANNER — desktop only ── */}
-        <div className="hidden md:block">
-          <Prod1Banner />
-        </div>
 
-        {/* ── INGREDIENTS ── */}
-        <section className="max-w-[1280px] mx-auto px-5 md:px-[72px] py-16 md:py-24">
-          <FadeIn className="text-center mb-12 md:mb-16" {...fadeUp(0)}>
-            <span className="label-caps text-[#C9A74D] block mb-3">Botanical Actives</span>
-            <h2 className="font-display text-[#2A1A14]" style={{ fontSize: "clamp(28px, 4vw, 48px)", lineHeight: 1.15, letterSpacing: "-0.01em" }}>
-              Ingredients With<br /><em>Ritual Memory</em>
-            </h2>
-          </FadeIn>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
-            {ingredients.map((ing, i) => (
-              <FadeIn key={ing.name} className="relative group rounded-2xl p-6 border border-outline-variant/30 overflow-hidden luxury-card cursor-default" style={{ background: "linear-gradient(135deg, rgba(255,250,248,0.95) 0%, rgba(255,240,235,0.80) 100%)" }} {...fadeUp(i * 0.1)}>
-                <div className="absolute top-4 right-4 w-20 h-20 rounded-full blur-[30px] opacity-25 group-hover:opacity-45 transition-opacity duration-500 pointer-events-none" style={{ background: ing.color }} />
-                <span className="material-symbols-outlined text-[36px] mb-4 block pointer-events-none" style={{ color: ing.color }}>{ing.icon}</span>
-                <p className="label-caps mb-1 pointer-events-none" style={{ color: ing.color }}>{ing.note}</p>
-                <h3 className="font-display text-[#2A1A14] text-[22px] leading-tight mb-2 pointer-events-none">{ing.name}</h3>
-                <p className="font-body text-[14px] leading-relaxed text-on-surface-variant pointer-events-none">{ing.description}</p>
-              </FadeIn>
-            ))}
+        <section
+          className="relative z-10 -mt-[2px] overflow-hidden pt-12 pb-20 md:py-28"
+          style={{ background: "#FAF0EE" }}
+        >
+          {/* Ambient decorative warm glow blobs */}
+          <div
+            className="absolute bottom-[-120px] right-[-120px] w-[450px] h-[450px] rounded-full blur-[130px] opacity-25 pointer-events-none"
+            style={{ background: "radial-gradient(circle, #EBD2CB 0%, transparent 70%)" }}
+          />
+          <div
+            className="absolute top-[180px] left-[-100px] w-[350px] h-[350px] rounded-full blur-[100px] opacity-15 pointer-events-none"
+            style={{ background: "radial-gradient(circle, #F5DFD9 0%, transparent 70%)" }}
+          />
+
+          <div className="relative z-10 max-w-[1280px] mx-auto px-5 md:px-[72px]">
+            <FadeIn className="text-center mb-12 md:mb-16" {...fadeUp(0)}>
+              <span className="label-caps text-[#C9A74D] block mb-3">Botanical Actives</span>
+              <h2 className="font-display text-[#2A1A14]" style={{ fontSize: "clamp(28px, 4vw, 48px)", lineHeight: 1.15, letterSpacing: "-0.01em" }}>
+                Ingredients With<br /><em>Ritual Memory</em>
+              </h2>
+            </FadeIn>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+              {ingredients.map((ing, i) => (
+                <FadeIn key={ing.name} className="relative group rounded-2xl p-6 border border-outline-variant/30 overflow-hidden luxury-card cursor-default" style={{ background: "linear-gradient(135deg, rgba(255,250,248,0.95) 0%, rgba(255,240,235,0.80) 100%)" }} {...fadeUp(i * 0.1)}>
+                  <div className="absolute top-4 right-4 w-20 h-20 rounded-full blur-[30px] opacity-25 group-hover:opacity-45 transition-opacity duration-500 pointer-events-none" style={{ background: ing.color }} />
+                  <span className="material-symbols-outlined text-[36px] mb-4 block pointer-events-none" style={{ color: ing.color }}>{ing.icon}</span>
+                  <p className="label-caps mb-1 pointer-events-none" style={{ color: ing.color }}>{ing.note}</p>
+                  <h3 className="font-display text-[#2A1A14] text-[22px] leading-tight mb-2 pointer-events-none">{ing.name}</h3>
+                  <p className="font-body text-[14px] leading-relaxed text-on-surface-variant pointer-events-none">{ing.description}</p>
+                </FadeIn>
+              ))}
+            </div>
           </div>
         </section>
 
