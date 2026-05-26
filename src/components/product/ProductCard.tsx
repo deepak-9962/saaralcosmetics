@@ -223,8 +223,14 @@ export default function ProductCard({
 
             {/* Description snippet — desktop only */}
             {product.description && (
-              <p className="hidden md:block font-body text-[13px] leading-relaxed mb-3 line-clamp-2"
-                style={{ color: "rgba(90,58,44,0.55)" }}>
+              <p className="hidden md:block font-body text-[13px] leading-relaxed mb-3"
+                style={{
+                  color: "rgba(90,58,44,0.55)",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}>
                 {product.description}
               </p>
             )}

@@ -1,14 +1,13 @@
-/* MobileTrustBar — olive green marquee trust bar, mobile-only, pure server component */
+/* MobileTrustBar — deep wine/mauve luxury marquee trust strip, mobile-only, server component */
 
 const trustItems = [
-  "Made For Indian Skin",
-  "100% Natural Ingredients",
+  "Premium Natural Ingredients",
   "Dermatologically Tested",
+  "Cruelty Free",
   "Trusted By Thousands",
   "Free Shipping Above ₹999",
-  "Cruelty Free",
+  "Made For Indian Skin",
   "Ethically Sourced",
-  "Handcrafted in Tamil Nadu",
 ];
 
 /* Duplicate for seamless CSS marquee loop */
@@ -19,43 +18,47 @@ export default function MobileTrustBar() {
     <div
       className="block md:hidden w-full overflow-hidden"
       style={{
-        background: "linear-gradient(90deg, #3D4F2E 0%, #4A5E3A 50%, #3D4F2E 100%)",
-        height: "36px",
+        background: "linear-gradient(90deg, #5F3347 0%, #6D3C52 40%, #76485E 100%)",
+        height: "34px",
+        borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
       }}
       aria-label="Trust signals"
     >
       <div
         className="flex items-center h-full whitespace-nowrap"
-        style={{ animation: "mobile-trust-marquee 30s linear infinite" }}
+        style={{ animation: "mobile-trust-marquee 40s linear infinite" }}
       >
         {marqueeItems.map((item, i) => (
           <span
             key={i}
-            className="inline-flex items-center gap-3 shrink-0"
+            className="inline-flex items-center shrink-0"
           >
             <span
               style={{
                 fontFamily: "var(--font-body)",
-                fontSize: "10px",
-                fontWeight: 500,
-                letterSpacing: "0.12em",
+                fontSize: "9px",
+                fontWeight: 600,
+                letterSpacing: "0.2em",
                 textTransform: "uppercase",
-                color: "#F0EAD6",
+                color: "#FFF7F4",
               }}
             >
               {item}
             </span>
+            {/* Gold dot separator */}
             <span
               aria-hidden="true"
               style={{
-                color: "#A8C080",
-                fontSize: "8px",
-                margin: "0 20px 0 0",
-                opacity: 0.7,
+                display: "inline-block",
+                width: "3px",
+                height: "3px",
+                borderRadius: "50%",
+                background: "#D4AA6D",
+                margin: "0 24px",
+                opacity: 0.8,
+                boxShadow: "0 0 4px rgba(212, 170, 109, 0.4)",
               }}
-            >
-              ✦
-            </span>
+            />
           </span>
         ))}
       </div>

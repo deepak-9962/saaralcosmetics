@@ -17,6 +17,7 @@ import { getActiveProductIds } from "@/lib/supabase/data";
 export default function CartPage() {
   const { items, total, updateQuantity, removeItem } = useCart();
   const validatedRef = useRef(false);
+  const isCheckoutDisabled = process.env.NEXT_PUBLIC_CHECKOUT_MODE === "disabled";
 
   // On mount: validate all cart items against Supabase.
   // Auto-remove any that have been deactivated or deleted.
@@ -236,12 +237,32 @@ export default function CartPage() {
                    {formatPrice(total)}
                  </span>
               </div>
-              <Link
-                href="/checkout"
-                className="w-full py-4 bg-primary text-on-primary font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium rounded-lg hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200 flex justify-center items-center gap-2"
-              >
-                Proceed to Checkout
-              </Link>
+              {isCheckoutDisabled ? (
+                <>
+                  <div className="mb-4 p-4 rounded-xl bg-primary/5 border border-primary/20 flex gap-3 items-start">
+                    <span className="material-symbols-outlined text-[20px] text-primary mt-0.5 animate-pulse">
+                      info
+                    </span>
+                    <p className="font-body text-[13px] leading-[1.6] text-on-surface-variant text-left">
+                      Online checkout is temporarily paused as we integrate our secure payment gateway. We will be live soon!
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full py-4 bg-outline-variant/30 text-on-surface-variant/50 font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium rounded-lg cursor-not-allowed flex justify-center items-center gap-2 border border-outline-variant/20"
+                  >
+                    Checkout Disabled
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/checkout"
+                  className="w-full py-4 bg-primary text-on-primary font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium rounded-lg hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200 flex justify-center items-center gap-2"
+                >
+                  Proceed to Checkout
+                </Link>
+              )}
               <div className="mt-[var(--spacing-stack-sm)] text-center">
                 <p className="font-body text-[14px] leading-[1.6] text-on-surface-variant flex items-center justify-center gap-2">
                   <span className="material-symbols-outlined text-[16px]">
@@ -262,13 +283,23 @@ export default function CartPage() {
               <span className="font-body text-[11px] uppercase tracking-[0.08em] text-on-surface-variant">Total</span>
               <span className="font-display text-[22px] leading-[1] text-on-surface">{formatPrice(total)}</span>
             </div>
-            <Link
-              href="/checkout"
-              className="flex-1 h-11 rounded-xl bg-primary text-on-primary font-body text-[13px] tracking-[0.08em] uppercase font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-all duration-200"
-            >
-              <span className="material-symbols-outlined text-[18px]">payments</span>
-              Checkout
-            </Link>
+            {isCheckoutDisabled ? (
+              <button
+                type="button"
+                disabled
+                className="flex-1 h-11 rounded-xl bg-outline-variant/30 text-on-surface-variant/50 font-body text-[13px] tracking-[0.08em] uppercase font-semibold flex items-center justify-center gap-1.5 cursor-not-allowed border border-outline-variant/20"
+              >
+                Disabled
+              </button>
+            ) : (
+              <Link
+                href="/checkout"
+                className="flex-1 h-11 rounded-xl bg-primary text-on-primary font-body text-[13px] tracking-[0.08em] uppercase font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-all duration-200"
+              >
+                <span className="material-symbols-outlined text-[18px]">payments</span>
+                Checkout
+              </Link>
+            )}
           </div>
         </div>
       )}

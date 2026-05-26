@@ -21,6 +21,38 @@ export default function CheckoutPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const validatedRef = useRef(false);
 
+  const checkoutMode = process.env.NEXT_PUBLIC_CHECKOUT_MODE || "live";
+  const betaPasskey = process.env.NEXT_PUBLIC_CHECKOUT_BETA_PASSKEY || "";
+
+  const [isBetaAuthorized, setIsBetaAuthorized] = useState<boolean>(false);
+  const [passkeyInput, setPasskeyInput] = useState<string>("");
+  const [passkeyError, setPasskeyError] = useState<string | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const auth = localStorage.getItem("checkout_beta_authorized");
+      if (auth === "true") {
+        setIsBetaAuthorized(true);
+      }
+      setIsCheckingAuth(false);
+    }
+  }, []);
+
+  const handleBetaUnlock = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasskeyError(null);
+
+    if (passkeyInput.trim() === betaPasskey) {
+      localStorage.setItem("checkout_beta_authorized", "true");
+      setIsBetaAuthorized(true);
+      toast.success("Beta access unlocked! You can now proceed to checkout.", { icon: "🔑" });
+    } else {
+      setPasskeyError("Invalid passkey. Access restricted.");
+      toast.error("Invalid passkey", { icon: "🔒" });
+    }
+  };
+
   // Validate cart on mount — remove any items that have since been deactivated
   useEffect(() => {
     if (validatedRef.current || items.length === 0) return;
@@ -111,6 +143,16 @@ export default function CheckoutPage() {
     e.preventDefault();
     setSubmitError(null);
 
+    if (checkoutMode === "disabled") {
+      setSubmitError("Online checkout is temporarily paused.");
+      return;
+    }
+
+    if (checkoutMode === "beta" && !isBetaAuthorized && localStorage.getItem("checkout_beta_authorized") !== "true") {
+      setSubmitError("Unauthorized to place beta orders. Please unlock checkout first.");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
 
@@ -153,6 +195,138 @@ export default function CheckoutPage() {
 
   const shippingCharge = total >= 500 ? 0 : 50;
   const grandTotal = total + shippingCharge;
+
+  // Tri-state checkout gating UI
+  if (checkoutMode === "disabled") {
+    return (
+      <div className="min-h-[100dvh] flex flex-col justify-between">
+        <GradientBackground />
+        <TopNavBar />
+        <main className="flex-grow flex items-center justify-center py-20 px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-[580px] bg-surface/80 backdrop-blur-md border border-outline-variant/60 rounded-3xl p-8 md:p-12 custom-shadow flex flex-col items-center text-center gap-6"
+          >
+            {/* Elegant Luxury-styled Badge/Icon */}
+            <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center border border-primary/20 shadow-[0_0_20px_rgba(157,77,110,0.1)]">
+              <span className="material-symbols-outlined text-[36px] text-primary">
+                payments
+              </span>
+            </div>
+            <h1 className="font-display text-[28px] md:text-[36px] leading-[1.3] text-on-surface font-semibold tracking-wide">
+              Perfecting Your Experience
+            </h1>
+            <div className="w-12 h-0.5 bg-primary/40 rounded-full" />
+            <p className="font-body text-[15px] md:text-[16px] leading-[1.7] text-on-surface-variant max-w-[440px]">
+              We are currently integrating our secure, high-end online payment gateway to ensure you receive a flawless checkout experience.
+            </p>
+            <p className="font-body text-[14px] leading-[1.6] text-on-surface-variant/80 italic">
+              Saaral Cosmetics will begin accepting online orders very soon. Thank you for your patience!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 w-full mt-4">
+              <Link
+                href="/cart"
+                className="flex-1 py-3.5 px-6 border border-outline-variant rounded-xl font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant hover:text-on-surface hover:border-on-surface transition-all duration-200 text-center"
+              >
+                Back to Cart
+              </Link>
+              <Link
+                href="/products"
+                className="flex-1 py-3.5 px-6 bg-primary text-on-primary rounded-xl font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200 text-center"
+              >
+                Browse Products
+              </Link>
+            </div>
+          </motion.div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (checkoutMode === "beta" && !isBetaAuthorized) {
+    if (isCheckingAuth) {
+      return (
+        <div className="min-h-[100dvh] flex flex-col justify-between">
+          <GradientBackground />
+          <TopNavBar />
+          <main className="flex-grow flex items-center justify-center">
+            <span className="material-symbols-outlined text-[48px] animate-spin text-primary">
+              progress_activity
+            </span>
+          </main>
+          <Footer />
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-[100dvh] flex flex-col justify-between">
+        <GradientBackground />
+        <TopNavBar />
+        <main className="flex-grow flex items-center justify-center py-20 px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-[480px] bg-surface/85 backdrop-blur-md border border-outline-variant/60 rounded-3xl p-8 md:p-10 custom-shadow flex flex-col items-center text-center gap-6"
+          >
+            <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center border border-primary/20">
+              <span className="material-symbols-outlined text-[28px] text-primary">
+                lock
+              </span>
+            </div>
+            <div>
+              <h1 className="font-display text-[26px] md:text-[30px] leading-[1.3] text-on-surface font-semibold tracking-wide">
+                Private Beta Checkout
+              </h1>
+              <p className="font-body text-[14px] leading-[1.6] text-on-surface-variant mt-2">
+                Checkout is currently in private testing. Please enter your secure passkey to unlock checkout.
+              </p>
+            </div>
+
+            <form onSubmit={handleBetaUnlock} className="w-full space-y-4">
+              <div className="floating-label-group">
+                <input
+                  type="password"
+                  name="passkey"
+                  required
+                  value={passkeyInput}
+                  onChange={(e) => setPasskeyInput(e.target.value)}
+                  placeholder=" "
+                  className="floating-label-field"
+                  autoFocus
+                />
+                <label>Enter Passkey *</label>
+              </div>
+
+              {passkeyError && (
+                <p className="font-body text-[13px] text-error text-left pl-1">
+                  {passkeyError}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                className="w-full py-4 bg-primary text-on-primary font-body text-[14px] leading-[1.0] tracking-[0.1em] font-medium rounded-xl hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200 flex justify-center items-center gap-2 custom-shadow"
+              >
+                <span className="material-symbols-outlined text-[18px]">key</span>
+                Unlock Checkout
+              </button>
+            </form>
+
+            <Link
+              href="/cart"
+              className="font-body text-[13px] leading-[1.6] text-on-surface-variant hover:text-on-surface underline underline-offset-4 decoration-outline-variant transition-all duration-200"
+            >
+              Return to Cart
+            </Link>
+          </motion.div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (

@@ -6,8 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { motion, AnimatePresence } from "framer-motion";
-import MobilePromoStrip from "@/components/home/MobilePromoStrip";
-import MobileTrustBar from "@/components/home/MobileTrustBar";
 
 const navItems = [
   { label: "Shop", href: "/products" },
@@ -72,7 +70,13 @@ export default function TopNavBar() {
 
       // 1. Scrolled styling for Navbar
       if (navRef.current) {
-        const scrolled = latest > 20;
+        let scrolled = scrolledRef.current;
+        if (latest > 40 && !scrolled) {
+          scrolled = true;
+        } else if (latest < 10 && scrolled) {
+          scrolled = false;
+        }
+
         if (scrolled !== scrolledRef.current) {
           scrolledRef.current = scrolled;
           setIsScrolled(scrolled);
@@ -153,27 +157,12 @@ export default function TopNavBar() {
       }}
     >
       {showPromoBar && (
-        <>
-          {/* Desktop Promo Bar */}
-          <div className="hidden md:flex h-6 bg-primary text-on-primary px-4 items-center justify-center">
+          /* Single unified promo bar — same style on mobile & desktop */
+          <div className="flex h-7 bg-primary text-on-primary px-4 items-center justify-center">
             <p className="font-body text-[10px] tracking-[0.08em] uppercase text-center">
               Product of the month: use code <strong>HURRY20</strong> for 20% off
             </p>
           </div>
-          {/* Mobile Stacking Headers */}
-          <div
-            className="block md:hidden overflow-hidden transition-all duration-300 ease-in-out"
-            style={{
-              maxHeight: isScrolled ? "0px" : "112px",
-              opacity: isScrolled ? 0 : 1,
-            }}
-          >
-            {/* 1. Mobile Trust Bar (Green Marquee) */}
-            <MobileTrustBar />
-            {/* 2. Mobile Promo Strip (Terracotta Announcement) */}
-            <MobilePromoStrip />
-          </div>
-        </>
       )}
 
       <div className="relative flex justify-between items-center h-[56px] md:h-[68px] px-4 md:px-16 max-w-[1280px] mx-auto">
