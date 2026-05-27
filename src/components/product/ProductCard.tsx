@@ -259,39 +259,44 @@ export default function ProductCard({
             </div>
 
             {/* Price row */}
-            <div className="flex items-end justify-between gap-2">
-              <div className="flex items-baseline gap-2 flex-wrap">
-                <span className="font-display text-[18px] md:text-[20px]" style={{ color: "#B06080", letterSpacing: "-0.01em" }}>
-                  {formatPrice(product.price)}
-                </span>
-                {product.compare_price && (
-                  <span className="font-body text-[13px] line-through" style={{ color: "rgba(138,106,90,0.45)" }}>
-                    {formatPrice(product.compare_price)}
+            <div className="flex flex-col gap-0.5 w-full">
+              <div className="flex items-end justify-between gap-2">
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span className="font-display text-[18px] md:text-[20px]" style={{ color: "#B06080", letterSpacing: "-0.01em" }}>
+                    {formatPrice(product.price)}
                   </span>
-                )}
-                {product.compare_price && (
-                  <span className="font-body text-[10px] px-1.5 py-0.5 rounded-full"
-                    style={{ background: "rgba(176,96,128,0.1)", color: "#B06080" }}>
-                    {Math.round((1 - product.price / product.compare_price) * 100)}% off
-                  </span>
-                )}
-              </div>
+                  {product.compare_price && (
+                    <span className="font-body text-[13px] line-through" style={{ color: "rgba(138,106,90,0.45)" }}>
+                      {formatPrice(product.compare_price)}
+                    </span>
+                  )}
+                  {product.compare_price && (
+                    <span className="font-body text-[10px] px-1.5 py-0.5 rounded-full"
+                      style={{ background: "rgba(176,96,128,0.1)", color: "#B06080" }}>
+                      {Math.round((1 - product.price / product.compare_price) * 100)}% off
+                    </span>
+                  )}
+                </div>
 
-              {/* Mobile add to cart */}
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                className="md:hidden shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 active:scale-95"
-                style={{
-                  background: "linear-gradient(135deg, #B06080, #8A4060)",
-                  boxShadow: "0 4px 12px rgba(176,96,128,0.3)",
-                }}
-                aria-label={`Add ${product.name} to cart`}
-              >
-                <span className="material-symbols-outlined text-[18px] text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  shopping_bag
-                </span>
-              </button>
+                {/* Mobile add to cart */}
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  className="md:hidden shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 active:scale-95"
+                  style={{
+                    background: "linear-gradient(135deg, #B06080, #8A4060)",
+                    boxShadow: "0 4px 12px rgba(176,96,128,0.3)",
+                  }}
+                  aria-label={`Add ${product.name} to cart`}
+                >
+                  <span className="material-symbols-outlined text-[18px] text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    shopping_bag
+                  </span>
+                </button>
+              </div>
+              <p className="font-body text-[9px] leading-[1.2]" style={{ color: "rgba(138,106,90,0.6)" }}>
+                (MRP inclusive of taxes)
+              </p>
             </div>
           </Link>
 
@@ -379,21 +384,26 @@ export default function ProductCard({
                 </h3>
 
                 {/* Price */}
-                <div className="flex items-baseline gap-3 mb-5">
-                  <span className="font-display text-[28px]" style={{ color: "#B06080" }}>
-                    {formatPrice(product.price)}
-                  </span>
-                  {product.compare_price && (
-                    <>
-                      <span className="font-body text-[16px] line-through" style={{ color: "rgba(138,106,90,0.45)" }}>
-                        {formatPrice(product.compare_price)}
-                      </span>
-                      <span className="font-body text-[11px] px-2 py-0.5 rounded-full"
-                        style={{ background: "rgba(176,96,128,0.1)", color: "#B06080" }}>
-                        {Math.round((1 - product.price / product.compare_price) * 100)}% off
-                      </span>
-                    </>
-                  )}
+                <div className="mb-5">
+                  <div className="flex items-baseline gap-3">
+                    <span className="font-display text-[28px]" style={{ color: "#B06080" }}>
+                      {formatPrice(product.price)}
+                    </span>
+                    {product.compare_price && (
+                      <>
+                        <span className="font-body text-[16px] line-through" style={{ color: "rgba(138,106,90,0.45)" }}>
+                          {formatPrice(product.compare_price)}
+                        </span>
+                        <span className="font-body text-[11px] px-2 py-0.5 rounded-full"
+                          style={{ background: "rgba(176,96,128,0.1)", color: "#B06080" }}>
+                          {Math.round((1 - product.price / product.compare_price) * 100)}% off
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <p className="font-body text-[10px] leading-[1] mt-1" style={{ color: "rgba(138,106,90,0.6)" }}>
+                    (MRP inclusive of taxes)
+                  </p>
                 </div>
 
                 {/* Description */}

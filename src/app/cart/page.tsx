@@ -2,9 +2,22 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import toast from "react-hot-toast";
+import {
+  X,
+  Minus,
+  Plus,
+  Trash2,
+  Tag,
+  ChevronRight,
+  IndianRupee,
+  ShieldCheck,
+  Truck,
+  RotateCcw,
+  Lock,
+} from "lucide-react";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
@@ -14,295 +27,713 @@ import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/utils";
 import { getActiveProductIds } from "@/lib/supabase/data";
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+const FREE_SHIPPING_THRESHOLD = 999;
+const SHIPPING_CHARGE = 50;
+
+// ─── Recommended products (mobile showcase) ───────────────────────────────────
+const RECOMMENDED = [
+  {
+    id: "rec-1",
+    name: "Rose Hip Glow Serum",
+    price: 649,
+    compare_price: 799,
+    image: "https://picsum.photos/seed/rosehip-serum/200/240",
+  },
+  {
+    id: "rec-2",
+    name: "Turmeric Brightening Cream",
+    price: 449,
+    compare_price: 549,
+    image: "https://picsum.photos/seed/turmeric-cream/200/240",
+  },
+  {
+    id: "rec-3",
+    name: "Sandalwood Night Balm",
+    price: 599,
+    compare_price: null,
+    image: "https://picsum.photos/seed/sandalwood-balm/200/240",
+  },
+  {
+    id: "rec-4",
+    name: "Neem Purifying Face Wash",
+    price: 299,
+    compare_price: 349,
+    image: "https://picsum.photos/seed/neem-wash/200/240",
+  },
+];
+
+// ─── Animation variants ───────────────────────────────────────────────────────
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: i * 0.07,
+      type: "spring" as const,
+      stiffness: 280,
+      damping: 26,
+    },
+  }),
+  exit: { opacity: 0, x: -24, transition: { duration: 0.22 } },
+};
+
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06 } },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SHARED SUB-COMPONENTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Mobile pill-shaped quantity stepper */
+function QuantityPill({
+  value,
+  onDecrement,
+  onIncrement,
+}: {
+  value: number;
+  onDecrement: () => void;
+  onIncrement: () => void;
+}) {
+  return (
+    <div className="inline-flex items-center rounded-full bg-[#f0f0f0] border border-[#e8e8e8] overflow-hidden">
+      <motion.button
+        whileTap={{ scale: 0.82 }}
+        onClick={onDecrement}
+        className="w-8 h-8 flex items-center justify-center text-[#444] hover:bg-[#e4e4e4] transition-colors duration-150 rounded-full"
+        aria-label="Decrease quantity"
+      >
+        <Minus size={13} strokeWidth={2.5} />
+      </motion.button>
+      <span className="w-7 text-center text-[13px] font-semibold text-[#1a1a1a] select-none tabular-nums">
+        {value}
+      </span>
+      <motion.button
+        whileTap={{ scale: 0.82 }}
+        onClick={onIncrement}
+        className="w-8 h-8 flex items-center justify-center text-[#444] hover:bg-[#e4e4e4] transition-colors duration-150 rounded-full"
+        aria-label="Increase quantity"
+      >
+        <Plus size={13} strokeWidth={2.5} />
+      </motion.button>
+    </div>
+  );
+}
+
+/** Desktop square quantity stepper (matches old design) */
+function QuantityBox({
+  value,
+  onDecrement,
+  onIncrement,
+}: {
+  value: number;
+  onDecrement: () => void;
+  onIncrement: () => void;
+}) {
+  return (
+    <div className="flex items-center border border-outline-variant rounded-lg p-1 bg-surface">
+      <button
+        onClick={onDecrement}
+        className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-on-surface active:scale-75 transition-all duration-150"
+        aria-label="Decrease quantity"
+      >
+        <span className="material-symbols-outlined text-sm">remove</span>
+      </button>
+      <span className="w-8 text-center font-body text-[16px] leading-[1.6]">{value}</span>
+      <button
+        onClick={onIncrement}
+        className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-on-surface active:scale-75 transition-all duration-150"
+        aria-label="Increase quantity"
+      >
+        <span className="material-symbols-outlined text-sm">add</span>
+      </button>
+    </div>
+  );
+}
+
+/** Empty cart state */
+function EmptyCart() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 220, damping: 24 }}
+      className="flex flex-col items-center justify-center py-24 gap-6"
+    >
+      {/* Mobile version */}
+      <div className="md:hidden flex flex-col items-center gap-5 text-center">
+        <div className="w-20 h-20 rounded-full bg-[#f5f5f5] border border-[#ebebeb] flex items-center justify-center">
+          <ShieldCheck size={32} strokeWidth={1.2} className="text-[#bbb]" />
+        </div>
+        <div className="space-y-1.5">
+          <p className="text-[17px] font-semibold text-[#1a1a1a] tracking-tight">Your cart is empty</p>
+          <p className="text-[13px] text-[#888] leading-relaxed max-w-[220px] mx-auto">
+            Discover our natural skincare range and add your favourites.
+          </p>
+        </div>
+        <Link
+          href="/products"
+          className="px-7 py-3 rounded-full bg-[#1a1a1a] text-white text-[13px] font-semibold tracking-wide hover:bg-[#333] active:scale-[0.97] transition-all duration-200"
+        >
+          Shop Now
+        </Link>
+      </div>
+      {/* Desktop version */}
+      <div className="hidden md:flex flex-col items-center gap-6">
+        <span className="material-symbols-outlined text-6xl text-outline-variant">shopping_bag</span>
+        <p className="font-body text-[18px] leading-[1.6] text-on-surface-variant">Your cart is empty</p>
+        <Link
+          href="/products"
+          className="bg-primary text-on-primary font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium px-8 py-3 rounded-full hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200"
+        >
+          Shop Now
+        </Link>
+      </div>
+    </motion.div>
+  );
+}
+
+/** Mobile coupon section */
+function CouponSection() {
+  const [code, setCode] = useState("");
+  const [applied, setApplied] = useState(false);
+
+  const handleApply = () => {
+    if (code.trim().length === 0) return;
+    setApplied(true);
+    toast.success("Coupon applied!");
+  };
+
+  return (
+    <div className="bg-white rounded-[20px] border border-[#ebebeb] p-4">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-1 bg-[#f7f7f7] border border-[#e8e8e8] rounded-[12px] px-3.5 py-2.5">
+          <Tag size={15} strokeWidth={1.8} className="text-[#aaa] shrink-0" />
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            placeholder="Enter Coupon Code"
+            className="flex-1 bg-transparent text-[13px] text-[#1a1a1a] placeholder:text-[#bbb] outline-none font-medium tracking-wide"
+          />
+          {code.length > 0 && !applied && (
+            <button onClick={() => setCode("")} className="text-[#ccc] hover:text-[#999] transition-colors" aria-label="Clear">
+              <X size={14} />
+            </button>
+          )}
+        </div>
+        <motion.button
+          whileTap={{ scale: 0.94 }}
+          onClick={handleApply}
+          className={`px-4 py-2.5 rounded-[12px] text-[13px] font-semibold transition-all duration-200 whitespace-nowrap ${
+            applied
+              ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+              : "bg-[#1a1a1a] text-white hover:bg-[#333]"
+          }`}
+        >
+          {applied ? "Applied" : "Apply"}
+        </motion.button>
+      </div>
+      <div className="my-3 border-t border-dashed border-[#e8e8e8]" />
+      <div className="flex items-center justify-between">
+        <span className="text-[12px] text-[#999]">3 coupons available</span>
+        <button className="flex items-center gap-1 text-[12px] font-semibold text-[#1a1a1a] hover:text-[#555] transition-colors">
+          View Coupons
+          <ChevronRight size={13} strokeWidth={2.5} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Mobile recommended horizontal scroll */
+function RecommendedSection() {
+  return (
+    <div className="bg-white rounded-[20px] border border-[#ebebeb] overflow-hidden">
+      <div className="px-4 pt-4 pb-2">
+        <h2 className="text-[14px] font-semibold text-[#1a1a1a] tracking-tight">You Might Also Like</h2>
+      </div>
+      <div className="flex gap-3 overflow-x-auto no-scrollbar px-4 pb-4 pt-1">
+        {RECOMMENDED.map((rec, i) => (
+          <motion.div
+            key={rec.id}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.08, type: "spring", stiffness: 240, damping: 22 }}
+            className="flex-shrink-0 w-[130px] flex flex-col gap-2.5 bg-[#fafafa] border border-[#ebebeb] rounded-[16px] p-2.5"
+          >
+            <div className="w-full aspect-[4/5] rounded-[12px] overflow-hidden bg-[#f0f0f0] relative">
+              <Image src={rec.image} alt={rec.name} fill className="object-cover" sizes="130px" />
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[11px] font-semibold text-[#1a1a1a] leading-snug line-clamp-2">{rec.name}</p>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[12px] font-bold text-[#1a1a1a]">{formatPrice(rec.price)}</span>
+                {rec.compare_price && (
+                  <span className="text-[10px] text-[#bbb] line-through">{formatPrice(rec.compare_price)}</span>
+                )}
+              </div>
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.93 }}
+              className="w-full py-1.5 rounded-full border border-[#d4d4d4] text-[11px] font-semibold text-[#1a1a1a] bg-white hover:bg-[#f5f5f5] transition-colors duration-150"
+            >
+              + Add
+            </motion.button>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Mobile trust badges */
+function TrustBadges() {
+  const badges = [
+    { icon: <Truck size={14} strokeWidth={1.6} />, label: "Free above ₹999" },
+    { icon: <RotateCcw size={14} strokeWidth={1.6} />, label: "Easy returns" },
+    { icon: <ShieldCheck size={14} strokeWidth={1.6} />, label: "100% natural" },
+  ];
+  return (
+    <div className="flex items-center justify-around py-3 px-4 bg-white rounded-[16px] border border-[#ebebeb]">
+      {badges.map((b, i) => (
+        <div key={i} className="flex flex-col items-center gap-1">
+          <span className="text-[#888]">{b.icon}</span>
+          <span className="text-[10px] text-[#888] font-medium text-center leading-tight">{b.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN PAGE
+// ─────────────────────────────────────────────────────────────────────────────
 export default function CartPage() {
   const { items, total, updateQuantity, removeItem } = useCart();
   const validatedRef = useRef(false);
   const isCheckoutDisabled = process.env.NEXT_PUBLIC_CHECKOUT_MODE === "disabled";
+
+  const shippingCharge = total >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_CHARGE;
+  const amountNeeded = Math.max(0, FREE_SHIPPING_THRESHOLD - total);
+  const freeShippingProgress = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100);
+  const grandTotal = total + shippingCharge;
 
   // On mount: validate all cart items against Supabase.
   // Auto-remove any that have been deactivated or deleted.
   useEffect(() => {
     if (validatedRef.current || items.length === 0) return;
     validatedRef.current = true;
-
     const productIds = items.map((i) => i.product_id);
-
     getActiveProductIds(productIds)
       .then((activeIds) => {
         items.forEach((item) => {
           if (!activeIds.has(item.product_id)) {
             removeItem(item.product_id);
-            toast.error(`"${item.name}" is no longer available and was removed from your cart.`, {
-              duration: 5000,
-              icon: "🚫",
-            });
+            toast.error(`"${item.name}" is no longer available and was removed from your cart.`, { duration: 5000 });
           }
         });
       })
       .catch(() => {
         // Silently ignore network errors — don't block the cart page
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items.length]);
 
   return (
     <div className="min-h-[100dvh] flex flex-col">
-      <GradientBackground />
+      {/* GradientBackground only on desktop */}
+      <div className="hidden md:block">
+        <GradientBackground />
+      </div>
+      {/* Mobile plain bg */}
+      <div className="md:hidden fixed inset-0 bg-[#f5f5f5] -z-10" />
+
       <TopNavBar />
 
-      <main className="flex-grow w-full max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-10 md:py-[var(--spacing-stack-lg)] pb-28 md:pb-[var(--spacing-stack-lg)]">
-        {/* Header */}
-        <div className="mb-[var(--spacing-stack-lg)] flex flex-col md:flex-row justify-between items-start md:items-end gap-[var(--spacing-stack-sm)]">
-          <motion.h1
-              className="font-display text-[32px] md:text-[48px] leading-[1.2] text-on-surface"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            Your Cart
-          </motion.h1>
-          <Link
-            href="/products"
-            className="font-body text-[16px] leading-[1.6] text-on-surface-variant hover:text-on-surface underline underline-offset-4 decoration-outline-variant hover:decoration-on-surface transition-all duration-200"
-          >
-            Continue Shopping
-          </Link>
-        </div>
+      <main className="flex-grow w-full max-w-[var(--spacing-container-max)] mx-auto">
 
-        {items.length === 0 ? (
-          <motion.div
-            className="flex flex-col items-center justify-center py-24 gap-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <span className="material-symbols-outlined text-6xl text-outline-variant">
-              shopping_bag
-            </span>
-            <p className="font-body text-[16px] md:text-[18px] leading-[1.6] text-on-surface-variant">
-              Your cart is empty
-            </p>
+        {/* ══════════════════════════════════════════════════════
+            MOBILE LAYOUT  (hidden on md+)
+        ══════════════════════════════════════════════════════ */}
+        <div className="md:hidden">
+          {/* Sticky compact header bar */}
+          <div className="bg-white border-b border-[#ebebeb] sticky top-0 z-30 px-4 py-3.5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h1 className="text-[16px] font-semibold text-[#1a1a1a] tracking-tight">Your Cart</h1>
+              {items.length > 0 && (
+                <span className="text-[12px] text-[#888] font-medium">
+                  ({items.length} {items.length === 1 ? "item" : "items"})
+                </span>
+              )}
+            </div>
             <Link
               href="/products"
-              className="bg-primary text-on-primary font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium px-8 py-3 rounded-full hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200"
+              aria-label="Continue shopping"
+              className="w-8 h-8 rounded-full bg-[#f0f0f0] flex items-center justify-center hover:bg-[#e8e8e8] transition-colors"
             >
-              Shop Now
+              <X size={16} strokeWidth={2} className="text-[#444]" />
             </Link>
-          </motion.div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-[var(--spacing-stack-lg)] items-start">
-            {/* Items List */}
-            <div className="lg:col-span-8 flex flex-col gap-[var(--spacing-stack-md)]">
-              {/* Column Headers (Desktop) */}
-              <div className="hidden md:grid grid-cols-12 gap-[var(--spacing-gutter)] pb-[var(--spacing-stack-sm)] border-b border-outline-variant/30 font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
-                <div className="col-span-6">Product</div>
-                <div className="col-span-3 text-center">Quantity</div>
-                <div className="col-span-2 text-right">Total</div>
-                <div className="col-span-1" />
+          </div>
+
+          {items.length === 0 ? (
+            <div className="px-4 py-6">
+              <EmptyCart />
+            </div>
+          ) : (
+            <>
+              {/* Scrollable content */}
+              <div className="px-3 pt-3 pb-52 flex flex-col gap-3">
+                {/* Cart cards */}
+                <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="flex flex-col gap-2.5">
+                  <AnimatePresence>
+                    {items.map((item, i) => {
+                      const itemTotal = item.price * item.quantity;
+                      return (
+                        <motion.div
+                          key={item.product_id}
+                          custom={i}
+                          variants={cardVariants}
+                          layout
+                          exit="exit"
+                          className="bg-white rounded-[20px] border border-[#ebebeb] p-3.5 flex gap-3"
+                        >
+                          {/* Image */}
+                          <div className="relative w-[84px] h-[100px] rounded-[14px] bg-[#f5f5f5] overflow-hidden shrink-0">
+                            <Image src={item.image} alt={item.name} fill className="object-cover" sizes="84px" />
+                          </div>
+                          {/* Info */}
+                          <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                            <p className="text-[13px] font-semibold text-[#1a1a1a] leading-snug line-clamp-2 tracking-tight">
+                              {item.name}
+                            </p>
+                            {item.variant_name && (
+                              <span className="inline-block self-start px-2.5 py-0.5 rounded-full bg-[#f5f5f5] border border-[#e8e8e8] text-[10px] text-[#777] font-medium">
+                                {item.variant_name}
+                              </span>
+                            )}
+                            <div className="mt-auto">
+                              <QuantityPill
+                                value={item.quantity}
+                                onDecrement={() => updateQuantity(item.product_id, item.quantity - 1)}
+                                onIncrement={() => updateQuantity(item.product_id, item.quantity + 1)}
+                              />
+                            </div>
+                          </div>
+                          {/* Price + delete */}
+                          <div className="flex flex-col items-end justify-between shrink-0">
+                            <motion.button
+                              whileTap={{ scale: 0.8 }}
+                              onClick={() => removeItem(item.product_id)}
+                              className="w-7 h-7 rounded-full flex items-center justify-center bg-[#f5f5f5] hover:bg-red-50 text-[#bbb] hover:text-red-400 transition-colors duration-200"
+                              aria-label="Remove item"
+                            >
+                              <Trash2 size={13} strokeWidth={2} />
+                            </motion.button>
+                            <div className="text-right">
+                              <p className="text-[15px] font-bold text-[#1a1a1a] leading-tight">{formatPrice(itemTotal)}</p>
+                              {item.quantity > 1 && (
+                                <p className="text-[10px] text-[#aaa] mt-0.5">{formatPrice(item.price)} each</p>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+                </motion.div>
+
+                <TrustBadges />
+
+                {/* Free shipping nudge */}
+                {amountNeeded > 0 ? (
+                  <div className="bg-white rounded-[20px] border border-[#ebebeb] px-4 py-3.5 space-y-2.5">
+                    <div className="flex items-center gap-2">
+                      <Truck size={14} strokeWidth={1.8} className="text-[#888]" />
+                      <p className="text-[12px] text-[#555]">
+                        Add{" "}
+                        <span className="font-semibold text-[#1a1a1a]">{formatPrice(amountNeeded)}</span>{" "}
+                        more for{" "}
+                        <span className="font-semibold text-emerald-600">Free Shipping</span>{" "}
+                        across India
+                      </p>
+                    </div>
+                    <div className="w-full h-1.5 bg-[#f0f0f0] rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-[#1a1a1a] rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${freeShippingProgress}%` }}
+                        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-emerald-50 rounded-[20px] border border-emerald-200/70 px-4 py-3 flex items-center gap-2.5">
+                    <Truck size={15} strokeWidth={1.8} className="text-emerald-600 shrink-0" />
+                    <p className="text-[12px] font-medium text-emerald-700">Free Shipping unlocked for your order!</p>
+                  </div>
+                )}
+
+                <CouponSection />
+                <RecommendedSection />
               </div>
 
-              <AnimatePresence>
-                {items.map((item) => (
-                  <motion.div
-                    key={item.product_id}
-                    layout
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="py-3 border-b border-outline-variant/30"
-                  >
-                    {/* Mobile Layout */}
-                    <div className="flex md:hidden gap-3 items-center">
-                      <div className="w-16 h-20 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden relative">
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          fill
-                          className="object-cover"
-                          sizes="64px"
-                        />
+              {/* Sticky mobile footer */}
+              <div className="fixed bottom-[64px] inset-x-0 z-40">
+                <div className="bg-white border-t border-[#ebebeb] rounded-t-[24px] shadow-[0_-8px_24px_-4px_rgba(0,0,0,0.08)] px-4 pt-4 pb-5 space-y-3">
+                  {/* Total row */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-[#f5f5f5] flex items-center justify-center">
+                        <IndianRupee size={14} strokeWidth={2} className="text-[#555]" />
                       </div>
-                      <div className="flex-1 flex flex-col gap-0.5 min-w-0">
-                        <h3 className="font-display text-[16px] leading-[1.3] text-on-surface truncate">
-                          {item.name}
-                        </h3>
-                        <p className="font-body text-[12px] leading-[1.4] text-on-surface-variant">
-                          {item.variant_name}
-                        </p>
-                        <span className="font-body text-[15px] font-medium text-primary mt-0.5">
-                          {formatPrice(item.price * item.quantity)}
-                        </span>
-                        {/* Qty + Remove */}
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <div className="flex items-center border border-outline-variant rounded-lg bg-surface">
-                            <button
-                              onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                              className="w-7 h-7 flex items-center justify-center text-on-surface-variant hover:text-on-surface active:scale-75 transition-all duration-150"
-                              aria-label="Decrease quantity"
-                            >
-                              <span className="material-symbols-outlined text-[14px]">remove</span>
-                            </button>
-                            <span className="w-7 text-center font-body text-[14px]">{item.quantity}</span>
-                            <button
-                              onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                              className="w-7 h-7 flex items-center justify-center text-on-surface-variant hover:text-on-surface active:scale-75 transition-all duration-150"
-                              aria-label="Increase quantity"
-                            >
-                              <span className="material-symbols-outlined text-[14px]">add</span>
-                            </button>
-                          </div>
-                          <button
-                            onClick={() => removeItem(item.product_id)}
-                            className="text-outline hover:text-error active:scale-75 transition-all duration-150 p-1"
-                            aria-label="Remove item"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">close</span>
-                          </button>
-                        </div>
+                      <div>
+                        <p className="text-[12px] text-[#888] leading-none">Estimated Total</p>
+                        <p className="text-[10px] text-[#bbb] mt-0.5">(MRP inclusive of taxes)</p>
                       </div>
                     </div>
+                    <div className="text-right">
+                      <p className="text-[20px] font-bold text-[#1a1a1a] leading-none tracking-tight">
+                        {formatPrice(grandTotal)}
+                      </p>
+                      {shippingCharge === 0 && (
+                        <p className="text-[10px] text-emerald-600 font-medium mt-0.5">+ Free Shipping</p>
+                      )}
+                      {shippingCharge > 0 && (
+                        <p className="text-[10px] text-[#aaa] mt-0.5">+ {formatPrice(shippingCharge)} shipping</p>
+                      )}
+                    </div>
+                  </div>
 
-                    {/* Desktop Layout */}
-                    <div className="hidden md:grid grid-cols-12 gap-[var(--spacing-gutter)] items-center">
-                      <div className="col-span-6 flex gap-[var(--spacing-gutter)] items-center">
-                        <div className="w-24 h-32 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden relative">
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            fill
-                            className="object-cover"
-                            sizes="96px"
+                  {/* CTA */}
+                  {isCheckoutDisabled ? (
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2 bg-[#f9f9f9] border border-[#ebebeb] rounded-[14px] p-3">
+                        <ShieldCheck size={16} strokeWidth={1.8} className="text-[#aaa] mt-0.5 shrink-0" />
+                        <p className="text-[12px] text-[#888] leading-relaxed">
+                          Online checkout is temporarily paused while we integrate our secure payment gateway.
+                        </p>
+                      </div>
+                      <div className="w-full py-4 bg-[#e8e8e8] text-[#aaa] text-[13px] font-semibold rounded-[14px] flex items-center justify-center cursor-not-allowed">
+                        Checkout Unavailable
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <motion.div whileTap={{ scale: 0.98 }}>
+                        <Link
+                          href="/checkout"
+                          className="group w-full py-4 bg-primary text-on-primary text-[13px] font-semibold rounded-[14px] grid grid-cols-[1fr_auto_1fr] items-center px-4 hover:bg-[#9d4d6e] active:bg-[#8a3a5e] active:scale-[0.98] transition-all duration-200 shadow-sm"
+                        >
+                          <span />
+                          <span className="text-center">Proceed to Checkout</span>
+                          <div className="flex items-center justify-end gap-1 opacity-50 group-hover:opacity-75 transition-opacity">
+                            <ShieldCheck size={13} strokeWidth={2} />
+                            <span className="text-[10px] font-normal">Secure</span>
+                          </div>
+                        </Link>
+                      </motion.div>
+                      <p className="text-center text-[11px] text-[#bbb] font-medium">
+                        Continue Shopping —{" "}
+                        <Link href="/products" className="text-[#888] underline underline-offset-2 hover:text-[#555] transition-colors">
+                          browse products
+                        </Link>
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* ══════════════════════════════════════════════════════
+            DESKTOP LAYOUT  (hidden on mobile, shown on md+)
+            — Original design restored exactly —
+        ══════════════════════════════════════════════════════ */}
+        <div className="hidden md:block px-[var(--spacing-margin-desktop)] py-10 md:py-[var(--spacing-stack-lg)]">
+          {/* Page heading */}
+          <div className="mb-[var(--spacing-stack-lg)] flex flex-col md:flex-row justify-between items-start md:items-end gap-[var(--spacing-stack-sm)]">
+            <motion.h1
+              className="font-display text-[32px] md:text-[48px] leading-[1.2] text-on-surface"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              Your Cart
+            </motion.h1>
+            <Link
+              href="/products"
+              className="font-body text-[16px] leading-[1.6] text-on-surface-variant hover:text-on-surface underline underline-offset-4 decoration-outline-variant hover:decoration-on-surface transition-all duration-200"
+            >
+              Continue Shopping
+            </Link>
+          </div>
+
+          {items.length === 0 ? (
+            <EmptyCart />
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-[var(--spacing-stack-lg)] items-start">
+
+              {/* ── Items list ──────────────────────────────────── */}
+              <div className="lg:col-span-8 flex flex-col gap-[var(--spacing-stack-md)]">
+                {/* Column headers */}
+                <div className="hidden md:grid grid-cols-12 gap-[var(--spacing-gutter)] pb-[var(--spacing-stack-sm)] border-b border-outline-variant/30 font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
+                  <div className="col-span-6">Product</div>
+                  <div className="col-span-3 text-center">Quantity</div>
+                  <div className="col-span-2 text-right">Total</div>
+                  <div className="col-span-1" />
+                </div>
+
+                <AnimatePresence>
+                  {items.map((item) => (
+                    <motion.div
+                      key={item.product_id}
+                      layout
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="py-3 border-b border-outline-variant/30"
+                    >
+                      {/* Desktop row */}
+                      <div className="grid grid-cols-12 gap-[var(--spacing-gutter)] items-center">
+                        {/* Product info */}
+                        <div className="col-span-6 flex gap-[var(--spacing-gutter)] items-center">
+                          <div className="w-24 h-32 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden relative">
+                            <Image
+                              src={item.image}
+                              alt={item.name}
+                              fill
+                              className="object-cover"
+                              sizes="96px"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <h3 className="font-display text-[24px] leading-[1.4] text-on-surface">{item.name}</h3>
+                            <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant">{item.variant_name}</p>
+                          </div>
+                        </div>
+                        {/* Qty */}
+                        <div className="col-span-3 flex items-center justify-center">
+                          <QuantityBox
+                            value={item.quantity}
+                            onDecrement={() => updateQuantity(item.product_id, item.quantity - 1)}
+                            onIncrement={() => updateQuantity(item.product_id, item.quantity + 1)}
                           />
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <h3 className="font-display text-[24px] leading-[1.4] text-on-surface">{item.name}</h3>
-                          <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant">{item.variant_name}</p>
+                        {/* Total */}
+                        <div className="col-span-2 text-right font-body text-[18px] leading-[1.6] text-on-surface">
+                          {formatPrice(item.price * item.quantity)}
                         </div>
-                      </div>
-                      <div className="col-span-3 flex items-center justify-center">
-                        <div className="flex items-center border border-outline-variant rounded-lg p-1 bg-surface">
+                        {/* Remove */}
+                        <div className="col-span-1 flex justify-center">
                           <button
-                            onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                            className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-on-surface active:scale-75 transition-all duration-150"
-                            aria-label="Decrease quantity"
+                            onClick={() => removeItem(item.product_id)}
+                            className="text-outline hover:text-error active:scale-75 transition-all duration-150 p-2"
+                            aria-label="Remove item"
                           >
-                            <span className="material-symbols-outlined text-sm">remove</span>
-                          </button>
-                          <span className="w-8 text-center font-body text-[16px] leading-[1.6]">{item.quantity}</span>
-                          <button
-                            onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                            className="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:text-on-surface active:scale-75 transition-all duration-150"
-                            aria-label="Increase quantity"
-                          >
-                            <span className="material-symbols-outlined text-sm">add</span>
+                            <span className="material-symbols-outlined">close</span>
                           </button>
                         </div>
                       </div>
-                      <div className="col-span-2 text-right font-body text-[18px] leading-[1.6] text-on-surface">
-                        {formatPrice(item.price * item.quantity)}
-                      </div>
-                      <div className="col-span-1 flex justify-center">
-                        <button
-                          onClick={() => removeItem(item.product_id)}
-                          className="text-outline hover:text-error active:scale-75 transition-all duration-150 p-2"
-                          aria-label="Remove item"
-                        >
-                          <span className="material-symbols-outlined">close</span>
-                        </button>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+
+              {/* ── Order Summary sidebar ───────────────────────── */}
+              <div className="lg:col-span-4 bg-surface-container-low rounded-xl p-6 md:p-[var(--spacing-stack-md)] ambient-shadow-sm border border-outline-variant/20 lg:sticky lg:top-32">
+                <h2 className="font-display text-[24px] leading-[1.4] text-on-surface mb-[var(--spacing-stack-md)] pb-[var(--spacing-stack-sm)] border-b border-outline-variant/30">
+                  Order Summary
+                </h2>
+
+                <div className="flex flex-col gap-[var(--spacing-stack-sm)] font-body text-[16px] leading-[1.6] text-on-surface-variant mb-[var(--spacing-stack-md)]">
+                  <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span className="text-on-surface">{formatPrice(total)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Shipping</span>
+                    <span className={shippingCharge === 0 ? "text-emerald-600 font-medium" : "text-on-surface"}>
+                      {shippingCharge === 0 ? "Free" : formatPrice(shippingCharge)}
+                    </span>
+                  </div>
+
+                  {/* Free shipping nudge */}
+                  {amountNeeded > 0 ? (
+                    <div className="mt-1 p-3 rounded-xl bg-primary/5 border border-primary/15">
+                      <p className="font-body text-[12px] leading-[1.5] text-on-surface-variant mb-2">
+                        Add <span className="font-semibold text-primary">{formatPrice(amountNeeded)}</span> more for
+                        <span className="font-semibold text-primary"> Free Shipping</span> all over India
+                      </p>
+                      <div className="w-full h-1.5 bg-outline-variant/30 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary rounded-full transition-all duration-500"
+                          style={{ width: `${freeShippingProgress}%` }}
+                        />
                       </div>
                     </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
+                  ) : (
+                    <div className="mt-1 p-3 rounded-xl bg-emerald-50 border border-emerald-200/60">
+                      <p className="font-body text-[12px] leading-[1.5] text-emerald-700">
+                        You have unlocked <span className="font-semibold">Free Shipping</span> all over India!
+                      </p>
+                    </div>
+                  )}
+                </div>
 
-            {/* Order Summary */}
-            <div className="lg:col-span-4 bg-surface-container-low rounded-xl p-6 md:p-[var(--spacing-stack-md)] ambient-shadow-sm border border-outline-variant/20 lg:sticky lg:top-32">
-              <h2 className="font-display text-[24px] leading-[1.4] text-on-surface mb-[var(--spacing-stack-md)] pb-[var(--spacing-stack-sm)] border-b border-outline-variant/30">
-                Order Summary
-              </h2>
-              <div className="flex flex-col gap-[var(--spacing-stack-sm)] font-body text-[16px] leading-[1.6] text-on-surface-variant mb-[var(--spacing-stack-md)]">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span className="text-on-surface">{formatPrice(total)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Shipping</span>
-                  <span className="text-on-surface">Calculated at next step</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center py-[var(--spacing-stack-sm)] border-t border-outline-variant/30 mb-[var(--spacing-stack-lg)]">
-                <span className="font-body text-[18px] leading-[1.6] text-on-surface">
-                  Total
-                </span>
-                <span className="font-display text-[22px] md:text-[24px] leading-[1.4] text-on-surface">
-                   {formatPrice(total)}
-                 </span>
-              </div>
-              {isCheckoutDisabled ? (
-                <>
-                  <div className="mb-4 p-4 rounded-xl bg-primary/5 border border-primary/20 flex gap-3 items-start">
-                    <span className="material-symbols-outlined text-[20px] text-primary mt-0.5 animate-pulse">
-                      info
+                {/* Total */}
+                <div className="flex flex-col gap-1 py-[var(--spacing-stack-sm)] border-t border-outline-variant/30 mb-[var(--spacing-stack-lg)]">
+                  <div className="flex justify-between items-center">
+                    <span className="font-body text-[18px] leading-[1.6] text-on-surface">Estimated Total</span>
+                    <span className="font-display text-[22px] md:text-[24px] leading-[1.4] text-on-surface">
+                      {formatPrice(grandTotal)}
                     </span>
-                    <p className="font-body text-[13px] leading-[1.6] text-on-surface-variant text-left">
-                      Online checkout is temporarily paused as we integrate our secure payment gateway. We will be live soon!
-                    </p>
                   </div>
-                  <button
-                    type="button"
-                    disabled
-                    className="w-full py-4 bg-outline-variant/30 text-on-surface-variant/50 font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium rounded-lg cursor-not-allowed flex justify-center items-center gap-2 border border-outline-variant/20"
+                  <p className="font-body text-[10px] leading-[1] text-on-surface-variant/60 text-right">
+                    (MRP inclusive of taxes)
+                  </p>
+                </div>
+
+                {/* Checkout CTA */}
+                {isCheckoutDisabled ? (
+                  <>
+                    <div className="mb-4 p-4 rounded-xl bg-primary/5 border border-primary/20 flex gap-3 items-start">
+                      <span className="material-symbols-outlined text-[20px] text-primary mt-0.5 animate-pulse">info</span>
+                      <p className="font-body text-[13px] leading-[1.6] text-on-surface-variant text-left">
+                        Online checkout is temporarily paused as we integrate our secure payment gateway. We will be live soon!
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      disabled
+                      className="w-full py-4 bg-outline-variant/30 text-on-surface-variant/50 font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium rounded-lg cursor-not-allowed flex justify-center items-center gap-2 border border-outline-variant/20"
+                    >
+                      Checkout Disabled
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/checkout"
+                    className="w-full py-4 bg-primary text-on-primary font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium rounded-lg hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200 flex justify-center items-center gap-2"
                   >
-                    Checkout Disabled
-                  </button>
-                </>
-              ) : (
-                <Link
-                  href="/checkout"
-                  className="w-full py-4 bg-primary text-on-primary font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium rounded-lg hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200 flex justify-center items-center gap-2"
-                >
-                  Proceed to Checkout
-                </Link>
-              )}
-              <div className="mt-[var(--spacing-stack-sm)] text-center">
-                <p className="font-body text-[14px] leading-[1.6] text-on-surface-variant flex items-center justify-center gap-2">
-                  <span className="material-symbols-outlined text-[16px]">
-                    lock
-                  </span>
-                  Secure Encrypted Checkout
-                </p>
+                    Proceed to Checkout
+                  </Link>
+                )}
+
+                <div className="mt-[var(--spacing-stack-sm)] text-center">
+                  <p className="font-body text-[14px] leading-[1.6] text-on-surface-variant flex items-center justify-center gap-2">
+                    <Lock size={14} strokeWidth={1.8} />
+                    Secure Encrypted Checkout
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </main>
-
-      {items.length > 0 && (
-        <div className="md:hidden fixed bottom-20 inset-x-0 z-40 px-4">
-          <div className="bg-surface-container-lowest/95 backdrop-blur rounded-2xl border border-outline-variant/30 shadow-[0_12px_24px_-12px_rgba(42,26,20,0.32)] px-3 py-2.5 flex items-center gap-3">
-            <div className="flex flex-col min-w-[86px]">
-              <span className="font-body text-[11px] uppercase tracking-[0.08em] text-on-surface-variant">Total</span>
-              <span className="font-display text-[22px] leading-[1] text-on-surface">{formatPrice(total)}</span>
-            </div>
-            {isCheckoutDisabled ? (
-              <button
-                type="button"
-                disabled
-                className="flex-1 h-11 rounded-xl bg-outline-variant/30 text-on-surface-variant/50 font-body text-[13px] tracking-[0.08em] uppercase font-semibold flex items-center justify-center gap-1.5 cursor-not-allowed border border-outline-variant/20"
-              >
-                Disabled
-              </button>
-            ) : (
-              <Link
-                href="/checkout"
-                className="flex-1 h-11 rounded-xl bg-primary text-on-primary font-body text-[13px] tracking-[0.08em] uppercase font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-all duration-200"
-              >
-                <span className="material-symbols-outlined text-[18px]">payments</span>
-                Checkout
-              </Link>
-            )}
-          </div>
+          )}
         </div>
-      )}
+
+      </main>
 
       <Footer />
       <MobileBottomNav />

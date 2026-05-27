@@ -290,7 +290,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const shippingCharge = total >= 500 ? 0 : 50;
+  const shippingCharge = total >= 999 ? 0 : 50;
   const grandTotal = total + shippingCharge;
 
   // Tri-state checkout gating UI
@@ -581,14 +581,19 @@ export default function CheckoutPage() {
                   </span>
                 </div>
                 <div className="h-px bg-outline-variant/30 w-full my-3" />
-                <div className="flex justify-between">
-                  <span className="font-display text-[24px] leading-[1.4] text-on-surface font-bold">
-                    Total
-                  </span>
-                  <span className="font-display text-[24px] leading-[1.4] text-on-surface font-bold">
-                     {formatPrice(grandTotal)}
-                   </span>
-                 </div>
+                <div className="flex flex-col gap-1">
+                  <div className="flex justify-between">
+                    <span className="font-display text-[24px] leading-[1.4] text-on-surface font-bold">
+                      Total
+                    </span>
+                    <span className="font-display text-[24px] leading-[1.4] text-on-surface font-bold">
+                       {formatPrice(grandTotal)}
+                     </span>
+                  </div>
+                  <p className="font-body text-[10px] leading-[1] text-on-surface-variant/60 text-right">
+                    (MRP inclusive of taxes)
+                  </p>
+                </div>
                </div>
 
                {submitError && (

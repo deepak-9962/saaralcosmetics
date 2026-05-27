@@ -47,7 +47,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="light">
+    <html lang="en" className="light" suppressHydrationWarning>
       <head>
         <meta name="color-scheme" content="only light" />
         {/* Material Symbols Outlined */}
@@ -59,6 +59,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${playfairDisplay.variable} ${dmSans.variable} font-body text-on-surface antialiased min-h-[100dvh]`}
+        suppressHydrationWarning
       >
         <Providers>{children}</Providers>
         <Analytics />

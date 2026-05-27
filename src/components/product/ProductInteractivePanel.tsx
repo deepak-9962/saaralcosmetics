@@ -117,15 +117,20 @@ export default function ProductInteractivePanel({
             {categoryLabel} • {product.variant_name}
           </p>
 
-          <div className="flex items-end gap-3 mb-6">
-            <span className="font-display text-[28px] md:text-[32px] leading-[1.3] text-on-surface font-semibold">
-              {formatPrice(product.price)}
-            </span>
-            {product.compare_price && (
-              <span className="font-body text-[16px] md:text-[18px] leading-[1.6] text-outline line-through mb-1">
-                {formatPrice(product.compare_price)}
+          <div className="mb-6">
+            <div className="flex items-end gap-3">
+              <span className="font-display text-[28px] md:text-[32px] leading-[1.3] text-on-surface font-semibold">
+                {formatPrice(product.price)}
               </span>
-            )}
+              {product.compare_price && (
+                <span className="font-body text-[16px] md:text-[18px] leading-[1.6] text-outline line-through mb-1">
+                  {formatPrice(product.compare_price)}
+                </span>
+              )}
+            </div>
+            <p className="font-body text-[11px] leading-[1] text-on-surface-variant/60 mt-1">
+              (MRP inclusive of taxes)
+            </p>
           </div>
 
           <div className="w-full h-px bg-outline-variant/50 my-4" />
@@ -242,9 +247,10 @@ export default function ProductInteractivePanel({
       {/* Mobile Floating Action Bar */}
       <div className="md:hidden fixed bottom-20 inset-x-0 z-40 px-3">
         <div className="bg-surface-container-lowest/95 backdrop-blur rounded-xl border border-outline-variant/30 shadow-[0_8px_16px_-8px_rgba(42,26,20,0.28)] px-2.5 py-1.5 flex items-center gap-2">
-          <div className="flex flex-col min-w-[72px]">
+          <div className="flex flex-col min-w-[96px]">
             <span className="font-body text-[10px] uppercase tracking-[0.08em] text-on-surface-variant">Price</span>
             <span className="font-display text-[18px] leading-[1] text-on-surface">{formatPrice(product.price)}</span>
+            <span className="font-body text-[7px] text-on-surface-variant/60 leading-[1] mt-0.5">(MRP inclusive of taxes)</span>
           </div>
           <button
             onClick={handleAddToCart}

@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
         hostname: "via.placeholder.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
+        pathname: "/**",
+      },
     ],
     formats: ['image/avif', 'image/webp'],
   },
