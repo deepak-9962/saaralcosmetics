@@ -139,6 +139,20 @@ export default function CheckoutPage() {
     );
   };
 
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if ((window as any).Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
@@ -171,6 +185,7 @@ export default function CheckoutPage() {
         return;
       }
 
+      // 1. Create Supabase order first
       const order = await createOrder({
         customer_name: formData.name.trim(),
         customer_phone: formData.phone.trim(),
@@ -185,8 +200,90 @@ export default function CheckoutPage() {
         shipping_charge: shippingCharge,
         total: grandTotal,
       });
-      clearCart();
-      router.push(`/order-confirmation/${order.id}`);
+
+      // 2. Dynamically load the Razorpay checkout script
+      const isScriptLoaded = await loadRazorpayScript();
+      if (!isScriptLoaded) {
+        setSubmitError("Failed to load Razorpay SDK. Please check your internet connection.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // 3. Request Razorpay order generation from API route
+      const razorpayOrderResponse = await fetch("/api/create-razorpay-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: order.id,
+          amount: grandTotal,
+        }),
+      });
+
+      if (!razorpayOrderResponse.ok) {
+        const errorData = await razorpayOrderResponse.json();
+        throw new Error(errorData.error || "Failed to initiate Razorpay order.");
+      }
+
+      const { razorpayOrderId } = await razorpayOrderResponse.json();
+
+      // 4. Trigger the custom-styled Razorpay modal
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
+        amount: grandTotal * 100,
+        currency: "INR",
+        name: "Saaral Cosmetics",
+        description: "Pure. Natural. Luxury Skincare.",
+        image: "/images/logo.png",
+        order_id: razorpayOrderId,
+        handler: async function (response: any) {
+          try {
+            setIsSubmitting(true);
+            setSubmitError("Verifying payment...");
+
+            // 5. Send transaction details for cryptographic verification
+            const verificationResponse = await fetch("/api/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                orderId: order.id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+
+            if (!verificationResponse.ok) {
+              const errorData = await verificationResponse.json();
+              throw new Error(errorData.error || "Payment signature verification failed.");
+            }
+
+            clearCart();
+            toast.success("Payment completed successfully!");
+            router.push(`/order-confirmation/${order.id}`);
+          } catch (verifyError) {
+            setSubmitError(verifyError instanceof Error ? verifyError.message : "Payment verification failed.");
+            setIsSubmitting(false);
+          }
+        },
+        prefill: {
+          name: formData.name.trim(),
+          email: formData.email.trim() || undefined,
+          contact: formData.phone.trim(),
+        },
+        theme: {
+          color: "#9D4D6E", // Premium brand primary color
+        },
+        modal: {
+          ondismiss: function () {
+            toast.error("Payment checkout cancelled.");
+            setIsSubmitting(false);
+          },
+        },
+      };
+
+      const razorpayInstance = new (window as any).Razorpay(options);
+      razorpayInstance.open();
+
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Failed to place order.");
       setIsSubmitting(false);

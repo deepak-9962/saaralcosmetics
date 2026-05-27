@@ -491,6 +491,24 @@ export async function updateOrderPaymentStatus(
   if (error) throw new Error(error.message);
 }
 
+export async function updateOrderRazorpayDetails(
+  orderId: string,
+  details: {
+    razorpay_order_id?: string | null;
+    razorpay_payment_id?: string | null;
+    payment_status?: Order["payment_status"];
+  }
+): Promise<void> {
+  const supabase = getSupabaseBrowserClient();
+  const { error } = await supabase
+    .from("orders")
+    .update(details)
+    .eq("id", orderId);
+
+  if (error) throw new Error(error.message);
+}
+
+
 export async function updateOrderNotes(orderId: string, notes: string | null): Promise<void> {
   const supabase = getSupabaseBrowserClient();
   const { error } = await supabase

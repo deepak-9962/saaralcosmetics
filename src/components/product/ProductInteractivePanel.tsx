@@ -22,6 +22,7 @@ export default function ProductInteractivePanel({
   const [product, setProduct] = useState<Product>(initialProduct);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
 
   const handleVariantChange = (selectedVariant: Product) => {
     setProduct(selectedVariant);
@@ -129,9 +130,31 @@ export default function ProductInteractivePanel({
 
           <div className="w-full h-px bg-outline-variant/50 my-4" />
 
-          <p className="font-body text-[15px] md:text-[16px] leading-[1.6] text-on-surface mb-8">
-            {product.description}
-          </p>
+          {/* Description with Read More toggle */}
+          {product.description && (
+            <div className="mb-8">
+              <p
+                className={`font-body text-[15px] md:text-[16px] leading-[1.7] text-on-surface-variant transition-all duration-300 ${
+                  isDescExpanded ? "" : "line-clamp-3"
+                }`}
+              >
+                {product.description}
+              </p>
+              <button
+                onClick={() => setIsDescExpanded((prev) => !prev)}
+                className="mt-2 font-body text-[13px] leading-[1.0] tracking-[0.05em] font-medium text-primary hover:underline underline-offset-4 flex items-center gap-1 transition-all"
+              >
+                {isDescExpanded ? "Show less" : "Read more"}
+                <span
+                  className={`material-symbols-outlined text-[16px] transition-transform duration-200 ${
+                    isDescExpanded ? "rotate-180" : ""
+                  }`}
+                >
+                  expand_more
+                </span>
+              </button>
+            </div>
+          )}
 
           {/* Variants selector */}
           {variants.length > 1 && (
@@ -188,19 +211,8 @@ export default function ProductInteractivePanel({
             </button>
           </div>
 
-          {/* Details Accordial Toggles */}
+          {/* Details Accordion Toggles — Description removed (shown inline above with Read more) */}
           <div className="flex flex-col border-t border-outline-variant/50">
-            <details className="group py-4 border-b border-outline-variant/50" open>
-              <summary className="flex justify-between items-center cursor-pointer list-none font-body text-[16px] leading-[1.6] font-medium text-on-surface select-none">
-                <span>Description</span>
-                <span className="material-symbols-outlined group-open:rotate-180 transition-transform">
-                  expand_more
-                </span>
-              </summary>
-              <div className="pt-4 font-body text-[16px] leading-[1.6] text-on-surface-variant">
-                {product.description}
-              </div>
-            </details>
             <details className="group py-4 border-b border-outline-variant/50">
               <summary className="flex justify-between items-center cursor-pointer list-none font-body text-[16px] leading-[1.6] font-medium text-on-surface select-none">
                 <span>Ingredients</span>
