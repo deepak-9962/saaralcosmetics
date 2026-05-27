@@ -25,43 +25,13 @@ import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import GradientBackground from "@/components/layout/GradientBackground";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/utils";
-import { getActiveProductIds } from "@/lib/supabase/data";
+import { getActiveProductIds, listProducts } from "@/lib/supabase/data";
+import { MOCK_PRODUCTS } from "@/lib/products";
+import type { Product } from "@/lib/types";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const FREE_SHIPPING_THRESHOLD = 999;
 const SHIPPING_CHARGE = 50;
-
-// ─── Recommended products (mobile showcase) ───────────────────────────────────
-const RECOMMENDED = [
-  {
-    id: "rec-1",
-    name: "Rose Hip Glow Serum",
-    price: 649,
-    compare_price: 799,
-    image: "https://picsum.photos/seed/rosehip-serum/200/240",
-  },
-  {
-    id: "rec-2",
-    name: "Turmeric Brightening Cream",
-    price: 449,
-    compare_price: 549,
-    image: "https://picsum.photos/seed/turmeric-cream/200/240",
-  },
-  {
-    id: "rec-3",
-    name: "Sandalwood Night Balm",
-    price: 599,
-    compare_price: null,
-    image: "https://picsum.photos/seed/sandalwood-balm/200/240",
-  },
-  {
-    id: "rec-4",
-    name: "Neem Purifying Face Wash",
-    price: 299,
-    compare_price: 349,
-    image: "https://picsum.photos/seed/neem-wash/200/240",
-  },
-];
 
 // ─── Animation variants ───────────────────────────────────────────────────────
 const cardVariants: Variants = {
@@ -108,7 +78,7 @@ function QuantityPill({
       >
         <Minus size={13} strokeWidth={2.5} />
       </motion.button>
-      <span className="w-7 text-center text-[13px] font-semibold text-[#1a1a1a] select-none tabular-nums">
+      <span className="w-7 text-center font-body text-[13px] font-semibold text-on-surface select-none tabular-nums">
         {value}
       </span>
       <motion.button
@@ -169,14 +139,14 @@ function EmptyCart() {
           <ShieldCheck size={32} strokeWidth={1.2} className="text-[#bbb]" />
         </div>
         <div className="space-y-1.5">
-          <p className="text-[17px] font-semibold text-[#1a1a1a] tracking-tight">Your cart is empty</p>
-          <p className="text-[13px] text-[#888] leading-relaxed max-w-[220px] mx-auto">
+          <p className="font-display text-[19px] font-semibold text-on-surface tracking-tight">Your cart is empty</p>
+          <p className="font-body text-[13px] text-on-surface-variant leading-relaxed max-w-[220px] mx-auto">
             Discover our natural skincare range and add your favourites.
           </p>
         </div>
         <Link
           href="/products"
-          className="px-7 py-3 rounded-full bg-[#1a1a1a] text-white text-[13px] font-semibold tracking-wide hover:bg-[#333] active:scale-[0.97] transition-all duration-200"
+          className="bg-primary text-on-primary font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium px-8 py-3 rounded-full hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200"
         >
           Shop Now
         </Link>
@@ -216,7 +186,7 @@ function CouponSection() {
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             placeholder="Enter Coupon Code"
-            className="flex-1 bg-transparent text-[13px] text-[#1a1a1a] placeholder:text-[#bbb] outline-none font-medium tracking-wide"
+            className="flex-1 bg-transparent font-body text-[13px] text-on-surface placeholder:text-[#bbb] outline-none font-medium tracking-wide"
           />
           {code.length > 0 && !applied && (
             <button onClick={() => setCode("")} className="text-[#ccc] hover:text-[#999] transition-colors" aria-label="Clear">
@@ -227,7 +197,7 @@ function CouponSection() {
         <motion.button
           whileTap={{ scale: 0.94 }}
           onClick={handleApply}
-          className={`px-4 py-2.5 rounded-[12px] text-[13px] font-semibold transition-all duration-200 whitespace-nowrap ${
+          className={`px-4 py-2.5 rounded-[12px] font-body text-[13px] font-semibold transition-all duration-200 whitespace-nowrap ${
             applied
               ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
               : "bg-[#1a1a1a] text-white hover:bg-[#333]"
@@ -238,8 +208,8 @@ function CouponSection() {
       </div>
       <div className="my-3 border-t border-dashed border-[#e8e8e8]" />
       <div className="flex items-center justify-between">
-        <span className="text-[12px] text-[#999]">3 coupons available</span>
-        <button className="flex items-center gap-1 text-[12px] font-semibold text-[#1a1a1a] hover:text-[#555] transition-colors">
+        <span className="font-body text-[12px] text-on-surface-variant/70">3 coupons available</span>
+        <button className="flex items-center gap-1 font-body text-[12px] font-semibold text-on-surface hover:text-[#555] transition-colors">
           View Coupons
           <ChevronRight size={13} strokeWidth={2.5} />
         </button>
@@ -249,14 +219,22 @@ function CouponSection() {
 }
 
 /** Mobile recommended horizontal scroll */
-function RecommendedSection() {
+function RecommendedSection({
+  products,
+  onAdd,
+}: {
+  products: Product[];
+  onAdd: (product: Product) => void;
+}) {
+  if (products.length === 0) return null;
+
   return (
     <div className="bg-white rounded-[20px] border border-[#ebebeb] overflow-hidden">
       <div className="px-4 pt-4 pb-2">
-        <h2 className="text-[14px] font-semibold text-[#1a1a1a] tracking-tight">You Might Also Like</h2>
+        <h2 className="font-display text-[15px] font-semibold text-on-surface tracking-tight">You Might Also Like</h2>
       </div>
       <div className="flex gap-3 overflow-x-auto no-scrollbar px-4 pb-4 pt-1">
-        {RECOMMENDED.map((rec, i) => (
+        {products.map((rec, i) => (
           <motion.div
             key={rec.id}
             initial={{ opacity: 0, x: 20 }}
@@ -265,20 +243,23 @@ function RecommendedSection() {
             className="flex-shrink-0 w-[130px] flex flex-col gap-2.5 bg-[#fafafa] border border-[#ebebeb] rounded-[16px] p-2.5"
           >
             <div className="w-full aspect-[4/5] rounded-[12px] overflow-hidden bg-[#f0f0f0] relative">
-              <Image src={rec.image} alt={rec.name} fill className="object-cover" sizes="130px" />
+              {rec.images?.[0] && (
+                <Image src={rec.images[0]} alt={rec.name} fill className="object-cover" sizes="130px" />
+              )}
             </div>
             <div className="space-y-0.5">
-              <p className="text-[11px] font-semibold text-[#1a1a1a] leading-snug line-clamp-2">{rec.name}</p>
+              <p className="font-display text-[12px] font-medium text-on-surface leading-snug line-clamp-2">{rec.name}</p>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-[12px] font-bold text-[#1a1a1a]">{formatPrice(rec.price)}</span>
+                <span className="font-body text-[12px] font-bold text-primary">{formatPrice(rec.price)}</span>
                 {rec.compare_price && (
-                  <span className="text-[10px] text-[#bbb] line-through">{formatPrice(rec.compare_price)}</span>
+                  <span className="font-body text-[10px] text-on-surface-variant/40 line-through">{formatPrice(rec.compare_price)}</span>
                 )}
               </div>
             </div>
             <motion.button
               whileTap={{ scale: 0.93 }}
-              className="w-full py-1.5 rounded-full border border-[#d4d4d4] text-[11px] font-semibold text-[#1a1a1a] bg-white hover:bg-[#f5f5f5] transition-colors duration-150"
+              onClick={() => onAdd(rec)}
+              className="w-full py-1.5 rounded-full border border-primary/20 font-body text-[11px] font-semibold text-primary bg-white hover:bg-primary/5 transition-colors duration-150"
             >
               + Add
             </motion.button>
@@ -312,7 +293,8 @@ function TrustBadges() {
 // MAIN PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 export default function CartPage() {
-  const { items, total, updateQuantity, removeItem } = useCart();
+  const { items, total, updateQuantity, removeItem, addItem } = useCart();
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const validatedRef = useRef(false);
   const isCheckoutDisabled = process.env.NEXT_PUBLIC_CHECKOUT_MODE === "disabled";
 
@@ -320,6 +302,22 @@ export default function CartPage() {
   const amountNeeded = Math.max(0, FREE_SHIPPING_THRESHOLD - total);
   const freeShippingProgress = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100);
   const grandTotal = total + shippingCharge;
+
+  // Load all active products on mount to generate recommendations
+  useEffect(() => {
+    listProducts("all")
+      .then((prods) => {
+        if (prods && prods.length > 0) {
+          setAllProducts(prods);
+        } else {
+          setAllProducts(MOCK_PRODUCTS);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load products, falling back to mock data", err);
+        setAllProducts(MOCK_PRODUCTS);
+      });
+  }, []);
 
   // On mount: validate all cart items against Supabase.
   // Auto-remove any that have been deactivated or deleted.
@@ -342,6 +340,46 @@ export default function CartPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items.length]);
 
+  const handleAddRecommended = (product: Product) => {
+    addItem({
+      product_id: product.id,
+      name: product.name,
+      variant_name: product.variant_name,
+      price: product.price,
+      image: product.images?.[0] || "",
+      slug: product.slug,
+    });
+    toast.success(`${product.name} added to cart`);
+  };
+
+  const recommendations = (() => {
+    if (allProducts.length === 0) return [];
+
+    const cartProductIds = new Set(items.map((i) => i.product_id));
+    const cartCategories = new Set<string>();
+
+    // Extract categories of products currently in the cart
+    items.forEach((item) => {
+      const prod = allProducts.find((p) => p.id === item.product_id || p.slug === item.slug);
+      if (prod && prod.category) {
+        cartCategories.add(prod.category);
+      }
+    });
+
+    // Filter out products already in the cart and inactive ones
+    const candidates = allProducts.filter((p) => !cartProductIds.has(p.id) && p.is_active !== false);
+
+    // Group: similar products first (matching any category in cart, e.g. face-cream)
+    const similarProducts = candidates.filter((p) => cartCategories.has(p.category));
+    const otherProducts = candidates.filter((p) => !cartCategories.has(p.category));
+
+    // Combine them: similar products first, then others to fill up the list
+    const combined = [...similarProducts, ...otherProducts];
+
+    // Limit to 4 recommendations
+    return combined.slice(0, 4);
+  })();
+
   return (
     <div className="min-h-[100dvh] flex flex-col">
       {/* GradientBackground only on desktop */}
@@ -362,9 +400,9 @@ export default function CartPage() {
           {/* Sticky compact header bar */}
           <div className="bg-white border-b border-[#ebebeb] sticky top-0 z-30 px-4 py-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h1 className="text-[16px] font-semibold text-[#1a1a1a] tracking-tight">Your Cart</h1>
+              <h1 className="font-display text-[17px] font-semibold text-on-surface tracking-tight">Your Cart</h1>
               {items.length > 0 && (
-                <span className="text-[12px] text-[#888] font-medium">
+                <span className="font-body text-[12px] text-on-surface-variant/70 font-medium">
                   ({items.length} {items.length === 1 ? "item" : "items"})
                 </span>
               )}
@@ -406,11 +444,11 @@ export default function CartPage() {
                           </div>
                           {/* Info */}
                           <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-                            <p className="text-[13px] font-semibold text-[#1a1a1a] leading-snug line-clamp-2 tracking-tight">
+                            <p className="font-display text-[14px] font-semibold text-on-surface leading-snug line-clamp-2 tracking-tight">
                               {item.name}
                             </p>
                             {item.variant_name && (
-                              <span className="inline-block self-start px-2.5 py-0.5 rounded-full bg-[#f5f5f5] border border-[#e8e8e8] text-[10px] text-[#777] font-medium">
+                              <span className="font-body inline-block self-start px-2.5 py-0.5 rounded-full bg-[#f5f5f5] border border-[#e8e8e8] text-[10px] text-[#777] font-medium">
                                 {item.variant_name}
                               </span>
                             )}
@@ -418,6 +456,7 @@ export default function CartPage() {
                               <QuantityPill
                                 value={item.quantity}
                                 onDecrement={() => updateQuantity(item.product_id, item.quantity - 1)}
+                                // eslint-disable-next-line react-hooks/exhaustive-deps
                                 onIncrement={() => updateQuantity(item.product_id, item.quantity + 1)}
                               />
                             </div>
@@ -433,9 +472,9 @@ export default function CartPage() {
                               <Trash2 size={13} strokeWidth={2} />
                             </motion.button>
                             <div className="text-right">
-                              <p className="text-[15px] font-bold text-[#1a1a1a] leading-tight">{formatPrice(itemTotal)}</p>
+                              <p className="font-body text-[16px] font-bold text-on-surface leading-tight">{formatPrice(itemTotal)}</p>
                               {item.quantity > 1 && (
-                                <p className="text-[10px] text-[#aaa] mt-0.5">{formatPrice(item.price)} each</p>
+                                <p className="font-body text-[10px] text-on-surface-variant/50 mt-0.5">{formatPrice(item.price)} each</p>
                               )}
                             </div>
                           </div>
@@ -452,9 +491,9 @@ export default function CartPage() {
                   <div className="bg-white rounded-[20px] border border-[#ebebeb] px-4 py-3.5 space-y-2.5">
                     <div className="flex items-center gap-2">
                       <Truck size={14} strokeWidth={1.8} className="text-[#888]" />
-                      <p className="text-[12px] text-[#555]">
+                      <p className="font-body text-[12px] text-on-surface-variant">
                         Add{" "}
-                        <span className="font-semibold text-[#1a1a1a]">{formatPrice(amountNeeded)}</span>{" "}
+                        <span className="font-semibold text-on-surface">{formatPrice(amountNeeded)}</span>{" "}
                         more for{" "}
                         <span className="font-semibold text-emerald-600">Free Shipping</span>{" "}
                         across India
@@ -472,12 +511,12 @@ export default function CartPage() {
                 ) : (
                   <div className="bg-emerald-50 rounded-[20px] border border-emerald-200/70 px-4 py-3 flex items-center gap-2.5">
                     <Truck size={15} strokeWidth={1.8} className="text-emerald-600 shrink-0" />
-                    <p className="text-[12px] font-medium text-emerald-700">Free Shipping unlocked for your order!</p>
+                    <p className="font-body text-[12px] font-medium text-emerald-700">Free Shipping unlocked for your order!</p>
                   </div>
                 )}
 
                 <CouponSection />
-                <RecommendedSection />
+                <RecommendedSection products={recommendations} onAdd={handleAddRecommended} />
               </div>
 
               {/* Sticky mobile footer */}
@@ -490,19 +529,19 @@ export default function CartPage() {
                         <IndianRupee size={14} strokeWidth={2} className="text-[#555]" />
                       </div>
                       <div>
-                        <p className="text-[12px] text-[#888] leading-none">Estimated Total</p>
-                        <p className="text-[10px] text-[#bbb] mt-0.5">(MRP inclusive of taxes)</p>
+                        <p className="font-body text-[12px] text-on-surface-variant leading-none">Estimated Total</p>
+                        <p className="font-body text-[10px] text-on-surface-variant/50 mt-0.5">(MRP inclusive of taxes)</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-[20px] font-bold text-[#1a1a1a] leading-none tracking-tight">
+                      <p className="font-body text-[21px] font-bold text-on-surface leading-none tracking-tight">
                         {formatPrice(grandTotal)}
                       </p>
                       {shippingCharge === 0 && (
-                        <p className="text-[10px] text-emerald-600 font-medium mt-0.5">+ Free Shipping</p>
+                        <p className="font-body text-[10px] text-emerald-600 font-medium mt-0.5">+ Free Shipping</p>
                       )}
                       {shippingCharge > 0 && (
-                        <p className="text-[10px] text-[#aaa] mt-0.5">+ {formatPrice(shippingCharge)} shipping</p>
+                        <p className="font-body text-[10px] text-on-surface-variant/40 mt-0.5">+ {formatPrice(shippingCharge)} shipping</p>
                       )}
                     </div>
                   </div>
@@ -512,11 +551,11 @@ export default function CartPage() {
                     <div className="space-y-2">
                       <div className="flex items-start gap-2 bg-[#f9f9f9] border border-[#ebebeb] rounded-[14px] p-3">
                         <ShieldCheck size={16} strokeWidth={1.8} className="text-[#aaa] mt-0.5 shrink-0" />
-                        <p className="text-[12px] text-[#888] leading-relaxed">
+                        <p className="font-body text-[12px] text-[#888] leading-relaxed">
                           Online checkout is temporarily paused while we integrate our secure payment gateway.
                         </p>
                       </div>
-                      <div className="w-full py-4 bg-[#e8e8e8] text-[#aaa] text-[13px] font-semibold rounded-[14px] flex items-center justify-center cursor-not-allowed">
+                      <div className="w-full py-4 bg-[#e8e8e8] text-[#aaa] font-body text-[13px] font-semibold rounded-[14px] flex items-center justify-center cursor-not-allowed">
                         Checkout Unavailable
                       </div>
                     </div>
@@ -525,19 +564,19 @@ export default function CartPage() {
                       <motion.div whileTap={{ scale: 0.98 }}>
                         <Link
                           href="/checkout"
-                          className="group w-full py-4 bg-primary text-on-primary text-[13px] font-semibold rounded-[14px] grid grid-cols-[1fr_auto_1fr] items-center px-4 hover:bg-[#9d4d6e] active:bg-[#8a3a5e] active:scale-[0.98] transition-all duration-200 shadow-sm"
+                          className="group w-full py-4 bg-primary text-on-primary font-body text-[13px] font-semibold rounded-[14px] grid grid-cols-[1fr_auto_1fr] items-center px-4 hover:bg-[#9d4d6e] active:bg-[#8a3a5e] active:scale-[0.98] transition-all duration-200 shadow-sm"
                         >
                           <span />
                           <span className="text-center">Proceed to Checkout</span>
                           <div className="flex items-center justify-end gap-1 opacity-50 group-hover:opacity-75 transition-opacity">
                             <ShieldCheck size={13} strokeWidth={2} />
-                            <span className="text-[10px] font-normal">Secure</span>
+                            <span className="font-body text-[10px] font-normal">Secure</span>
                           </div>
                         </Link>
                       </motion.div>
-                      <p className="text-center text-[11px] text-[#bbb] font-medium">
+                      <p className="font-body text-center text-[11px] text-on-surface-variant/40 font-medium">
                         Continue Shopping —{" "}
-                        <Link href="/products" className="text-[#888] underline underline-offset-2 hover:text-[#555] transition-colors">
+                        <Link href="/products" className="text-on-surface-variant underline underline-offset-2 hover:text-[#555] transition-colors">
                           browse products
                         </Link>
                       </p>
@@ -640,6 +679,11 @@ export default function CartPage() {
                     </motion.div>
                   ))}
                 </AnimatePresence>
+
+                {/* Dynamic similar products recommendation on desktop */}
+                <div className="mt-8">
+                  <RecommendedSection products={recommendations} onAdd={handleAddRecommended} />
+                </div>
               </div>
 
               {/* ── Order Summary sidebar ───────────────────────── */}
@@ -687,7 +731,7 @@ export default function CartPage() {
                 <div className="flex flex-col gap-1 py-[var(--spacing-stack-sm)] border-t border-outline-variant/30 mb-[var(--spacing-stack-lg)]">
                   <div className="flex justify-between items-center">
                     <span className="font-body text-[18px] leading-[1.6] text-on-surface">Estimated Total</span>
-                    <span className="font-display text-[22px] md:text-[24px] leading-[1.4] text-on-surface">
+                    <span className="font-body text-[22px] md:text-[24px] leading-[1.4] text-on-surface font-semibold">
                       {formatPrice(grandTotal)}
                     </span>
                   </div>
