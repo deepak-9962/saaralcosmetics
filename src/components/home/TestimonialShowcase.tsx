@@ -780,7 +780,7 @@ function FanTrack({ onOpenModal }: { onOpenModal: (item: LoopItem) => void }) {
                 }}
               >
                 {/* Avatar + Stars */}
-                <div style={{ display: "flex", alignItems: "center", justifyBox: "space-between", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <img
                     src={t.avatar}
                     alt={t.name}
