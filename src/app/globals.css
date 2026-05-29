@@ -267,18 +267,18 @@ body {
   50% { opacity: 0.55; }
 }
 @keyframes drift-1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(32px, -24px) scale(1.05); }
-  66% { transform: translate(-18px, 18px) scale(0.97); }
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(32px, -24px, 0) scale(1.05); }
+  66% { transform: translate3d(-18px, 18px, 0) scale(0.97); }
 }
 @keyframes drift-2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-28px, 32px) scale(1.08); }
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-28px, 32px, 0) scale(1.08); }
 }
 @keyframes drift-3 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  40% { transform: translate(20px, 28px) scale(1.04); }
-  75% { transform: translate(-30px, -14px) scale(0.98); }
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  40% { transform: translate3d(20px, 28px, 0) scale(1.04); }
+  75% { transform: translate3d(-30px, -14px, 0) scale(0.98); }
 }
 @keyframes marquee {
   from { transform: translateX(0); }
