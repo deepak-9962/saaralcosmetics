@@ -1012,12 +1012,134 @@ function SectionHeader() {
 }
 
 /* ─────────────────────────────────────────────
+   STATIC TESTIMONIAL SKELETON (Lightweight DOM)
+   Renders 3 featured static cards matching the footprint.
+───────────────────────────────────────────── */
+function TestimonialSkeleton() {
+  const featured = BASE.slice(0, 3);
+  const cardW = 302;
+  const height = CARD_H;
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: "28px",
+        flexWrap: "wrap",
+        width: "100%",
+        minHeight: `${PAD_TOP + CARD_H + MAX_Y + 28}px`,
+        padding: "0 20px",
+        position: "relative",
+      }}
+    >
+      {featured.map((t, idx) => {
+        const p = PALETTES[idx % PALETTES.length];
+        return (
+          <div
+            key={`skeleton-${t.id}`}
+            className={idx > 0 ? "hidden md:flex" : "flex"}
+            style={{
+              width: `${cardW}px`,
+              height: `${height}px`,
+              background: p.bg,
+              borderRadius: "20px",
+              flexDirection: "column",
+              overflow: "hidden",
+              boxShadow:
+                "0 16px 48px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.55)",
+              padding: "22px 22px 16px",
+              justifyContent: "space-between",
+              opacity: idx === 0 ? 1 : idx === 1 ? 0.8 : 0.6,
+              transform: idx === 1 ? "scale(0.97)" : idx === 2 ? "scale(0.94)" : "none",
+            }}
+          >
+            {/* Body */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "11px", flexGrow: 1, minHeight: 0 }}>
+              {/* Avatar + Stars */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <img
+                  src={t.avatar}
+                  alt={t.name}
+                  width={42}
+                  height={42}
+                  style={{
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    boxShadow: "0 0 0 2.5px rgba(255,255,255,0.75), 0 3px 10px rgba(0,0,0,0.1)",
+                  }}
+                  loading="eager"
+                />
+                <StarRating count={t.rating} color={p.ctaColor} />
+              </div>
+
+              {/* Name & Location */}
+              <div>
+                <h3 style={{ fontFamily: "var(--font-body)", fontSize: "14px", fontWeight: 600, color: "#2B1E1B", margin: 0 }}>
+                  {t.name}
+                </h3>
+                <p style={{ fontFamily: "var(--font-body)", fontSize: "11px", fontWeight: 500, color: p.sub, margin: "2px 0 0" }}>
+                  {t.location}
+                </p>
+              </div>
+
+              {/* Quote */}
+              <p
+                style={{
+                  fontFamily: "var(--font-body)",
+                  fontSize: "12px",
+                  lineHeight: 1.6,
+                  color: "#3E2A25",
+                  opacity: 0.85,
+                  margin: 0,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 7,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                "{t.quote}"
+              </p>
+            </div>
+
+            {/* Footer Tag */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "14px" }}>
+              {t.products.slice(0, 2).map((prod) => (
+                <span
+                  key={prod}
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: "9px",
+                    fontWeight: 600,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    color: p.tagText,
+                    background: p.tagBg,
+                    padding: "4px 8px",
+                    borderRadius: "6px",
+                  }}
+                >
+                  {prod}
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
    ROOT SECTION EXPORT
-   Manages modal state — AnimatePresence ensures
-   smooth exit animation when modal closes.
+   Manages modal state and deferred carousel mounting.
 ───────────────────────────────────────────── */
 export default function TestimonialShowcase() {
   const [modalItem, setModalItem] = useState<LoopItem | null>(null);
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Restore scroll position when user navigates back to homepage
   useEffect(() => {
@@ -1033,8 +1155,30 @@ export default function TestimonialShowcase() {
     }
   }, []);
 
+  // IntersectionObserver to dynamically load carousel when user scrolls close
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHasInteracted(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "300px" } // trigger 300px before reaching viewport
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   return (
     <section
+      ref={containerRef}
       aria-label="Customer testimonials"
       style={{
         position: "relative",
@@ -1078,7 +1222,11 @@ export default function TestimonialShowcase() {
 
       <div style={{ height: "clamp(36px, 4.5vw, 60px)" }} />
 
-      <FanTrack onOpenModal={setModalItem} />
+      {hasInteracted ? (
+        <FanTrack onOpenModal={setModalItem} />
+      ) : (
+        <TestimonialSkeleton />
+      )}
 
       {/* Scroll hint */}
       <motion.div
