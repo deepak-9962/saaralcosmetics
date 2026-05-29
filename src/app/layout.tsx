@@ -78,14 +78,24 @@ export default function RootLayout({
         {/* Google Fonts preconnect — eliminates DNS/TCP latency */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Material Symbols — load NON-BLOCKING (media print trick) so it never delays FCP */}
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
+          id="material-symbols"
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           media="print"
-          // @ts-ignore
-          onLoad="this.media='all'"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var link = document.getElementById('material-symbols');
+                if (link) {
+                  link.onload = function() { this.media = 'all'; };
+                  if (link.sheet) link.media = 'all';
+                }
+              } catch (e) {}
+            `
+          }}
         />
         {/* noscript fallback — icons visible even without JS */}
         <noscript>
