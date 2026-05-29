@@ -255,12 +255,12 @@ body {
    ANIMATION KEYFRAMES
    ============================================ */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-16px); }
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -16px, 0); }
 }
 @keyframes float-slow {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-24px) rotate(2deg); }
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(0, -24px, 0) rotate(2deg); }
 }
 @keyframes pulse-soft {
   0%, 100% { opacity: 0.3; }
@@ -281,22 +281,22 @@ body {
   75% { transform: translate3d(-30px, -14px, 0) scale(0.98); }
 }
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
 }
 @keyframes luxury-marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
 }
 @keyframes shimmer-ribbon {
-  0%   { transform: translateX(-120%); opacity: 0; }
+  0%   { transform: translate3d(-120%, 0, 0); opacity: 0; }
   12%  { opacity: 1; }
   88%  { opacity: 1; }
-  100% { transform: translateX(380%); opacity: 0; }
+  100% { transform: translate3d(380%, 0, 0); opacity: 0; }
 }
 @keyframes scroll-bounce {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(7px); }
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, 7px, 0); }
 }
 @keyframes whatsapp-pulse {
   0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.5); }
@@ -308,24 +308,24 @@ body {
   100% { background-position: 200% center; }
 }
 @keyframes petal-spin {
-  0% { transform: rotate(0deg) translateY(-8px); }
-  100% { transform: rotate(360deg) translateY(-8px); }
+  0% { transform: translate3d(0, -8px, 0) rotate(0deg); }
+  100% { transform: translate3d(0, -8px, 0) rotate(360deg); }
 }
 @keyframes bubble-float-1 {
-  0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
-  25% { transform: translateY(-12px) translateX(6px) scale(1.04); }
-  50% { transform: translateY(-20px) translateX(-4px) scale(0.97); }
-  75% { transform: translateY(-8px) translateX(8px) scale(1.02); }
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  25% { transform: translate3d(6px, -12px, 0) scale(1.04); }
+  50% { transform: translate3d(-4px, -20px, 0) scale(0.97); }
+  75% { transform: translate3d(8px, -8px, 0) scale(1.02); }
 }
 @keyframes bubble-float-2 {
-  0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
-  33% { transform: translateY(-16px) translateX(-8px) scale(1.06); }
-  66% { transform: translateY(-6px) translateX(10px) scale(0.95); }
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(-8px, -16px, 0) scale(1.06); }
+  66% { transform: translate3d(10px, -6px, 0) scale(0.95); }
 }
 @keyframes bubble-float-3 {
-  0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
-  40% { transform: translateY(-24px) translateX(5px) scale(1.03); }
-  80% { transform: translateY(-10px) translateX(-6px) scale(0.98); }
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  40% { transform: translate3d(5px, -24px, 0) scale(1.03); }
+  80% { transform: translate3d(-6px, -10px, 0) scale(0.98); }
 }
 @keyframes golden-shimmer {
   0%, 100% { opacity: 0.4; filter: brightness(1); }
@@ -486,11 +486,11 @@ body {
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translate3d(0, 20px, 0);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 

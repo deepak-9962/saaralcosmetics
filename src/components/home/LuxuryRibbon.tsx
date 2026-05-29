@@ -85,6 +85,8 @@ const LuxuryParticles = memo(function LuxuryParticles() {
             opacity: 0.45 + (i % 4) * 0.08,
             filter: "blur(0.6px)",
             animation: `${anims[p.tint]} ${p.dur} ease-in-out ${p.del} infinite`,
+            willChange: "transform",
+            pointerEvents: "none",
           }}
         />
       ))}
@@ -114,6 +116,7 @@ const ShimmerSweep = memo(function ShimmerSweep() {
           opacity: "var(--shimmer-1)",
           transition: "opacity 0.7s ease",
           pointerEvents: "none",
+          willChange: "transform",
         }}
       />
       {/* secondary delayed sweep */}
@@ -130,6 +133,7 @@ const ShimmerSweep = memo(function ShimmerSweep() {
           opacity: "var(--shimmer-2)",
           transition: "opacity 0.7s ease",
           pointerEvents: "none",
+          willChange: "transform",
         }}
       />
     </div>

@@ -4,10 +4,7 @@ export default function GradientBackground() {
       aria-hidden="true"
       style={{
         position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
+        inset: 0,
         overflow: "hidden",
         zIndex: -10,
         pointerEvents: "none",
@@ -19,6 +16,7 @@ export default function GradientBackground() {
         style={{
           animation: "drift-1 14s ease-in-out infinite",
           willChange: "transform",
+          pointerEvents: "none",
         }}
       />
       {/* Bottom-right — lavender/purple */}
@@ -27,6 +25,7 @@ export default function GradientBackground() {
         style={{
           animation: "drift-2 18s ease-in-out infinite",
           willChange: "transform",
+          pointerEvents: "none",
         }}
       />
       {/* Centre — quartz blush pink */}
@@ -35,6 +34,7 @@ export default function GradientBackground() {
         style={{
           animation: "drift-3 20s ease-in-out infinite",
           willChange: "transform",
+          pointerEvents: "none",
         }}
       />
       {/* Left-mid — wisteria purple pastel */}
@@ -43,6 +43,7 @@ export default function GradientBackground() {
         style={{
           animation: "drift-2 22s ease-in-out infinite reverse",
           willChange: "transform",
+          pointerEvents: "none",
         }}
       />
       {/* Top-right corner — lilac touch */}
@@ -51,6 +52,7 @@ export default function GradientBackground() {
         style={{
           animation: "drift-1 25s ease-in-out infinite reverse",
           willChange: "transform",
+          pointerEvents: "none",
         }}
       />
     </div>

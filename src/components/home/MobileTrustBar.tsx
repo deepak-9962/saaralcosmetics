@@ -66,8 +66,8 @@ export default function MobileTrustBar() {
       <style dangerouslySetInnerHTML={{
         __html: `
           @keyframes mobile-trust-marquee {
-            from { transform: translateX(0); }
-            to   { transform: translateX(-50%); }
+            from { transform: translate3d(0, 0, 0); }
+            to   { transform: translate3d(-50%, 0, 0); }
           }
         `
       }} />

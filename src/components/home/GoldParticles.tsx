@@ -25,6 +25,7 @@ export default function GoldParticles() {
             background: "radial-gradient(circle, rgba(255,238,190,0.85) 0%, rgba(201,167,77,0.12) 80%)",
             boxShadow: "0 0 8px rgba(255,225,160,0.35)",
             zIndex: 15,
+            willChange: "transform",
           }}
           animate={{
             y: [-14, 14, -14],

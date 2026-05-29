@@ -21,6 +21,7 @@ const GoldShimmer = memo(function GoldShimmer() {
             "linear-gradient(90deg, transparent 0%, rgba(255,248,218,0.20) 48%, rgba(255,252,230,0.12) 55%, transparent 100%)",
           animation: "shimmer-ribbon 13s ease-in-out 2s infinite",
           pointerEvents: "none",
+          willChange: "transform",
         }}
       />
       {/* Secondary delayed sweep */}
@@ -35,6 +36,7 @@ const GoldShimmer = memo(function GoldShimmer() {
             "linear-gradient(90deg, transparent 0%, rgba(201,167,77,0.09) 50%, transparent 100%)",
           animation: "shimmer-ribbon 13s ease-in-out 8.5s infinite",
           pointerEvents: "none",
+          willChange: "transform",
         }}
       />
     </div>
