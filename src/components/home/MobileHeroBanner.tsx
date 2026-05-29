@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 /* ─────────────────────────────────────────────
    SLIDE DATA — uses existing /public/images assets
@@ -9,7 +10,8 @@ import Link from "next/link";
 const slides = [
   {
     id: "heritage",
-    image: "/images/hero.webp",
+    imageAvif: "/images/hero-mobile.avif",
+    imageWebp: "/images/hero-mobile.webp",
     imagePng: "/images/hero.png",
     eyebrow: "Apothecary Heritage",
     headline: "Luxury Skincare,\nRooted in Nature.",
@@ -24,7 +26,8 @@ const slides = [
   },
   {
     id: "banner2",
-    image: "/images/saaral-banner-2.webp",
+    imageAvif: "/images/saaral-banner-2.avif",
+    imageWebp: "/images/saaral-banner-2.webp",
     imagePng: "/images/saaral-banner-2.png",
     eyebrow: "New Collection",
     headline: "Glow Naturally\nThis Season.",
@@ -39,7 +42,8 @@ const slides = [
   },
   {
     id: "banner3",
-    image: "/images/saaral-banner-3.webp",
+    imageAvif: "/images/saaral-banner-3.avif",
+    imageWebp: "/images/saaral-banner-3.webp",
     imagePng: "/images/saaral-banner-3.png",
     eyebrow: "Herbal Ritual",
     headline: "Herbal Radiance,\nEvery Day.",
@@ -119,15 +123,18 @@ export default function MobileHeroBanner() {
           aria-hidden={i !== active}
         >
           {/* Background image */}
-          <picture className="absolute inset-0 block w-full h-full">
-            <source srcSet={s.image} type="image/webp" />
-            <img
-              src={s.imagePng}
-              alt=""
-              className="w-full h-full object-cover object-center"
+          <div className="absolute inset-0 block w-full h-full">
+            <Image
+              src={s.imageAvif}
+              alt="Saaral Cosmetics"
+              priority={i === 0}
+              fetchPriority={i === 0 ? "high" : "low"}
+              fill
+              sizes="(max-width: 768px) 100vw, 100vw"
+              className="object-cover object-center"
               style={{ pointerEvents: "none", userSelect: "none" }}
             />
-          </picture>
+          </div>
 
           {/* Gradient overlay — bottom-up for text legibility */}
           <div

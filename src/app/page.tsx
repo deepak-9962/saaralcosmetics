@@ -160,15 +160,16 @@ export default async function HomePage() {
         >
           {/* Hero Background Image - Scaled to fit height, aligned right-bottom to show full reflection */}
           <div className="absolute inset-0 pointer-events-none select-none" style={{ transform: "translateX(3.5%)" }}>
-            <picture className="absolute right-0 bottom-0 h-full w-auto block">
-              <source srcSet="/images/hero.avif" type="image/avif" />
-              <source srcSet="/images/hero.webp" type="image/webp" />
-              <img
-                src="/images/hero.png"
-                alt=""
-                className="h-full w-auto object-contain object-right-bottom"
-              />
-            </picture>
+            <Image
+              src="/images/hero.avif"
+              alt="Saaral Cosmetics"
+              priority
+              fetchPriority="high"
+              fill
+              sizes="(min-width: 768px) 50vw, 100vw"
+              className="object-contain object-right-bottom"
+              style={{ pointerEvents: "none", userSelect: "none" }}
+            />
           </div>
 
           {/* Left-to-Right Blend Gradient Overlay */}
@@ -432,7 +433,7 @@ export default async function HomePage() {
               <FadeIn className="relative order-1 md:order-1" {...fadeUp(0)}>
                 <div className="relative aspect-[4/5] md:aspect-[3/4] rounded-3xl overflow-hidden">
                   <Image
-                    src="/images/card3.webp"
+                    src="/images/card3.avif"
                     alt="Premium skincare products — collection by Saaral Cosmetics"
                     fill
                     className="object-cover object-right"
