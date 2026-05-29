@@ -50,6 +50,34 @@ export default function RootLayout({
     <html lang="en" className="light" suppressHydrationWarning>
       <head>
         <meta name="color-scheme" content="only light" />
+        {/* Hero image preloads — browser fetches before JS executes, fixing NO_LCP */}
+        {/* Mobile hero (below 768px) */}
+        <link
+          rel="preload"
+          as="image"
+          href="/images/hero-mobile.avif"
+          type="image/avif"
+          media="(max-width: 767px)"
+          // @ts-expect-error — fetchpriority is valid HTML but not yet in React typedefs
+          fetchpriority="high"
+        />
+        <link
+          rel="preload"
+          as="image"
+          href="/images/hero-mobile.webp"
+          type="image/webp"
+          media="(max-width: 767px)"
+        />
+        {/* Desktop hero (768px and above) */}
+        <link
+          rel="preload"
+          as="image"
+          href="/images/hero.avif"
+          type="image/avif"
+          media="(min-width: 768px)"
+          // @ts-expect-error — fetchpriority is valid HTML but not yet in React typedefs
+          fetchpriority="high"
+        />
         {/* Material Symbols Outlined */}
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
