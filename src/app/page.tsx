@@ -471,22 +471,6 @@ export default async function HomePage() {
 
             </div>
           </div>
-
-          {/* Elegant soft curve divider at bottom */}
-          <div className="absolute bottom-0 left-0 w-full pointer-events-none" aria-hidden="true">
-            <svg
-              viewBox="0 0 1440 60"
-              xmlns="http://www.w3.org/2000/svg"
-              preserveAspectRatio="none"
-              className="block w-full"
-              style={{ height: "clamp(42px, 6vw, 60px)" }}
-            >
-              <path
-                d="M0,60 C360,0 1080,0 1440,60 L1440,60 L0,60 Z"
-                fill="#FAF0EE"
-              />
-            </svg>
-          </div>
         </section>
 
 

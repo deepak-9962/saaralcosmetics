@@ -2,6 +2,33 @@
 
 import { useRef, useEffect, useState } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+
+const getProductLink = (name: string) => {
+  const cleanName = name.trim().toLowerCase();
+  
+  if (cleanName.includes("pigmentation cream")) {
+    return "/products/saaral-anti-aging-pigmentation-cream-15g";
+  }
+  if (cleanName.includes("sangupoo face wash")) {
+    return "/products/butterfly-pea-facewash-sangoo-poo";
+  }
+  if (cleanName.includes("skin whitening cream")) {
+    return "/products/saaral-skin-whitening-cream-15g";
+  }
+  if (cleanName.includes("redwine face wash")) {
+    return "/products/redwine-facewash";
+  }
+  if (cleanName.includes("sangupoo soap")) {
+    return "/products?category=soap";
+  }
+  
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+  return `/products/${slug}`;
+};
 
 /* ─────────────────────────────────────────────
    7 PASTEL PALETTES
@@ -114,6 +141,87 @@ const BASE = [
     quote:
       "Hii mam, very nice product. Love you mam. All super. Yellow products use panniruken, no use. Unga products pola nice ah illa. Happy.",
     products: ["Skin Whitening Cream", "Pigmentation Cream", "Redwine Face Wash", "Sangupoo Soap"],
+  },
+  {
+    id: 11,
+    name: "Amaravathi",
+    location: "Ramapuram",
+    rating: 5,
+    avatar: "https://api.dicebear.com/9.x/lorelei/svg?seed=amaravathi2024&backgroundColor=b8edd8",
+    quote: "Mam really thank you. Skin la nalla change irukku. Enaku skin romba dry ah irukkum, but ipo romba smooth agiruchi. Pimples also kammi agi irukku. 😊✨",
+    products: ["Skin Whitening Cream"],
+  },
+  {
+    id: 12,
+    name: "Malar Sarathi",
+    location: "Chengalpattu",
+    rating: 5,
+    avatar: "https://api.dicebear.com/9.x/lorelei/svg?seed=malarsarathi2024&backgroundColor=ffecc8",
+    quote: "3 days tha use panen. Unga cream super ah work aguthu mam. 7 days result ku wait panren mam. Thank you 😊",
+    products: ["Skin Whitening Cream", "Pigmentation Cream"],
+  },
+  {
+    id: 13,
+    name: "Saranya",
+    location: "Tiruppur",
+    rating: 5,
+    avatar: "https://api.dicebear.com/9.x/lorelei/svg?seed=saranya2024&backgroundColor=fccfda",
+    quote: "Sis, your product gives amazing results. Super! I could see changes within just 4 days. Thank you!\n\nEven my daughter says, ‘Mom, you look brighter now.’",
+    products: ["Skin Whitening Cream"],
+  },
+  {
+    id: 14,
+    name: "I. Lidiya Isaacraja",
+    location: "Thanjavur",
+    rating: 5,
+    avatar: "https://api.dicebear.com/9.x/lorelei/svg?seed=lidiya2024&backgroundColor=c8e8d0",
+    quote: "Na use panni 7 days la best result eruku mam. Super cream. Regular ah night time use panna best result irukku. Face la iruka pimples koranchiruku. Super best cream mam. Unga product enaku romba romba pidichiruku. Pigmentation Cream, Whitening Cream, Sangupoo Face Wash ellame best result kuduthuchu. Super. Thank you so much mam.",
+    products: ["Skin Whitening Cream", "Pigmentation Cream", "Sangupoo Face Wash"],
+  },
+  {
+    id: 15,
+    name: "Manju Sugumar",
+    location: "Dharmapuri",
+    rating: 5,
+    avatar: "https://api.dicebear.com/9.x/lorelei/svg?seed=manju2024&backgroundColor=c8deff",
+    quote: "Unga cream very super mam. Delivery ku apram skin romba surukkam vilura mathiri irunthuchi. Baby irukarathunala continue ah use panna mudila. Weekly 3 or 4 times tha use pannen. Aana good results mam. Thank you 🤝",
+    products: ["Skin Whitening Cream", "Pigmentation Cream", "Redwine Face Wash"],
+  },
+  {
+    id: 16,
+    name: "Anjali Vishnu",
+    location: "Haryana",
+    rating: 5,
+    avatar: "https://api.dicebear.com/9.x/lorelei/svg?seed=anjali2024&backgroundColor=ffd9b8",
+    quote: "Mam, unga cream 3 months use panra mam. Ennoda face and neck use panna vera level changes mam. I am so happy 🥰. Ennoda skin romba smooth and classy erukku mam. Romba thanks mam. Ippo ennoda sister ku venum mam. Ennoda address ku Whitening Cream, Pigmentation Cream and Redwine Face Wash send pannidunga mam.",
+    products: ["Skin Whitening Cream", "Redwine Face Wash"],
+  },
+  {
+    id: 17,
+    name: "Vinoda",
+    location: "Karnataka",
+    rating: 5,
+    avatar: "https://api.dicebear.com/9.x/lorelei/svg?seed=vinoda2024&backgroundColor=d4cafe",
+    quote: "Akka romba romba thank you akka. Ennoda face parunga akka, evlo clear ayruku nu. Kannu ku keela romba block ayrunchi akka, ippo kammi ayruku. Romba thank you akka. All good Saaral products akka.",
+    products: ["Pigmentation Cream", "Skin Whitening Cream", "Redwine Face Wash"],
+  },
+  {
+    id: 18,
+    name: "Kavitha",
+    location: "Mumbai",
+    rating: 5,
+    avatar: "https://api.dicebear.com/9.x/lorelei/svg?seed=kavitha22024&backgroundColor=b8edd8",
+    quote: "I was actually scared to buy the Pigmentation Cream and Whitening Cream at first, mam. I kept thinking whether to buy it or not. But my friend had already purchased from you earlier and referred me, so I decided to try it. After seeing your customer reviews, I got some confidence and placed the order.\n\nHonestly mam, I never even expected I would get such amazing results 😍. Now after seeing my results, even my husband has started using the cream.\n\nThank you so much mam ❤️. Your products are truly worth the money. The quality and results are really excellent. I now have complete trust in your products 🙏.\n\nI’m sending my before & after photos mam, please have a look 😍.",
+    products: ["Skin Whitening Cream", "Pigmentation Cream"],
+  },
+  {
+    id: 19,
+    name: "Rooba",
+    location: "Mysore",
+    rating: 5,
+    avatar: "https://api.dicebear.com/9.x/lorelei/svg?seed=rooba2024&backgroundColor=ffecc8",
+    quote: "Mam, the creams I bought are very nice. Around 10 days before, I got pimples on my face and also had itching. Within a week, it got cleared.\n\nThank you so much ❤️.",
+    products: ["Skin Whitening Cream", "Pigmentation Cream", "Redwine Face Wash"],
   },
 ];
 
@@ -380,8 +488,12 @@ function TestimonialModal({
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
               {item.products.map((prod) => (
-                <span
+                <Link
                   key={prod}
+                  href={getProductLink(prod)}
+                  onClick={() => {
+                    sessionStorage.setItem("saaral_scroll_pos", window.scrollY.toString());
+                  }}
                   style={{
                     fontFamily: "var(--font-body)",
                     fontSize: "12px",
@@ -391,10 +503,22 @@ function TestimonialModal({
                     borderRadius: "999px",
                     padding: "5px 14px",
                     whiteSpace: "nowrap",
+                    textDecoration: "none",
+                    transition: "transform 0.2s ease, filter 0.2s ease",
+                    cursor: "pointer",
+                    display: "inline-block",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1.05)";
+                    (e.currentTarget as HTMLAnchorElement).style.filter = "brightness(0.96)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLAnchorElement).style.transform = "none";
+                    (e.currentTarget as HTMLAnchorElement).style.filter = "none";
                   }}
                 >
                   {prod}
-                </span>
+                </Link>
               ))}
             </div>
           </div>
@@ -447,7 +571,17 @@ function FanTrack({ onOpenModal }: { onOpenModal: (item: LoopItem) => void }) {
   const lastTimeRef   = useRef<number | null>(null);
   const offsetRef     = useRef(0);
   const isPausedRef   = useRef(false);
-  const N = LOOP.length; // 30
+  const N = LOOP.length; // 19 * 3 = 57
+
+  // Dragging and Touch Swipe References
+  const isDraggingRef = useRef(false);
+  const startXRef     = useRef(0);
+  const startOffsetRef = useRef(0);
+  const dragVelocityRef = useRef(0);
+  const lastDragXRef  = useRef(0);
+  const lastDragTimeRef = useRef(0);
+  const dragDistanceRef = useRef(0);
+  const inertiaVelocityRef = useRef(0);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -466,10 +600,18 @@ function FanTrack({ onOpenModal }: { onOpenModal: (item: LoopItem) => void }) {
       const TOTAL    = N * cardStep;
       const maxDist  = cardStep * 2.35;
 
-      /* Only advance when not hovered */
-      if (!isPausedRef.current) {
+      /* Apply auto-scroll or inertia or keep frozen if dragging */
+      if (isDraggingRef.current) {
+        // Updated in real-time by move handlers
+      } else if (Math.abs(inertiaVelocityRef.current) > 0.5) {
+        offsetRef.current = (offsetRef.current + (inertiaVelocityRef.current * dt) / 1000) % TOTAL;
+        inertiaVelocityRef.current *= 0.94; // Decay
+      } else if (!isPausedRef.current) {
         offsetRef.current = (offsetRef.current + (SPEED * dt) / 1000) % TOTAL;
       }
+
+      // Safe bounds
+      offsetRef.current = (offsetRef.current + TOTAL) % TOTAL;
 
       const kids = container.children;
 
@@ -513,20 +655,85 @@ function FanTrack({ onOpenModal }: { onOpenModal: (item: LoopItem) => void }) {
     };
   }, []);
 
+  const handleStart = (clientX: number) => {
+    isDraggingRef.current = true;
+    startXRef.current = clientX;
+    startOffsetRef.current = offsetRef.current;
+    lastDragXRef.current = clientX;
+    lastDragTimeRef.current = performance.now();
+    dragVelocityRef.current = 0;
+    inertiaVelocityRef.current = 0;
+    dragDistanceRef.current = 0;
+    isPausedRef.current = true;
+    if (containerRef.current) containerRef.current.style.cursor = "grabbing";
+  };
+
+  const handleMove = (clientX: number) => {
+    if (!isDraggingRef.current) return;
+    const deltaX = clientX - startXRef.current;
+    dragDistanceRef.current += Math.abs(clientX - lastDragXRef.current);
+
+    const container = containerRef.current;
+    if (!container) return;
+    const W = container.offsetWidth;
+    const cardW = W < 480 ? Math.min(240, W * 0.78) : W < 768 ? 262 : W < 1024 ? 282 : 302;
+    const cardStep = cardW + Math.round(W * 0.055 + 24);
+    const TOTAL = N * cardStep;
+
+    offsetRef.current = ((startOffsetRef.current - deltaX) % TOTAL + TOTAL) % TOTAL;
+
+    const now = performance.now();
+    const dt = now - lastDragTimeRef.current;
+    if (dt > 10) {
+      const dx = clientX - lastDragXRef.current;
+      dragVelocityRef.current = (dx / dt) * 1000;
+      lastDragXRef.current = clientX;
+      lastDragTimeRef.current = now;
+    }
+  };
+
+  const handleEnd = () => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    isPausedRef.current = false;
+    if (containerRef.current) containerRef.current.style.cursor = "grab";
+
+    if (Math.abs(dragVelocityRef.current) > 100) {
+      inertiaVelocityRef.current = -dragVelocityRef.current;
+    }
+
+    setTimeout(() => {
+      dragDistanceRef.current = 0;
+    }, 50);
+  };
+
   return (
     <div
       ref={containerRef}
       role="region"
       aria-label="Customer testimonials carousel"
-      onMouseEnter={() => { isPausedRef.current = true; }}
-      onMouseLeave={() => { isPausedRef.current = false; }}
+      onMouseEnter={() => { if (!isDraggingRef.current) isPausedRef.current = true; }}
+      onMouseLeave={() => {
+        if (!isDraggingRef.current) isPausedRef.current = false;
+        handleEnd();
+      }}
+      onMouseDown={(e) => {
+        // Only left click triggers drag
+        if (e.button === 0) handleStart(e.pageX);
+      }}
+      onMouseMove={(e) => handleMove(e.pageX)}
+      onMouseUp={handleEnd}
+      onTouchStart={(e) => handleStart(e.touches[0].pageX)}
+      onTouchMove={(e) => handleMove(e.touches[0].pageX)}
+      onTouchEnd={handleEnd}
       style={{
         position: "relative",
         width: "100%",
         height: `${PAD_TOP + CARD_H + MAX_Y + 28}px`,
         overflow: "hidden",
         userSelect: "none",
-        cursor: "default",
+        cursor: "grab",
+        touchAction: "pan-y",
       }}
     >
       {LOOP.map((t, i) => {
@@ -573,7 +780,7 @@ function FanTrack({ onOpenModal }: { onOpenModal: (item: LoopItem) => void }) {
                 }}
               >
                 {/* Avatar + Stars */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyBox: "space-between", justifyContent: "space-between" }}>
                   <img
                     src={t.avatar}
                     alt={t.name}
@@ -641,10 +848,19 @@ function FanTrack({ onOpenModal }: { onOpenModal: (item: LoopItem) => void }) {
                 </blockquote>
 
                 {/* Product tags */}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "auto", paddingTop: "4px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "auto", paddingTop: "4px", pointerEvents: "auto" }}>
                   {t.products.map((prod) => (
-                    <span
+                    <Link
                       key={prod}
+                      href={getProductLink(prod)}
+                      onClick={(e) => {
+                        if (dragDistanceRef.current > 15) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          return;
+                        }
+                        sessionStorage.setItem("saaral_scroll_pos", window.scrollY.toString());
+                      }}
                       style={{
                         fontFamily: "var(--font-body)",
                         fontSize: "11px",
@@ -654,10 +870,23 @@ function FanTrack({ onOpenModal }: { onOpenModal: (item: LoopItem) => void }) {
                         borderRadius: "999px",
                         padding: "4px 11px",
                         whiteSpace: "nowrap",
+                        textDecoration: "none",
+                        cursor: "pointer",
+                        pointerEvents: "auto",
+                        transition: "transform 0.2s ease, filter 0.2s ease",
+                        display: "inline-block",
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1.05)";
+                        (e.currentTarget as HTMLAnchorElement).style.filter = "brightness(0.96)";
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLAnchorElement).style.transform = "none";
+                        (e.currentTarget as HTMLAnchorElement).style.filter = "none";
                       }}
                     >
                       {prod}
-                    </span>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -671,7 +900,14 @@ function FanTrack({ onOpenModal }: { onOpenModal: (item: LoopItem) => void }) {
                 role="button"
                 tabIndex={0}
                 aria-label={`Read full review by ${t.name}`}
-                onClick={() => onOpenModal(t)}
+                onClick={(e) => {
+                  if (dragDistanceRef.current > 15) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                  }
+                  onOpenModal(t);
+                }}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onOpenModal(t); }}
                 style={{
                   borderTop: `1.5px solid ${p.divider}`,
@@ -783,6 +1019,20 @@ function SectionHeader() {
 export default function TestimonialShowcase() {
   const [modalItem, setModalItem] = useState<LoopItem | null>(null);
 
+  // Restore scroll position when user navigates back to homepage
+  useEffect(() => {
+    const savedPos = sessionStorage.getItem("saaral_scroll_pos");
+    if (savedPos) {
+      sessionStorage.removeItem("saaral_scroll_pos");
+      setTimeout(() => {
+        window.scrollTo({
+          top: parseInt(savedPos, 10),
+          behavior: "instant",
+        });
+      }, 150);
+    }
+  }, []);
+
   return (
     <section
       aria-label="Customer testimonials"
@@ -798,6 +1048,25 @@ export default function TestimonialShowcase() {
         overflow: "hidden",
       }}
     >
+      {/* Curved top divider matching the editorial section background above */}
+      <div className="absolute left-0 w-full pointer-events-none" style={{ top: "-1px", height: "clamp(42px, 6vw, 60px)", zIndex: 10 }} aria-hidden="true">
+        <svg
+          viewBox="0 0 1440 60"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="none"
+          className="block w-full h-full"
+          style={{ transform: "scaleY(1.03)" }}
+        >
+          <path
+            d="M0,0 L0,60 C360,0 1080,0 1440,60 L1440,0 Z"
+            fill="#F1DFDA"
+            stroke="#F1DFDA"
+            strokeWidth="3.2"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+
       {/* Ambient blobs */}
       <div aria-hidden="true" style={{ position: "absolute", top: "-80px", left: "-60px", width: "480px", height: "480px", borderRadius: "50%", background: "radial-gradient(circle, rgba(183,131,143,0.06) 0%, transparent 70%)", filter: "blur(60px)", pointerEvents: "none" }} />
       <div aria-hidden="true" style={{ position: "absolute", bottom: "-100px", right: "-60px", width: "560px", height: "560px", borderRadius: "50%", background: "radial-gradient(circle, rgba(199,164,101,0.05) 0%, transparent 70%)", filter: "blur(70px)", pointerEvents: "none" }} />
