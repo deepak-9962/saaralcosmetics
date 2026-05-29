@@ -146,11 +146,11 @@ export default async function HomePage() {
         {/* ── MOBILE-ONLY: Fixed nav spacer (promo bar 28px + h-14 header row = 84px total) ── */}
         <div className="block md:hidden h-[84px]" aria-hidden="true" />
 
-        {/* ── MOBILE-ONLY: Category Discovery Scroll ── */}
-        <MobileCategoryScroll />
-
-        {/* ── MOBILE-ONLY: Premium Hero Banner Carousel ── */}
+        {/* ── MOBILE-ONLY: Premium Hero Banner Carousel — FIRST for LCP ── */}
         <MobileHeroBanner />
+
+        {/* ── MOBILE-ONLY: Category Discovery Scroll — below hero ── */}
+        <MobileCategoryScroll />
 
         {/* Desktop Hero (visible only on md and above) */}
         <section

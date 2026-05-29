@@ -99,10 +99,9 @@ export default function MobileHeroBanner() {
 
   return (
     <div
-      className="block md:hidden mx-4 mb-4 relative overflow-hidden"
+      className="block md:hidden w-full mb-3 relative overflow-hidden"
       style={{
-        height: "210px",
-        borderRadius: "18px",
+        height: "280px",
         background: "#1A0A05",
       }}
       ref={containerRef}

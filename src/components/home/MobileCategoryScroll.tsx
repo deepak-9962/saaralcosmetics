@@ -80,7 +80,7 @@ function CategoryCard({
             alt={cat.name}
             width={90}
             height={100}
-            priority
+            loading="lazy"
             className="object-contain object-bottom transition-transform duration-500 group-active:scale-105"
             style={{ maxHeight: "100px" }}
           />
