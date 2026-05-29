@@ -41,7 +41,7 @@ export default function BestsellersCarousel({ children }: BestsellersCarouselPro
         <button
           type="button"
           onClick={() => scrollBestsellers("left")}
-          className="h-10 w-10 rounded-full border border-outline-variant/50 bg-surface-container-lowest text-on-surface-variant flex items-center justify-center hover:border-outline hover:text-on-surface transition-colors cursor-pointer"
+          className="h-12 w-12 rounded-full border border-outline-variant/50 bg-surface-container-lowest text-on-surface-variant flex items-center justify-center hover:border-outline hover:text-on-surface transition-colors cursor-pointer"
           aria-label="Scroll bestsellers left"
         >
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
@@ -49,7 +49,7 @@ export default function BestsellersCarousel({ children }: BestsellersCarouselPro
         <button
           type="button"
           onClick={() => scrollBestsellers("right")}
-          className="h-10 w-10 rounded-full border border-outline-variant/50 bg-surface-container-lowest text-on-surface-variant flex items-center justify-center hover:border-outline hover:text-on-surface transition-colors cursor-pointer"
+          className="h-12 w-12 rounded-full border border-outline-variant/50 bg-surface-container-lowest text-on-surface-variant flex items-center justify-center hover:border-outline hover:text-on-surface transition-colors cursor-pointer"
           aria-label="Scroll bestsellers right"
         >
           <span className="material-symbols-outlined text-[20px]">arrow_forward</span>

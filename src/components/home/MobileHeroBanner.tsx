@@ -26,8 +26,8 @@ const slides = [
   },
   {
     id: "banner2",
-    imageAvif: "/images/saaral-banner-2.avif",
-    imageWebp: "/images/saaral-banner-2.webp",
+    imageAvif: "/images/saaral-banner-2-mobile.avif",
+    imageWebp: "/images/saaral-banner-2-mobile.webp",
     imagePng: "/images/saaral-banner-2.png",
     eyebrow: "New Collection",
     headline: "Glow Naturally\nThis Season.",
@@ -42,8 +42,8 @@ const slides = [
   },
   {
     id: "banner3",
-    imageAvif: "/images/saaral-banner-3.avif",
-    imageWebp: "/images/saaral-banner-3.webp",
+    imageAvif: "/images/saaral-banner-3-mobile.avif",
+    imageWebp: "/images/saaral-banner-3-mobile.webp",
     imagePng: "/images/saaral-banner-3.png",
     eyebrow: "Herbal Ritual",
     headline: "Herbal Radiance,\nEvery Day.",
@@ -250,8 +250,12 @@ export default function MobileHeroBanner() {
               border: "none",
               padding: 0,
               cursor: "pointer",
+              position: "relative",
             }}
-          />
+          >
+            {/* Expanded invisible tap target for mobile accessibility */}
+            <span style={{ position: "absolute", top: "-20px", bottom: "-20px", left: "-10px", right: "-10px" }} />
+          </button>
         ))}
       </div>
     </div>

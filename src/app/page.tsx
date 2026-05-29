@@ -12,9 +12,11 @@ import LuxuryRibbon from "@/components/home/LuxuryRibbon";
 import MobileHeroBanner from "@/components/home/MobileHeroBanner";
 import MobileCategoryScroll from "@/components/home/MobileCategoryScroll";
 import MobilePromoGrid from "@/components/home/MobilePromoGrid";
-import BestsellersCarousel from "@/components/home/BestsellersCarousel";
 import FadeIn from "@/components/layout/FadeIn";
-import TestimonialShowcase from "@/components/home/TestimonialShowcase";
+import dynamic from "next/dynamic";
+
+const BestsellersCarousel = dynamic(() => import("@/components/home/BestsellersCarousel"));
+const TestimonialShowcase = dynamic(() => import("@/components/home/TestimonialShowcase"));
 import { listProducts } from "@/lib/supabase/data";
 import { Product } from "@/lib/types";
 

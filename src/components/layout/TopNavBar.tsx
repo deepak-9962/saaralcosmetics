@@ -169,7 +169,7 @@ export default function TopNavBar() {
         {/* LEFT — Hamburger (mobile) / Logo+hamburger (desktop) */}
         <div className="flex items-center gap-2 md:gap-3">
           <button
-            className="md:hidden p-2 flex items-center justify-center cursor-pointer"
+            className="md:hidden w-11 h-11 flex items-center justify-center cursor-pointer"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
             aria-label="Toggle menu"
           >
@@ -226,7 +226,7 @@ export default function TopNavBar() {
                 router.push("/products");
               }
             }}
-            className="inline-flex items-center p-2 hover:bg-surface-container-high/50 rounded-full transition-all duration-200 active:scale-90 cursor-pointer"
+            className="inline-flex items-center justify-center w-11 h-11 hover:bg-surface-container-high/50 rounded-full transition-all duration-200 active:scale-90 cursor-pointer"
             aria-label="Search products"
           >
             <span className="material-symbols-outlined text-on-surface text-[24px]">
@@ -236,7 +236,7 @@ export default function TopNavBar() {
 
           <Link
             href="/wishlist"
-            className={`relative hidden md:inline-flex p-2 rounded-full transition-all duration-200 active:scale-90 ${
+            className={`relative hidden md:inline-flex w-11 h-11 items-center justify-center rounded-full transition-all duration-200 active:scale-90 ${
               wishlistActive
                 ? "text-primary bg-primary-container/30"
                 : "text-on-surface hover:bg-surface-container-high/50"
@@ -264,7 +264,7 @@ export default function TopNavBar() {
 
           <Link
             href="/cart"
-            className="relative inline-flex items-center p-2 hover:bg-surface-container-high/50 rounded-full transition-all duration-200 active:scale-90"
+            className="relative inline-flex items-center justify-center w-11 h-11 hover:bg-surface-container-high/50 rounded-full transition-all duration-200 active:scale-90"
             aria-label="Shopping cart"
           >
             <span className="material-symbols-outlined text-on-surface text-[24px]">
