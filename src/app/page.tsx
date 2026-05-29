@@ -14,6 +14,7 @@ import MobileCategoryScroll from "@/components/home/MobileCategoryScroll";
 import MobilePromoGrid from "@/components/home/MobilePromoGrid";
 import BestsellersCarousel from "@/components/home/BestsellersCarousel";
 import FadeIn from "@/components/layout/FadeIn";
+import TestimonialShowcase from "@/components/home/TestimonialShowcase";
 import { listProducts } from "@/lib/supabase/data";
 import { Product } from "@/lib/types";
 
@@ -45,12 +46,7 @@ const quickPromoTiles = [
   { title: "Gen Z Favourites", subtitle: "Trending Now", href: "/products", tone: "from-[#EFE8FA] to-[#F7F2FF]" },
 ];
 
-const ingredients = [
-  { name: "Turmeric", note: "Ancient Healer", description: "Used for centuries to brighten, soothe inflammation, and restore natural radiance.", icon: "spa", color: "#C9A74D" },
-  { name: "Rose", note: "Skin Brightener", description: "Tones, hydrates, and leaves skin with a delicate floral luminosity.", icon: "local_florist", color: "#B06080" },
-  { name: "Neem", note: "Anti-bacterial", description: "Nature's purifier — keeps pores clear and skin balanced.", icon: "eco", color: "#4A7C59" },
-  { name: "Aloe Vera", note: "Deep Hydrator", description: "Deeply moisturises while calming sensitivity and redness.", icon: "water_drop", color: "#7E6B9A" },
-];
+
 
 const featuredBadges = ["Bestseller", "New Ritual", "Botanical Formula"];
 
@@ -494,40 +490,8 @@ export default async function HomePage() {
         </section>
 
 
-        <section
-          className="relative z-10 -mt-[2px] overflow-hidden pt-12 pb-20 md:py-28"
-          style={{ background: "#FAF0EE" }}
-        >
-          {/* Ambient decorative warm glow blobs */}
-          <div
-            className="absolute bottom-[-120px] right-[-120px] w-[450px] h-[450px] rounded-full blur-[130px] opacity-25 pointer-events-none"
-            style={{ background: "radial-gradient(circle, #EBD2CB 0%, transparent 70%)" }}
-          />
-          <div
-            className="absolute top-[180px] left-[-100px] w-[350px] h-[350px] rounded-full blur-[100px] opacity-15 pointer-events-none"
-            style={{ background: "radial-gradient(circle, #F5DFD9 0%, transparent 70%)" }}
-          />
-
-          <div className="relative z-10 max-w-[1280px] mx-auto px-5 md:px-[72px]">
-            <FadeIn className="text-center mb-12 md:mb-16" {...fadeUp(0)}>
-              <span className="label-caps text-[#C9A74D] block mb-3">Botanical Actives</span>
-              <h2 className="font-display text-[#2A1A14]" style={{ fontSize: "clamp(28px, 4vw, 48px)", lineHeight: 1.15, letterSpacing: "-0.01em" }}>
-                Ingredients With<br /><em>Ritual Memory</em>
-              </h2>
-            </FadeIn>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
-              {ingredients.map((ing, i) => (
-                <FadeIn key={ing.name} className="relative group rounded-2xl p-6 border border-outline-variant/30 overflow-hidden luxury-card cursor-default" style={{ background: "linear-gradient(135deg, rgba(255,250,248,0.95) 0%, rgba(255,240,235,0.80) 100%)" }} {...fadeUp(i * 0.1)}>
-                  <div className="absolute top-4 right-4 w-20 h-20 rounded-full blur-[30px] opacity-25 group-hover:opacity-45 transition-opacity duration-500 pointer-events-none" style={{ background: ing.color }} />
-                  <span className="material-symbols-outlined text-[36px] mb-4 block pointer-events-none" style={{ color: ing.color }}>{ing.icon}</span>
-                  <p className="label-caps mb-1 pointer-events-none" style={{ color: ing.color }}>{ing.note}</p>
-                  <h3 className="font-display text-[#2A1A14] text-[22px] leading-tight mb-2 pointer-events-none">{ing.name}</h3>
-                  <p className="font-body text-[14px] leading-relaxed text-on-surface-variant pointer-events-none">{ing.description}</p>
-                </FadeIn>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* ── TESTIMONIAL SHOWCASE ── */}
+        <TestimonialShowcase />
 
         {/* ── PHILOSOPHY STRIP ── */}
         <section className="py-12 md:py-16 border-y" style={{ borderColor: "rgba(176,96,128,0.15)", background: "rgba(255,245,240,0.5)" }}>

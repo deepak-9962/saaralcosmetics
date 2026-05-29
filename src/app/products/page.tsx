@@ -168,7 +168,7 @@ export default async function ProductsPage() {
           />
 
           {/* Content Wrapper */}
-          <div className="relative z-10 max-w-[1280px] mx-auto px-5 md:px-[72px] pt-14 md:pt-32 pb-6 md:pb-14">
+          <div className="relative z-10 max-w-[1280px] mx-auto px-5 md:px-[72px] pt-14 md:pt-32 pb-20 md:pb-32">
             {/* Category Eyebrow */}
             <div
               className="flex items-center gap-2.5 mb-3 md:mb-5 animate-fade-up"
@@ -186,7 +186,7 @@ export default async function ProductsPage() {
                 className="font-display text-[#2A1A14] mb-2 md:mb-4 animate-fade-up"
                 style={{
                   fontSize: "clamp(32px, 5.5vw, 76px)",
-                  lineHeight: 1.06,
+                  lineHeight: 1.2,
                   letterSpacing: "-0.025em",
                   animationDelay: "200ms",
                 }}
