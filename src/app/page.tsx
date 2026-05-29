@@ -195,27 +195,24 @@ export default async function HomePage() {
             className="relative z-10 flex flex-col justify-center px-14 lg:px-20 pt-32 pb-12 w-[48%] lg:w-[46%]"
             style={{ minHeight: "clamp(520px, 90vh, 860px)" }}
           >
-            {/* Eyebrow */}
-            <FadeIn
-              className="flex items-center gap-3 mb-6"
-              initial={{ opacity: 0, x: -24 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.2, ease }}
+            {/* Eyebrow — no opacity:0 initial, visible on SSR */}
+            <div
+              className="flex items-center gap-3 mb-6 animate-fade-in"
+              style={{ animationDelay: "0.15s", animationFillMode: "both" }}
             >
               <div className="w-8 h-px bg-[#C9A74D]" />
               <span className="font-body text-[#C9A74D] text-[11px] tracking-[0.16em] uppercase font-medium">
                 Apothecary Heritage · Tamil Nadu
               </span>
-            </FadeIn>
+            </div>
 
-            {/* Headline */}
+            {/* Headline — immediately visible, CSS fade-up */}
             <div className="overflow-hidden mb-5">
               {["Luxury Skincare,", "Rooted in Nature."].map((line, i) => (
-                <FadeIn
+                <div
                   key={line}
-                  initial={{ opacity: 0, y: 56 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.85, delay: 0.3 + i * 0.13, ease }}
+                  className="animate-fade-up"
+                  style={{ animationDelay: `${0.25 + i * 0.12}s`, animationFillMode: "both" }}
                 >
                   <span
                     className="font-display text-[#2A1A14] block"
@@ -223,27 +220,24 @@ export default async function HomePage() {
                   >
                     {line}
                   </span>
-                </FadeIn>
+                </div>
               ))}
             </div>
 
             {/* Sub-text */}
-            <FadeIn
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.65, ease }}
+            <div
+              className="animate-fade-up"
+              style={{ animationDelay: "0.55s", animationFillMode: "both" }}
             >
               <p className="font-body text-[#2A1A14]/55 text-[15px] leading-relaxed max-w-[260px] mb-8">
                 Ancient botanical ingredients crafted<br />for naturally radiant modern skin.
               </p>
-            </FadeIn>
+            </div>
 
             {/* CTAs */}
-            <FadeIn
-              className="flex flex-wrap items-center gap-3"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.8, ease }}
+            <div
+              className="flex flex-wrap items-center gap-3 animate-fade-in"
+              style={{ animationDelay: "0.7s", animationFillMode: "both" }}
             >
               <Link
                 href="/products"
@@ -258,7 +252,7 @@ export default async function HomePage() {
               >
                 Our Story
               </Link>
-            </FadeIn>
+            </div>
           </div>
         </section>
 

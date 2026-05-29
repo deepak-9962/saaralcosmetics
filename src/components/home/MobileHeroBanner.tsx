@@ -121,18 +121,41 @@ export default function MobileHeroBanner() {
           }}
           aria-hidden={i !== active}
         >
-          {/* Background image */}
-          <div className="absolute inset-0 block w-full h-full">
-            <Image
-              src={s.imageAvif}
-              alt="Saaral Cosmetics"
-              priority={i === 0}
-              fetchPriority={i === 0 ? "high" : "low"}
-              fill
-              sizes="(max-width: 768px) 100vw, 100vw"
-              className="object-cover object-center"
-              style={{ pointerEvents: "none", userSelect: "none" }}
-            />
+          {/* Background image — slide 0: native picture for LCP (URL matches preload exactly) */}
+          <div className="absolute inset-0 w-full h-full">
+            {i === 0 ? (
+              <picture style={{ display: "contents" }}>
+                <source srcSet={s.imageAvif} type="image/avif" />
+                <source srcSet={s.imageWebp} type="image/webp" />
+                <img
+                  src={s.imagePng}
+                  alt="Saaral Cosmetics — Luxury Skincare"
+                  fetchPriority="high"
+                  loading="eager"
+                  decoding="async"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "center",
+                    pointerEvents: "none",
+                    userSelect: "none",
+                  }}
+                />
+              </picture>
+            ) : (
+              <Image
+                src={s.imageAvif}
+                alt="Saaral Cosmetics"
+                loading="lazy"
+                fill
+                sizes="(max-width: 768px) 100vw"
+                className="object-cover object-center"
+                style={{ pointerEvents: "none", userSelect: "none" }}
+              />
+            )}
           </div>
 
           {/* Gradient overlay — bottom-up for text legibility */}
