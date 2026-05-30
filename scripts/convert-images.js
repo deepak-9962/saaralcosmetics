@@ -60,6 +60,12 @@ async function convertImages() {
       const webpReduction = ((originalSize - webpSize) / originalSize * 100).toFixed(1);
       console.log(`  └─> WebP: ${(webpSize / 1024).toFixed(1)} KB (Reduced by ${webpReduction}%)`);
 
+      // 3. Delete original if --delete flag is provided
+      if (process.argv.includes('--delete')) {
+        fs.unlinkSync(fullPath);
+        console.log(`  └─> Deleted original source: ${file}`);
+      }
+
     } catch (err) {
       console.error(`  ✕ Error processing ${file}:`, err.message);
     }
