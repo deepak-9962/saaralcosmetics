@@ -205,7 +205,7 @@ export default function ProductCard({
           <Link href={`/products/${product.slug}`} className="flex flex-col flex-grow">
             {/* Category & variant */}
             <p className="font-body text-[10px] tracking-[0.14em] uppercase mb-1.5 transition-colors duration-300"
-              style={{ color: isHovered ? "#B06080" : "rgba(138,106,90,0.6)" }}>
+              style={{ color: isHovered ? "#B06080" : "rgba(138,106,90,0.75)" }}>
               {categoryLabel}{product.variant_name ? ` · ${product.variant_name}` : ""}
             </p>
 
@@ -225,7 +225,7 @@ export default function ProductCard({
             {product.description && (
               <p className="hidden md:block font-body text-[13px] leading-relaxed mb-3"
                 style={{
-                  color: "rgba(90,58,44,0.55)",
+                  color: "rgba(90,58,44,0.7)",
                   display: "-webkit-box",
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: "vertical",
@@ -255,14 +255,14 @@ export default function ProductCard({
                   )}
                 </svg>
               ))}
-              <span className="font-body text-[10px] text-[#8A6A5A]/55 ml-0.5">4.8</span>
+              <span className="font-body text-[10px] text-[#8A6A5A]/70 ml-0.5">4.8</span>
             </div>
 
             {/* Price row */}
             <div className="flex flex-col gap-0.5 w-full">
               <div className="flex items-end justify-between gap-2">
                 <div className="flex items-baseline gap-2 flex-wrap">
-                  <span className="font-display text-[18px] md:text-[20px]" style={{ color: "#B06080", letterSpacing: "-0.01em" }}>
+                  <span className="font-display text-[18px] md:text-[20px]" style={{ color: "#8B3A5E", letterSpacing: "-0.01em" }}>
                     {formatPrice(product.price)}
                   </span>
                   {product.compare_price && (
@@ -294,7 +294,7 @@ export default function ProductCard({
                   </span>
                 </button>
               </div>
-              <p className="font-body text-[9px] leading-[1.2]" style={{ color: "rgba(138,106,90,0.6)" }}>
+              <p className="font-body text-[9px] leading-[1.2]" style={{ color: "rgba(138,106,90,0.75)" }}>
                 (MRP inclusive of taxes)
               </p>
             </div>

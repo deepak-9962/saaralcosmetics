@@ -75,6 +75,14 @@ export default function RootLayout({
           type="image/avif"
           media="(min-width: 768px)"
         />
+        {/* Mobile LCP element — category image (first in scroll) */}
+        <link
+          rel="preload"
+          as="image"
+          href="/images/cat-face-cream.avif"
+          type="image/avif"
+          media="(max-width: 767px)"
+        />
         {/* Google Fonts preconnect — eliminates DNS/TCP latency */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

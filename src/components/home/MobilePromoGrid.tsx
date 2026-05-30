@@ -89,7 +89,7 @@ function PromoCard({ card }: { card: (typeof promoCards)[number] }) {
         {/* Top Text Block */}
         <div>
           <span
-            className="label-caps block text-[#A97882]"
+            className="label-caps block text-[#7A5060]"
             style={{
               fontSize: "8.5px",
               fontWeight: 600,
@@ -149,7 +149,7 @@ export default function MobilePromoGrid() {
       {/* Section header */}
       <div className="flex items-center justify-between mb-5">
         <span
-          className="label-caps text-[#A97882]"
+          className="label-caps text-[#7A5060]"
           style={{
             fontSize: "14px",
             fontWeight: 600,
@@ -160,7 +160,7 @@ export default function MobilePromoGrid() {
         </span>
         <Link
           href="/products"
-          className="font-body text-[#A97882] hover:text-[#B06080] transition-colors flex items-center gap-1"
+          className="font-body text-[#7A5060] hover:text-[#8B3A5E] transition-colors flex items-center gap-1"
           style={{
             fontSize: "11px",
             fontWeight: 500,

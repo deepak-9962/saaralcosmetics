@@ -120,6 +120,7 @@ export default function MobileHeroBanner() {
             zIndex: i === active ? 1 : 0,
           }}
           aria-hidden={i !== active}
+          {...(i !== active ? { inert: true as unknown as boolean } : {})}
         >
           {/* Background image — slide 0: native picture for LCP (URL matches preload exactly) */}
           <div className="absolute inset-0 w-full h-full">
@@ -229,6 +230,7 @@ export default function MobileHeroBanner() {
             <Link
               href={s.ctaHref}
               className="inline-flex items-center gap-1.5 active:scale-95 transition-transform"
+              tabIndex={i === active ? 0 : -1}
               style={{
                 fontFamily: "var(--font-body)",
                 fontSize: "9px",

@@ -44,8 +44,10 @@ const categories = [
 ───────────────────────────────────────────── */
 function CategoryCard({
   cat,
+  index,
 }: {
   cat: (typeof categories)[number];
+  index: number;
 }) {
   return (
     <Link
@@ -77,10 +79,12 @@ function CategoryCard({
         <div className="absolute inset-0 flex items-end justify-center pb-1">
           <Image
             src={cat.image}
-            alt={cat.name}
+            alt={`${cat.name} — ${cat.label}`}
             width={90}
             height={100}
-            loading="lazy"
+            {...(index === 0
+              ? { priority: true, fetchPriority: "high" as const }
+              : { loading: "lazy" as const })}
             className="object-contain object-bottom transition-transform duration-500 group-active:scale-105"
             style={{ maxHeight: "100px" }}
           />
@@ -119,7 +123,7 @@ export default function MobileCategoryScroll() {
             fontWeight: 600,
             letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: "#B06080",
+            color: "#8B3A5E",
           }}
         >
           Shop By Category
@@ -131,7 +135,7 @@ export default function MobileCategoryScroll() {
             fontSize: "11px",
             fontWeight: 500,
             letterSpacing: "0.08em",
-            color: "#8B3A5E",
+            color: "#6E2E4A",
             textDecoration: "none",
           }}
         >
@@ -144,8 +148,8 @@ export default function MobileCategoryScroll() {
         className="overflow-x-auto no-scrollbar snap-x snap-mandatory flex gap-3 px-5 pb-5"
         style={{ scrollPaddingLeft: "20px" }}
       >
-        {categories.map((cat) => (
-          <CategoryCard key={cat.name} cat={cat} />
+        {categories.map((cat, index) => (
+          <CategoryCard key={cat.name} cat={cat} index={index} />
         ))}
       </div>
     </div>

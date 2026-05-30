@@ -433,7 +433,7 @@ export default async function HomePage() {
                     alt="Premium skincare products — collection by Saaral Cosmetics"
                     fill
                     className="object-cover object-right"
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    sizes="(max-width: 768px) 90vw, 45vw"
                   />
                   {/* Soft bottom fade */}
                   <div
