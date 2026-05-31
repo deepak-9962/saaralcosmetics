@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
-import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
+import SupportChatFAB from "@/components/layout/SupportChatFAB";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import GradientBackground from "@/components/layout/GradientBackground";
 import ProductCard from "@/components/product/ProductCard";
@@ -12,11 +12,14 @@ import LuxuryRibbon from "@/components/home/LuxuryRibbon";
 import MobileHeroBanner from "@/components/home/MobileHeroBanner";
 import MobileCategoryScroll from "@/components/home/MobileCategoryScroll";
 import MobilePromoGrid from "@/components/home/MobilePromoGrid";
+import MobileTrustBar from "@/components/home/MobileTrustBar";
+import MobileBenefitsStrip from "@/components/home/MobileBenefitsStrip";
 import FadeIn from "@/components/layout/FadeIn";
 import dynamic from "next/dynamic";
 
 const BestsellersCarousel = dynamic(() => import("@/components/home/BestsellersCarousel"));
 const TestimonialShowcase = dynamic(() => import("@/components/home/TestimonialShowcase"));
+const CustomerTransformations = dynamic(() => import("@/components/home/CustomerTransformations"));
 import { listProducts } from "@/lib/supabase/data";
 import { Product } from "@/lib/types";
 
@@ -146,11 +149,20 @@ export default async function HomePage() {
         {/* ── MOBILE-ONLY: Fixed nav spacer (promo bar 28px + h-14 header row = 84px total) ── */}
         <div className="block md:hidden h-[84px]" aria-hidden="true" />
 
-        {/* ── MOBILE-ONLY: Premium Hero Banner Carousel — FIRST for LCP ── */}
+        {/* ── MOBILE-ONLY: 1. Category Discovery Scroll — FIRST below nav ── */}
+        <MobileCategoryScroll />
+
+        {/* ── MOBILE-ONLY: 2. Hero Banner Slider — card style ── */}
         <MobileHeroBanner />
 
-        {/* ── MOBILE-ONLY: Category Discovery Scroll — below hero ── */}
-        <MobileCategoryScroll />
+        {/* ── MOBILE-ONLY: 3. Social Proof Bar — stars + customers + India ── */}
+        <MobileTrustBar />
+
+        {/* ── MOBILE-ONLY: 4. Benefits Strip — Herbal | Beginner Friendly | Clinically Tested ── */}
+        <MobileBenefitsStrip />
+
+        {/* ── MOBILE-ONLY: 5. Promotional Collection Grid — gradient cards ── */}
+        <MobilePromoGrid />
 
         {/* Desktop Hero (visible only on md and above) */}
         <section
@@ -257,9 +269,6 @@ export default async function HomePage() {
         </section>
 
 
-        {/* ── MOBILE-ONLY: Promo Grid (New Launches, Best Sellers, Combos, Gen Z) ── */}
-        <MobilePromoGrid />
-
         {/* ── LUXURY RIBBON ── */}
         <LuxuryRibbon />
 
@@ -301,7 +310,7 @@ export default async function HomePage() {
                         product={product}
                         index={index}
                         showBadge={badge}
-                        imageAspectClassName="aspect-[1/1]"
+                        imageAspectClassName="aspect-[4/5]"
                       />
                     </div>
                   );
@@ -427,7 +436,7 @@ export default async function HomePage() {
 
               {/* LEFT — Editorial Product Image */}
               <FadeIn className="relative order-1 md:order-1" {...fadeUp(0)}>
-                <div className="relative aspect-[4/5] md:aspect-[3/4] rounded-3xl overflow-hidden">
+                <div className="relative aspect-[4/5] rounded-3xl overflow-hidden">
                   <Image
                     src="/images/card3.avif"
                     alt="Premium skincare products — collection by Saaral Cosmetics"
@@ -471,6 +480,9 @@ export default async function HomePage() {
         </section>
 
 
+        {/* ── CUSTOMER TRANSFORMATIONS — Before/After Results ── */}
+        <CustomerTransformations />
+
         {/* ── TESTIMONIAL SHOWCASE ── */}
         <TestimonialShowcase />
 
@@ -497,7 +509,7 @@ export default async function HomePage() {
 
       <Footer />
       <MobileBottomNav />
-      <WhatsAppFAB />
+      <SupportChatFAB />
     </div>
   );
 }

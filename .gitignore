@@ -41,3 +41,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# customer before/after raw photos (uploaded to Supabase, not committed to git)
+/customer-photos/

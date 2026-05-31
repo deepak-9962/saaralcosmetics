@@ -275,6 +275,61 @@ function StarRating({ count, color }: { count: number; color: string }) {
 }
 
 /* ─────────────────────────────────────────────
+   AVATAR IMAGE WITH FALLBACK
+   Uses the 8 local AVIF avatars in public/images/testimonials/
+   (avatar-1.avif … avatar-8.avif) mapped by testimonial ID.
+   Falls back to Dicebear SVG only if the local file fails to load.
+   ───────────────────────────────────────────── */
+function AvatarImage({
+  id,
+  name,
+  dicebearUrl,
+  width,
+  height,
+  style,
+  loading = "lazy",
+}: {
+  id: number;
+  name: string;
+  dicebearUrl: string;
+  width: number;
+  height: number;
+  style?: React.CSSProperties;
+  loading?: "lazy" | "eager";
+}) {
+  /* Cycle through 8 local avatars (1–8) using testimonial id */
+  const localNum = (id % 8) + 1; // 1 to 8
+  const localUrl = `/images/testimonials/avatar-${localNum}.avif`;
+  
+  const [imgSrc, setImgSrc] = useState(localUrl);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setImgSrc(localUrl);
+    setHasError(false);
+  }, [localUrl]);
+
+  const onError = () => {
+    if (!hasError) {
+      setHasError(true);
+      setImgSrc(dicebearUrl);
+    }
+  };
+
+  return (
+    <img
+      src={imgSrc}
+      alt={name}
+      width={width}
+      height={height}
+      style={style}
+      loading={loading}
+      onError={onError}
+    />
+  );
+}
+
+/* ─────────────────────────────────────────────
    ARROW ICON
 ───────────────────────────────────────────── */
 function ArrowIcon({ color }: { color: string }) {
@@ -409,9 +464,10 @@ function TestimonialModal({
 
           {/* Avatar + Name + Location + Stars */}
           <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "22px" }}>
-            <img
-              src={item.avatar}
-              alt={item.name}
+            <AvatarImage
+              id={item.id}
+              name={item.name}
+              dicebearUrl={item.avatar}
               width={54}
               height={54}
               style={{
@@ -781,9 +837,10 @@ function FanTrack({ onOpenModal }: { onOpenModal: (item: LoopItem) => void }) {
               >
                 {/* Avatar + Stars */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <img
-                    src={t.avatar}
-                    alt={t.name}
+                  <AvatarImage
+                    id={t.id}
+                    name={t.name}
+                    dicebearUrl={t.avatar}
                     width={42}
                     height={42}
                     style={{
@@ -1059,9 +1116,10 @@ function TestimonialSkeleton() {
             <div style={{ display: "flex", flexDirection: "column", gap: "11px", flexGrow: 1, minHeight: 0 }}>
               {/* Avatar + Stars */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <img
-                  src={t.avatar}
-                  alt={t.name}
+                <AvatarImage
+                  id={t.id}
+                  name={t.name}
+                  dicebearUrl={t.avatar}
                   width={42}
                   height={42}
                   style={{

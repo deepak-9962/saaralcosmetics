@@ -1,0 +1,6 @@
+Drop your testimonial avatar images here (e.g., avatar-1.jpg, avatar-2.png, etc.).
+
+After adding the images, run:
+  npm run optimize-images -- --delete
+
+This script will automatically optimize the images to AVIF and WebP formats, delete the original PNG/JPG source files, and store the optimized versions in the public/images/testimonials/ folder.

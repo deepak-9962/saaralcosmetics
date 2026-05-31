@@ -158,8 +158,8 @@ export default function TopNavBar() {
     >
       {showPromoBar && (
           /* Single unified promo bar — same style on mobile & desktop */
-          <div className="flex h-7 bg-primary text-on-primary px-4 items-center justify-center">
-            <p className="font-body text-[10px] tracking-[0.08em] uppercase text-center">
+          <div className="flex min-h-7 bg-primary text-on-primary px-3 py-1.5 items-center justify-center">
+            <p className="font-body text-[9.5px] md:text-[10px] tracking-[0.08em] uppercase text-center whitespace-nowrap">
               Product of the month: use code <strong>HURRY20</strong> for 20% off
             </p>
           </div>

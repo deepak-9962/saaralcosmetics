@@ -72,7 +72,7 @@ export default function RitualCard({ ritual, index }: RitualCardProps) {
       >
         <Link href={ritual.href} className="block">
           {/* ── Image ── */}
-          <div className="relative w-full overflow-hidden" style={{ aspectRatio: "3/4" }}>
+          <div className="relative w-full overflow-hidden" style={{ aspectRatio: "4/5" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={ritual.image}
