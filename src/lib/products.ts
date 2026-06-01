@@ -1,270 +1,351 @@
 import type { Product } from "./types";
 
-// Mock products for initial development — replace with Supabase queries later
+// Mock products — mirrors the real Supabase product catalog.
+// Used as fallback when Supabase is unavailable.
 export const MOCK_PRODUCTS: Product[] = [
+  // ── FACE WASH ──────────────────────────────────────────────
   {
-    id: "prod-001",
-    name: "Saffron Radiance Elixir",
-    slug: "saffron-radiance-elixir",
-    category: "face-cream",
-    variant_name: "50g",
-    price: 48,
-    compare_price: null,
-    description:
-      "A precious blend of pure saffron, lotus extracts, and rare botanical oils. This traditional apothecary formulation works overnight to restore youthful radiance, deeply nourish, and refine skin texture.",
-    ingredients:
-      "Saffron Extract, Rose Water, Sandalwood Oil, Almond Oil, Sesame Oil, Vetiver Extract. 100% natural and organically sourced.",
-    how_to_use:
-      "After cleansing, warm 3-4 drops between your palms. Gently press into the face and neck using upward strokes. Breathe deeply to enjoy the calming botanical aroma.",
-    images: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAOGWrnxkgymoK18Tfv6G_l2IcSz3iEBB_MKVAK1Dk4YCuFfEYGVKOPLiPYzlg0m5LN9HffYHVUPDK2lQn30eqd4irlOTeIjXzV7Kn0kWfhIU4hX2evzmaE7fX87Rulsiwk9LuLnj2Z9DDZDWOYddzOlQfegNeFKulbSnHTDkHzIJHo1gWQcdPLW-RfwMvy3m6_baXLbkjimFBDni5SqhkRkot0GCdgM8XfhkIshTYOrL6BlS8zzGHZMJSkKFA7YbI1o5VK94-g_wnA",
-    ],
-    stock: 50,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "prod-002",
-    name: "Neem & Tulsi Wash",
-    slug: "neem-tulsi-wash",
+    id: "prod-fw-001",
+    name: "Butterfly Pea Facewash (Sangoo Poo)",
+    slug: "butterfly-pea-facewash-sangoo-poo",
     category: "face-wash",
-    variant_name: "120ml",
-    price: 32,
-    compare_price: null,
-    description:
-      "A purifying gel cleanser infused with organic neem and tulsi extracts. Gently removes impurities while maintaining your skin's natural moisture balance.",
-    ingredients:
-      "Neem Extract, Tulsi (Holy Basil) Leaf Extract, Aloe Vera Gel, Green Tea Extract, Glycerin.",
-    how_to_use:
-      "Apply a small amount to damp skin. Massage gently in circular motions, then rinse thoroughly with water. Use morning and evening.",
-    images: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuB8UOt06vmVuZYFYgggt_kr__xOophPqb9ZRREpUfHXIYpwpI0gbBAP-okieSuR3LDk2KU02vVFUYpMyyW6zuULJj_s9o1g_2pVZop5GJ4QIV-g6uqjgcM3ygJ3ChLBDANGm6ekiFpA8EhBe3UvFeMZIHyeE6jycpO_9PSOerw3fh9N4jyY0feTp4JGA-G_cshW6PmuFQRIDE8UM5i5wR06JA8P77M29Ci09rww0U87s2FPolEXpL2RAca8rGxvrbkbe4RbjKYczpYP",
-    ],
-    stock: 75,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "prod-003",
-    name: "Turmeric Glow Bar",
-    slug: "turmeric-glow-bar",
-    category: "soap",
     variant_name: "100g",
-    price: 24,
+    price: 349,
     compare_price: null,
     description:
-      "A beautifully textured artisanal soap bar featuring embedded botanicals. Handcrafted with organic turmeric and sandalwood for a luxurious bathing experience.",
+      "Wash away stress and reveal a radiant complexion. Immerse your skin in the calming luxury of our sulfate-free Butterfly Pea & Lavender Face Wash. Powered by antioxidant-rich Butterfly Pea extract and infused with an ultra-gentle, plant-derived cleansing base of Coco and Decyl Glucosides, this soothing gel deeply purifies pores without drying your skin. Perfect for restoring natural elasticity, fading dullness, and calming redness — it leaves your face feeling wonderfully soft, refreshed, and youthfully glowing. Best For: Skin Glow, Anti-Aging Support & Calming Daily Cleansing.",
     ingredients:
-      "Organic Turmeric, Sandalwood Powder, Coconut Oil, Olive Oil, Shea Butter, Essential Oils.",
+      "Distilled Water, Butterfly Pea Extract, Glycerin, Decyl Glucoside, Coco Glucoside, Xanthan Gum (natural thickener), Red Wine Essential Oil, Safe Preservative.",
     how_to_use:
-      "Lather between wet hands or on a washcloth. Apply to body in gentle circular motions. Rinse well. For face, create a light lather and apply gently.",
-    images: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDLrE4jpKirjO7JGvB37nbPxdNg9uRoRQwAP2wtT1x2C7UZt0peBaxoY_UZQMw-VcKrWIE6p9VO-6MU6-CgVUBeg6gbeeLrz8edP50CZV3N0QPmm6joOpGg1aBCiKHaQMx5JcKeYpDHU2FhzJYHxM-M5yX9XQePa7DOTfA2PJrRy5xNgY3PfONNZuaD5iko7vT1khApohmF3JPcniLKhy4Vn0jdVWk-OVwbw3yNg8gutG67x30Nwd6oU9p42r7StADsMtd1rpEhUQB0",
-    ],
+      "Splash your face with water. Take a small amount of the gel cleanser onto your palms and work into a gentle lather. Massage onto your face in circular motions for 30–60 seconds, focusing on areas with dullness or pigmentation. Rinse thoroughly with water and pat dry. Use twice daily (Morning & Night) for a flawless, radiant look.",
+    images: [],
     stock: 100,
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
-    id: "prod-004",
-    name: "Radiance Renewal Cream",
-    slug: "radiance-renewal-cream",
-    category: "face-cream",
-    variant_name: "50g",
-    price: 48,
-    compare_price: null,
-    description:
-      "An illuminating face cream enriched with kumkumadi oil and natural botanicals. Reveals your skin's inner glow with daily use.",
-    ingredients:
-      "Kumkumadi Oil, Saffron, Rose Water, Almond Oil, Vitamin E, Hyaluronic Acid.",
-    how_to_use:
-      "Apply a small amount to clean, dry skin. Gently massage in upward motions until fully absorbed. Use morning and night.",
-    images: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCparvuyiKD7NmHDSpowXLVOtkSAh3B-QW5GN_Dhyf_Ehimon6Y5W79MmzA6WbGFeWQC4Afe3kSzGJ79erp0i43afG-Fov_TlkiSL0-HpigekV2R5Tl4h1qUTcgmHwGX4o38cCE3R3Ab1QfHzyBDIcUeXPRiOdap-HkG9drWp7q3EBvoOMter6I1oVL84ONm_9g8bgh0xUr1G7A-7t1eKDN-0N07-H-uYDVi5ZvLVAm6n5UpDCFkINPuMBRW5rSdex2csfzEEHVi1ep",
-    ],
-    stock: 40,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "prod-005",
-    name: "Purifying Botanical Wash",
-    slug: "purifying-botanical-wash",
+    id: "prod-fw-002",
+    name: "Redwine Facewash",
+    slug: "redwine-facewash",
     category: "face-wash",
-    variant_name: "120ml",
-    price: 32,
+    variant_name: "100g",
+    price: 349,
     compare_price: null,
     description:
-      "An elegant botanical face wash that draws from ancient apothecary wisdom. Purifies deeply while maintaining your skin's delicate moisture balance.",
+      "A luxurious, antioxidant-rich face wash infused with Red Wine extract. Gently cleanses while fighting free radicals, improving skin tone, and leaving your face deeply hydrated and radiant.",
     ingredients:
-      "Neem Extract, Tea Tree Oil, Cucumber Extract, Chamomile, Witch Hazel, Glycerin.",
+      "Distilled Water, Red Wine Extract, Glycerin, Decyl Glucoside, Coco Glucoside, Xanthan Gum, Safe Preservative.",
     how_to_use:
-      "Wet face with lukewarm water. Apply a small amount and massage gently. Rinse thoroughly. Pat dry with a soft towel.",
-    images: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBNww2FDNfd42ab0cIP9EVntKjuYRT6XripQospmnb-UMpBt8pkWvn_mrS096Bi_s296Hp_tMth2ncvB3groT3WAbYxbDryjk4M6yTE8l-IgYguZUi9Z1hEUBU9h-pm1GUT1_EdV0Rh6I38QITbu2mGll3g6OCYqGPmVi80E33txuQlwmrpgFpfs00NiFrHXAEZ7akSMAbR65ukaFBaZIi4uVsjo7BSQd4VsMmAhllcvYm_iimvoPwptCuBTARcGgAr2P4W0c65VhxJ",
-    ],
-    stock: 60,
+      "Wet face with water. Apply a small amount and massage gently in circular motions. Rinse thoroughly. Pat dry. Use morning and night.",
+    images: [],
+    stock: 100,
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
+
+  // ── SOAP ────────────────────────────────────────────────────
   {
-    id: "prod-006",
-    name: "Turmeric & Sandalwood Soap",
-    slug: "turmeric-sandalwood-soap",
+    id: "prod-sp-001",
+    name: "Activated Charcoal Soap",
+    slug: "activated-charcoal-soap",
     category: "soap",
     variant_name: "100g",
-    price: 18,
+    price: 120,
     compare_price: null,
     description:
-      "A rustic, artisan soap bar featuring embedded botanicals. Handcrafted using traditional cold-process methods for the ultimate skin nourishment.",
+      "A deep-cleansing activated charcoal soap that draws out impurities, excess oil, and toxins from pores. Handcrafted for a luxurious detox bathing experience.",
     ingredients:
-      "Turmeric, Sandalwood, Coconut Oil, Castor Oil, Lye, Essential Oil Blend.",
+      "Activated Charcoal, Coconut Oil, Palm Oil, Castor Oil, Shea Butter, Essential Oils.",
     how_to_use:
-      "Lather between wet hands. Apply to body or face gently. Rinse well with water. Store in a well-drained soap dish between uses.",
-    images: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBkyDKdv3DtWUF2YmrfLMN33-DUovaaoSXl60ca8RrAqZwvQOOHKf5IDOdaSmapy6TDVtjF3ni4c1YXQnMfvp-EZDaI2yrKubxLSdhfVmiJwfHWocZsNmR9gMIti_d-tu5YCCOtSnxHK0XIapUJ95BLzb6vfTWkH1afnwZT6PPWGsSrcFoFPP_IRnOsRmTrJyI6RoUiBA5IU9nmIFEEzCMNaca1kazVU2sq6p7oS5EnGQabN-h-LmO7owH-t2HyYDaMWXWPWWOJRr4Q",
-    ],
-    stock: 80,
+      "Lather between wet hands. Apply to face and body, massage gently. Rinse well with water.",
+    images: [],
+    stock: 100,
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
-    id: "prod-007",
-    name: "Heritage Nalangu Maavu",
-    slug: "heritage-nalangu-maavu",
-    category: "nalangu-maavu",
-    variant_name: "200g",
-    price: 45,
+    id: "57e5ced3-f9c4-4eb2-8aa8-50f914937c04",
+    name: "Butterfly Pea Soap (Sangoo Poo)",
+    slug: "butterfly-pea-soap-sangoo-poo",
+    category: "soap",
+    variant_name: "100g",
+    price: 120,
     compare_price: null,
     description:
-      "A sophisticated blend of finely milled herbal powder, rooted in ancient South Indian bathing rituals. A true representation of luxury wellness.",
+      "Revive your skin with the ultimate antioxidant refresh. Glow naturally with our premium, handcrafted Butterfly Pea Soap. Made using the traditional cold-processed method, this luxurious bar infuses youth-boosting Butterfly Pea extract (Sangoo Poo) into a deeply nourishing base of Cold-Pressed Coconut, Castor, and Olive oils. Rich in natural Glycerin and Vitamin E, it gently cleanses away impurities while fighting skin dullness and protecting your skin's natural moisture barrier. Best For: Anti-Aging Support, Skin Glow & Deep Hydration.",
+    ingredients:
+      "Cold-Pressed Coconut Oil, Cold-Pressed Castor Oil, Olive Oil, Demineralized Water, Lye, Natural Glycerine, Butterfly Pea Extract, Vitamin E Oil, Premium Essential Oil.",
+    how_to_use:
+      "Rub the soap bar between wet palms or directly onto your body to create a rich, creamy lather. Gently massage onto your skin in circular motions. Rinse thoroughly with water and pat dry. Pro-Tip: To make your handcrafted soap last longer, keep it in a well-drained soap dish between uses.",
+    images: [],
+    stock: 100,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "prod-sp-002",
+    name: "Nalangu Maavu Soap",
+    slug: "nalangu-maavu-soap",
+    category: "soap",
+    variant_name: "100g",
+    price: 120,
+    compare_price: null,
+    description:
+      "A traditional South Indian herbal bath soap made with the classic Nalangu Maavu blend. Gently exfoliates, brightens skin, and leaves a natural herbal fragrance.",
+    ingredients:
+      "Nalangu Maavu Powder, Green Gram, Turmeric, Rose Petal, Sandalwood, Coconut Oil.",
+    how_to_use:
+      "Wet skin, lather the soap and apply gently. Massage in circular motions. Rinse thoroughly.",
+    images: [],
+    stock: 100,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "prod-sp-003",
+    name: "Kuppaimeni Soap",
+    slug: "kuppaimeni-soap",
+    category: "soap",
+    variant_name: "100g",
+    price: 150,
+    compare_price: null,
+    description:
+      "Kuppaimeni (Acalypha indica) has been used for centuries in Indian herbal medicine to treat skin conditions. This handcrafted soap soothes itching, reduces inflammation, and purifies skin naturally.",
+    ingredients:
+      "Kuppaimeni Extract, Neem Oil, Coconut Oil, Castor Oil, Shea Butter, Natural Fragrance.",
+    how_to_use:
+      "Lather and apply to affected or general body areas. Massage gently and rinse thoroughly with water.",
+    images: [],
+    stock: 100,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "prod-sp-004",
+    name: "Manjistha Athimadhuram Soap",
+    slug: "manjistha-athimadhuram-soap",
+    category: "soap",
+    variant_name: "100g",
+    price: 150,
+    compare_price: null,
+    description:
+      "Manjistha & Athimadhuram (Licorice Root) are powerful Ayurvedic herbs known for brightening, anti-inflammatory, and skin-purifying properties. This soap helps fade pigmentation and even skin tone.",
+    ingredients:
+      "Manjistha Extract, Athimadhuram Extract, Coconut Oil, Palm Oil, Shea Butter, Essential Oils.",
+    how_to_use:
+      "Lather between wet hands. Apply to face and body gently. Rinse thoroughly. Use daily for best results.",
+    images: [],
+    stock: 100,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "prod-sp-005",
+    name: "Redwine Soap",
+    slug: "redwine-soap",
+    category: "soap",
+    variant_name: "100g",
+    price: 150,
+    compare_price: null,
+    description:
+      "A luxurious handcrafted soap enriched with Red Wine extract, packed with antioxidants that fight signs of aging, improve skin elasticity, and give a radiant glow.",
+    ingredients:
+      "Red Wine Extract, Coconut Oil, Olive Oil, Castor Oil, Shea Butter, Natural Fragrance.",
+    how_to_use:
+      "Wet skin, lather the soap and apply gently. Massage in circular motions. Rinse thoroughly with water.",
+    images: [],
+    stock: 100,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "prod-sp-006",
+    name: "Vetpalai Soap",
+    slug: "vetpalai-soap",
+    category: "soap",
+    variant_name: "100g",
+    price: 180,
+    compare_price: null,
+    description:
+      "Vetpalai (Wrightia tinctoria) is a powerful Ayurvedic herb traditionally used to treat skin disorders including psoriasis and eczema. This natural soap deeply soothes and heals irritated skin.",
+    ingredients:
+      "Vetpalai Extract, Neem Oil, Coconut Oil, Castor Oil, Shea Butter, Natural Fragrance.",
+    how_to_use:
+      "Lather and apply to affected areas or general body. Massage gently and rinse thoroughly with water.",
+    images: [],
+    stock: 100,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+
+  // ── NALANGU MAAVU ───────────────────────────────────────────
+  {
+    id: "prod-nm-001",
+    name: "Nalangu Maavu Bath Powder",
+    slug: "nalangu-maavu-bath-powder-100g",
+    category: "nalangu-maavu",
+    variant_name: "100g",
+    price: 149,
+    compare_price: null,
+    description:
+      "A traditional South Indian herbal bath powder made from a blend of finely milled herbs and grains. Gently exfoliates, brightens, and nourishes the skin — a timeless pre-bath ritual.",
     ingredients:
       "Green Gram Flour, Turmeric, Rose Petal Powder, Sandalwood Powder, Kasturi Manjal, Vetiver Root.",
     how_to_use:
-      "Mix 2-3 tablespoons with water or milk to form a smooth paste. Apply to body and face. Gently scrub and rinse off for silky smooth skin.",
-    images: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBgXCkm-d-V49PUtWzIPkxRFHrDYfdE-ZsltVh6xpDKw_XA1S2d5YLJJmN_Iaa7uYPboiAaquD-V9JttFysAHl5lddImDM37-oUEs1-NxvUsgAJSJg6HOPZ6rtDgjapHjrflYi4RIXg8XR3m9eVV9coeas5EyFZr3BF7HpphdcGj3VDgotqD49noilDZGkEzjgoyITklTapWKezDgLcV7W3Uw7TXNhFyooef97HMrPD-5L6EsJIjWxV-a3mD76gRRhgDCSEvQhCRny-",
-    ],
-    stock: 55,
+      "Mix 2–3 tablespoons with water or milk to form a smooth paste. Apply to body and face. Gently scrub and rinse off for silky smooth skin.",
+    images: [],
+    stock: 100,
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
-    id: "prod-008",
-    name: "Saffron Glow Mask",
-    slug: "saffron-glow-mask",
+    id: "prod-nm-002",
+    name: "Nalangu Maavu Bath Powder",
+    slug: "nalangu-maavu-bath-powder-250g",
+    category: "nalangu-maavu",
+    variant_name: "250g",
+    price: 299,
+    compare_price: null,
+    description:
+      "A traditional South Indian herbal bath powder made from a blend of finely milled herbs and grains. Gently exfoliates, brightens, and nourishes the skin — a timeless pre-bath ritual.",
+    ingredients:
+      "Green Gram Flour, Turmeric, Rose Petal Powder, Sandalwood Powder, Kasturi Manjal, Vetiver Root.",
+    how_to_use:
+      "Mix 2–3 tablespoons with water or milk to form a smooth paste. Apply to body and face. Gently scrub and rinse off for silky smooth skin.",
+    images: [],
+    stock: 100,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+
+  // ── FACE CREAM / BALM ───────────────────────────────────────
+  {
+    id: "prod-fc-001",
+    name: "Saaral Anti Aging & Pigmentation Cream",
+    slug: "saaral-anti-aging-pigmentation-cream-15g",
     category: "face-cream",
-    variant_name: "60g",
-    price: 55,
+    variant_name: "15g",
+    price: 449,
     compare_price: null,
     description:
-      "A luxurious, tactile face mask with the richness of saffron and organic clays. Leaves your skin visibly radiant and deeply purified.",
+      "A potent anti-aging and de-pigmentation cream formulated with Ayurvedic botanicals. Targets dark spots, uneven skin tone, fine lines, and dullness — revealing visibly younger-looking, radiant skin.",
     ingredients:
-      "Saffron Extract, Kaolin Clay, Rose Water, Honey, Aloe Vera, Vitamin C.",
+      "Manjistha Extract, Licorice Root, Kumkumadi Oil, Saffron, Vitamin C, Shea Butter, Aloe Vera.",
     how_to_use:
-      "Apply a generous layer to clean, dry skin. Leave on for 15-20 minutes. Rinse off with lukewarm water. Use 2-3 times per week.",
-    images: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDcJWWIADRH3uRjT8B3gMCQYOG-qmDTCyH90WjFTsaslGOFWydbdc62lw9hYBlqggmEk4W3XdBuebsaGv7GNPrm-EhcY24MX3PFPiDfV8GAJ0Ss_PofLUtaoKrz4cGttyYTAks-UJaGrr0ijzWF8EorEJK8H-Dr2bj5AIahoFqIjopLpBUG8dGqXshdnr_TIWdIloHkF-duDMHuoQlGq3-sMLCiNmSkupdewDxxE9ASJcLwLW3IKbf-7R0zcD_sxRd-jTZ1wOX3kvP0",
-    ],
-    stock: 30,
+      "Cleanse face. Apply a small amount to face and neck. Massage gently until absorbed. Use morning and night for best results.",
+    images: [],
+    stock: 100,
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
-    id: "prod-009",
-    name: "Kumkumadi Radiance Elixir",
-    slug: "kumkumadi-radiance-elixir",
+    id: "prod-fc-002",
+    name: "Saaral Anti Aging & Pigmentation Cream",
+    slug: "saaral-anti-aging-pigmentation-cream-30g",
     category: "face-cream",
-    variant_name: "30ml",
-    price: 85,
-    compare_price: 110,
-    description:
-      "A precious blend of pure saffron, lotus extracts, and rare botanical oils. This traditional apothecary formulation works overnight to restore youthful radiance, deeply nourish, and refine skin texture.",
-    ingredients:
-      "Saffron Extract, Rose Water, Sandalwood Oil, Almond Oil, Sesame Oil, Vetiver Extract. 100% natural and organically sourced.",
-    how_to_use:
-      "After cleansing, warm 3-4 drops between your palms. Gently press into the face and neck using upward strokes. Breathe deeply to enjoy the calming botanical aroma.",
-    images: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuA0Zcf6U-yNWVrv1_Jbkg6C5N2-2_2mTL4hX7D2Qg0EsBKbeb8tzCDfeOKjRlaVuoyBL6LpWJsII4UUDrExXmurGRweP6htGygeqdSxHO7TfZZxDKpjJGtzVGG7-nfpNm2GfgGtendHnR_2PF3ZM7idEYHlOHxCQznticG55fVpttijrNRog5liuXnJjngkXcDU8DyBG9ZUs-k_dCIoo4Mc-JWPnoOSXlPgTcm0YPTIiqappNXPG4cSmrwbtizs7MLxD24pmXEoS_Or",
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCgyh_cTkQCe5iLNl1Le_0iCI7IoPiEa6iM0og5gVrkoEr362KYtFjbrFaiSXSP3-862QlOgR_XJxB1SlvaF-qgyZWY91ZwkcDPq2L2JkxUgDMhWD1bdVezGSdDIkFCb9d_CrjeZFzyM6U7CHBxOS0rrTy_sNl921o9muAGT4aiudsdU-gm0mjBhxk7rCsQMEO_1IShgvdl7kywMqoBE3CuLKVa9Ug8DbjL6OtSEWMyQhIiJfCd42Z3YiYX6LtfXzkIWxY2o1624q2s",
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAZ2ztfpr-zyHxMDm6sOQ52ZmtnrCyO7CpaS4QMHgzBmjeCZQWkZ-hf03MmAr4c9Bu1Rp5uKqp_kWvtrsgFqINI8YLaXaGp0TnCObMaHnciuJXO8RVKR2VTJ07gwip6zbXxhvxbYEJndKUIN41RHrnlNffTRbnbQLTNJ_GCHnr2HiBAQZUcByCC2uzDC9zV7spp7fCFRw42JGt4vKuwciVSLhpcmpKj-PRDwIAHI16TmQqjzMaM2hCyXbrwMJ8CLxfq3NgI2BRuHmYZ",
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAOezW737cXJSUZHbBEaVmJYeeYMqc132Z-JLMXXsEv6gLwWErh-vx4iNvNrXq4XPQEJd9G8NjTA6RGHImF_CiPGZQoi7_efIWay87uGndcE9pzKl23vLNrpWERgwPszu5ajuLxQGyZFH2b4f17013rB9R7-7Ipy8Wim3NXMrOMJw4_rvpCdT1KWEmO50uKpHky6bYjaECJH7THiGF3V-ROcKZ4bJscTtwjNu0xxuJuxQDeTaHl32vuwFoBaZSxJXabatzoeKYEqbiE",
-    ],
-    stock: 25,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "prod-010",
-    name: "Botanical Cleansing Oil",
-    slug: "botanical-cleansing-oil",
-    category: "face-wash",
-    variant_name: "100ml",
-    price: 45,
+    variant_name: "30g",
+    price: 799,
     compare_price: null,
     description:
-      "A luxurious glass bottle of botanical cleansing oil. The soft, high-key studio lighting highlights the golden hue of the liquid inside.",
+      "A potent anti-aging and de-pigmentation cream formulated with Ayurvedic botanicals. Targets dark spots, uneven skin tone, fine lines, and dullness — revealing visibly younger-looking, radiant skin.",
     ingredients:
-      "Jojoba Oil, Rosehip Seed Oil, Squalane, Rose Essential Oil, Vitamin E, Chamomile Extract.",
+      "Manjistha Extract, Licorice Root, Kumkumadi Oil, Saffron, Vitamin C, Shea Butter, Aloe Vera.",
     how_to_use:
-      "Apply to dry skin and massage in circular motions. Add water to emulsify, then rinse thoroughly. Follow with your favorite moisturizer.",
-    images: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAS3e7aO0ljMf-uuWOM08FigM6ee2mJHNtedFB1hcSfs7yeXGHDViCPoaUEFc2IrpA0hs64Ny9Pt_C5dyQCSrJKKh1sDh5Lpw421_vISy-uTilVFADwtcDo-LmYPCnRVUMxAg6M3GFEH_m3kn-_W-s7cgD0M4aXfWdrZ9iEsOJtNDCnN9nYzsmuSZmgPylF6GbEJthbTaMM4085niMffsfi_51WZaFoTKv9Uj8JrMDGQiJ-sayF1jqwXJF779QDe49G-U2v0dj6777k",
-    ],
-    stock: 35,
+      "Cleanse face. Apply a small amount to face and neck. Massage gently until absorbed. Use morning and night for best results.",
+    images: [],
+    stock: 100,
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
-    id: "prod-011",
-    name: "Restorative Night Cream",
-    slug: "restorative-night-cream",
+    id: "prod-fc-003",
+    name: "Saaral Skin Whitening Cream",
+    slug: "saaral-skin-whitening-cream-15g",
     category: "face-cream",
-    variant_name: "50g",
-    price: 68,
+    variant_name: "15g",
+    price: 449,
     compare_price: null,
     description:
-      "A frosted glass jar of night cream enriched with jasmine and marula. Works overnight to repair and rejuvenate your skin while you sleep.",
+      "A gentle yet effective skin brightening cream that visibly reduces pigmentation, dark spots, and uneven skin tone. Powered by natural botanical actives for a luminous, even complexion.",
     ingredients:
-      "Marula Oil, Jasmine Extract, Retinol, Hyaluronic Acid, Shea Butter, Vitamin C.",
+      "Licorice Extract, Kojic Acid, Vitamin C, Niacinamide, Aloe Vera, Shea Butter.",
     how_to_use:
-      "Apply a generous amount to clean skin before bedtime. Gently massage in upward strokes. Allow to absorb fully before sleeping.",
-    images: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDtwYWqM_9KlOczCwD-JCHGP7ucPTQkhhNbH_LcPGrsWac3qtTH7gxgMMKjias46-dxPf2uplPWstV3XBdt7H3dWLx56r_Fhf2L2GIPXEofDfsfS5K_ZwrKUS27ODUfC0S9eirAP5p_rjLR7OFTohwkw0m_OLf1iYe6MoP5_h_i1Wyk5q_J5RRjnuzQrZbuY1Qdk5psq0q65KLiIcObFCuDHgf6Rlb4zB06eZg0cFBixITEkSGXnW80HUCYWHQsZpawCo-vxtJD6soB",
-    ],
-    stock: 45,
+      "Apply a small amount to clean skin. Massage gently until absorbed. Use morning and night. For external use only.",
+    images: [],
+    stock: 100,
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
-    id: "prod-012",
-    name: "Purity Cleansing Balm",
-    slug: "purity-cleansing-balm",
-    category: "face-wash",
-    variant_name: "80g",
-    price: 45,
+    id: "prod-fc-004",
+    name: "Saaral Skin Whitening Cream",
+    slug: "saaral-skin-whitening-cream-30g",
+    category: "face-cream",
+    variant_name: "30g",
+    price: 799,
     compare_price: null,
     description:
-      "A luxurious, minimalist cleansing balm sitting on a light beige stone surface. Pure, tactile, and deeply calming.",
+      "A gentle yet effective skin brightening cream that visibly reduces pigmentation, dark spots, and uneven skin tone. Powered by natural botanical actives for a luminous, even complexion.",
     ingredients:
-      "Mango Butter, Beeswax, Coconut Oil, Tea Tree Oil, Chamomile Extract, Vitamin E.",
+      "Licorice Extract, Kojic Acid, Vitamin C, Niacinamide, Aloe Vera, Shea Butter.",
     how_to_use:
-      "Scoop a small amount and warm between fingers. Massage onto dry face to dissolve makeup and impurities. Rinse with warm water.",
-    images: [
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCoUPd7HYvlk8bjy4HobPKnaf_gATfARi1GQdo3ctNndNaAGD-HtmDtZMciCDs4vdB-GkKYpnlRiG0BcpMcHmYbWSDVLmBTx5RNQDSyZsTnTbh7TDdtqB_4jZD-oD7wfdX6kucO-RbVm_GRJvVP123Pgz-WyL2vfH2VX0QRGOhGNYXh1s9BqSETmmv_3yBqZvA7ZF4XROXCDtKOMPYpXrsrmbs1W09Omv5-AHF52GreyCWkdcMjBboYhFW2kkdEjKFpReBRvjTHvKca",
-    ],
-    stock: 50,
+      "Apply a small amount to clean skin. Massage gently until absorbed. Use morning and night. For external use only.",
+    images: [],
+    stock: 100,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "prod-fc-005",
+    name: "Advanced Foot Repair Balm",
+    slug: "advanced-foot-repair-balm",
+    category: "face-cream",
+    variant_name: "100g",
+    price: 350,
+    compare_price: null,
+    description:
+      "An intensive foot repair balm that heals cracked heels, deeply moisturizes dry skin, and restores softness. Formulated with potent botanical extracts for overnight repair.",
+    ingredients:
+      "Shea Butter, Beeswax, Coconut Oil, Vetiver Extract, Peppermint Oil, Tea Tree Oil, Vitamin E.",
+    how_to_use:
+      "Clean feet thoroughly. Apply a generous amount to heels and dry areas. Massage well. Wear cotton socks overnight for best results.",
+    images: [],
+    stock: 100,
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "prod-fc-006",
+    name: "Advanced Vetpalai Itching Balm",
+    slug: "advanced-vetpalai-itching-balm",
+    category: "face-cream",
+    variant_name: "100g",
+    price: 350,
+    compare_price: null,
+    description:
+      "A powerful anti-itch balm crafted with Vetpalai (Wrightia tinctoria) extract, traditionally used to treat chronic skin conditions. Provides instant relief from itching, redness, and inflammation.",
+    ingredients:
+      "Vetpalai Extract, Neem Oil, Camphor, Coconut Oil, Shea Butter, Beeswax, Natural Fragrance.",
+    how_to_use:
+      "Apply to affected areas and massage gently. Use as needed for relief. For external use only.",
+    images: [],
+    stock: 100,
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),

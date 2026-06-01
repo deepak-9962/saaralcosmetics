@@ -1,5 +1,5 @@
 /* MobileTrustBar — Static social proof card matching reference layout
-   Left: ★★★★★ | Center: 20,000+ Happy Customers | Right: Made For Indian Skin
+   Left: ★★★★★ | Center: 1,000+ Happy Customers | Right: Made For Indian Skin
    Mobile only, server component */
 
 export default function MobileTrustBar() {
@@ -68,7 +68,7 @@ export default function MobileTrustBar() {
               lineHeight: 1.1,
             }}
           >
-            20,000+
+            1,000+
           </span>
           <span
             style={{

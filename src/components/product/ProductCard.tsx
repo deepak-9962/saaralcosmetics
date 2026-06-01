@@ -14,6 +14,8 @@ interface ProductCardProps {
   product: Product;
   index?: number;
   showBadge?: string;
+  /** Extra badge shown stacked below showBadge (e.g. "HERBAL") */
+  showSubBadge?: string;
   imageAspectClassName?: string;
 }
 
@@ -21,15 +23,18 @@ export default function ProductCard({
   product,
   index = 0,
   showBadge,
-  imageAspectClassName = "aspect-[4/5]",
+  showSubBadge,
+  imageAspectClassName = "aspect-square",
 }: ProductCardProps) {
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const isWishlisted = isInWishlist(product.id);
+  const isSoldOut = product.stock === 0;
 
   const addProduct = () => {
+    if (isSoldOut) return;
     addItem({
       product_id: product.id,
       name: product.name,
@@ -72,17 +77,19 @@ export default function ProductCard({
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* ── Image Container ── */}
-        <div
-          className={`relative ${imageAspectClassName} rounded-2xl overflow-hidden mb-4`}
+        <Link
+          href={`/products/${product.slug}`}
+          className={`relative ${imageAspectClassName} rounded-xl overflow-hidden mb-2.5 block`}
           style={{
             background: "linear-gradient(145deg, #F4E4DA 0%, #EDD5C8 100%)",
             boxShadow: isHovered
-              ? "0 28px 70px -12px rgba(176,96,128,0.28), 0 8px 24px -8px rgba(42,26,20,0.08)"
-              : "0 8px 32px -8px rgba(176,96,128,0.12), 0 2px 8px rgba(42,26,20,0.04)",
-            transition: "box-shadow 0.55s cubic-bezier(0.22,1,0.36,1)",
+              ? "0 20px 52px -10px rgba(176,96,128,0.24), 0 6px 18px -6px rgba(42,26,20,0.08)"
+              : "0 4px 16px -4px rgba(176,96,128,0.10), 0 1px 4px rgba(42,26,20,0.04)",
+            transition: "box-shadow 0.45s cubic-bezier(0.22,1,0.36,1)",
           }}
+          aria-label={`View ${product.name}`}
         >
-          {/* Image */}
+          {/* Product Image */}
           {product.images[0] && (
             <Image
               src={product.images[0]}
@@ -90,66 +97,102 @@ export default function ProductCard({
               fill
               className="object-cover"
               style={{
-                transform: isHovered ? "scale(1.07)" : "scale(1)",
-                transition: "transform 0.75s cubic-bezier(0.22,1,0.36,1)",
+                transform: isHovered && !isSoldOut ? "scale(1.06)" : "scale(1)",
+                transition: "transform 0.65s cubic-bezier(0.22,1,0.36,1)",
               }}
               sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           )}
 
-          {/* Link overlay */}
-          <Link
-            href={`/products/${product.slug}`}
-            className="absolute inset-0 z-[1]"
-            aria-label={`View ${product.name}`}
-          />
-
-          {/* Subtle warm vignette */}
+          {/* Bottom vignette */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: "radial-gradient(ellipse at 50% 110%, rgba(42,26,20,0.18) 0%, transparent 70%)",
-              opacity: isHovered ? 0.9 : 0.5,
-              transition: "opacity 0.5s ease",
+              background:
+                "radial-gradient(ellipse at 50% 115%, rgba(42,26,20,0.14) 0%, transparent 65%)",
+              opacity: isHovered ? 0.8 : 0.4,
+              transition: "opacity 0.4s ease",
             }}
           />
 
-          {/* Badge */}
-          {showBadge && (
+          {/* SOLD OUT overlay */}
+          {isSoldOut && (
             <div
-              className="absolute top-3 left-3 z-[2] px-3 py-1 rounded-full font-body text-[10px] tracking-[0.14em] font-semibold uppercase"
-              style={{
-                background: showBadge === "New"
-                  ? "linear-gradient(135deg, rgba(176,96,128,0.92), rgba(138,64,96,0.92))"
-                  : "linear-gradient(135deg, rgba(201,167,77,0.95), rgba(158,128,40,0.95))",
-                color: "#fff",
-                backdropFilter: "blur(8px)",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-              }}
+              className="absolute inset-0 flex items-center justify-center z-[4]"
+              style={{ background: "rgba(26,14,10,0.38)", backdropFilter: "blur(1px)" }}
             >
-              {showBadge}
+              <span
+                className="font-body text-[11px] md:text-[13px] tracking-[0.14em] uppercase font-bold px-4 py-1.5 rounded-full"
+                style={{
+                  background: "rgba(255,252,247,0.94)",
+                  color: "#1A0E0A",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
+                }}
+              >
+                Sold Out
+              </span>
             </div>
           )}
 
-          {/* Wishlist button */}
+          {/* Badge(s) — top left */}
+          {showBadge && !isSoldOut && (
+            <div className="absolute top-2.5 left-2.5 z-[2] flex flex-col gap-1 pointer-events-none">
+              <span
+                className="px-2 py-0.5 rounded-full font-body text-[9px] tracking-[0.10em] font-semibold uppercase"
+                style={{
+                  background:
+                    showBadge === "New" || showBadge === "New Arrival"
+                      ? "linear-gradient(135deg, rgba(176,96,128,0.92), rgba(138,64,96,0.92))"
+                      : "linear-gradient(135deg, rgba(42,26,20,0.88), rgba(42,26,20,0.78))",
+                  color: "#fff",
+                  backdropFilter: "blur(8px)",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+                }}
+              >
+                {showBadge}
+              </span>
+              {showSubBadge && (
+                <span
+                  className="px-2 py-0.5 rounded-full font-body text-[9px] tracking-[0.10em] font-semibold uppercase"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(74,124,89,0.90), rgba(50,100,65,0.90))",
+                    color: "#fff",
+                    backdropFilter: "blur(8px)",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                  }}
+                >
+                  {showSubBadge}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Wishlist button — top right */}
           <button
             type="button"
             onClick={handleToggleWishlist}
-            className={`absolute top-3 right-3 z-[3] w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
+            className={`absolute top-2.5 right-2.5 z-[3] w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
               isWishlisted
-                ? "opacity-100 translate-y-0"
-                : "opacity-100 translate-y-0 md:opacity-0 md:translate-y-2 md:group-hover:opacity-100 md:group-hover:translate-y-0"
+                ? "opacity-100"
+                : "opacity-100 md:opacity-0 md:translate-y-1.5 md:group-hover:opacity-100 md:group-hover:translate-y-0"
             }`}
             style={{
-              background: isWishlisted ? "rgba(176,96,128,0.95)" : "rgba(255,250,247,0.92)",
-              backdropFilter: "blur(12px)",
-              boxShadow: "0 2px 12px rgba(42,26,20,0.15)",
-              border: isWishlisted ? "1px solid rgba(255,255,255,0.25)" : "1px solid rgba(201,167,77,0.2)",
+              background: isWishlisted ? "rgba(176,96,128,0.95)" : "rgba(255,250,247,0.90)",
+              backdropFilter: "blur(10px)",
+              boxShadow: "0 2px 10px rgba(42,26,20,0.14)",
+              border: isWishlisted
+                ? "1px solid rgba(255,255,255,0.22)"
+                : "1px solid rgba(201,167,77,0.18)",
             }}
-            aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+            aria-label={
+              isWishlisted
+                ? `Remove ${product.name} from wishlist`
+                : `Add ${product.name} to wishlist`
+            }
           >
             <span
-              className="material-symbols-outlined text-[18px]"
+              className="material-symbols-outlined text-[16px]"
               style={{
                 color: isWishlisted ? "#fff" : "#B06080",
                 fontVariationSettings: `'FILL' ${isWishlisted ? 1 : 0}`,
@@ -159,61 +202,76 @@ export default function ProductCard({
             </span>
           </button>
 
-          {/* Quick view button */}
+          {/* Quick view — desktop hover */}
           <button
             type="button"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setQuickViewOpen(true); }}
-            className="absolute top-3 right-[52px] z-[3] w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 opacity-100 translate-y-0 md:opacity-0 md:translate-y-2 md:group-hover:opacity-100 md:group-hover:translate-y-0"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setQuickViewOpen(true);
+            }}
+            className="hidden md:flex absolute top-2.5 right-[44px] z-[3] w-8 h-8 rounded-full items-center justify-center transition-all duration-300 opacity-0 translate-y-1.5 group-hover:opacity-100 group-hover:translate-y-0"
             style={{
-              background: "rgba(255,250,247,0.92)",
-              backdropFilter: "blur(12px)",
-              boxShadow: "0 2px 12px rgba(42,26,20,0.15)",
-              border: "1px solid rgba(201,167,77,0.2)",
+              background: "rgba(255,250,247,0.90)",
+              backdropFilter: "blur(10px)",
+              boxShadow: "0 2px 10px rgba(42,26,20,0.14)",
+              border: "1px solid rgba(201,167,77,0.18)",
             }}
             aria-label={`Quick view ${product.name}`}
           >
-            <span className="material-symbols-outlined text-[18px]" style={{ color: "#8A6A5A" }}>visibility</span>
+            <span className="material-symbols-outlined text-[16px]" style={{ color: "#8A6A5A" }}>
+              visibility
+            </span>
           </button>
 
-          {/* Add to cart overlay — desktop hover reveal */}
+          {/* Add to cart overlay — desktop hover */}
           <div
-            className="hidden md:flex absolute inset-x-0 bottom-0 z-[3] flex-col items-stretch px-4 pb-4 pt-12"
+            className="hidden md:flex absolute inset-x-0 bottom-0 z-[3] flex-col items-stretch px-3 pb-3 pt-10"
             style={{
-              background: "linear-gradient(to top, rgba(42,26,20,0.72) 0%, rgba(42,26,20,0.35) 60%, transparent 100%)",
-              transform: isHovered ? "translateY(0)" : "translateY(100%)",
-              transition: "transform 0.4s cubic-bezier(0.22,1,0.36,1)",
+              background:
+                "linear-gradient(to top, rgba(42,26,20,0.68) 0%, rgba(42,26,20,0.30) 55%, transparent 100%)",
+              transform: isHovered && !isSoldOut ? "translateY(0)" : "translateY(100%)",
+              transition: "transform 0.38s cubic-bezier(0.22,1,0.36,1)",
             }}
           >
             <button
               type="button"
               onClick={handleAddToCart}
-              className="w-full rounded-xl py-3 font-body text-[11px] tracking-[0.14em] uppercase font-semibold flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.97]"
+              className="w-full rounded-lg py-2.5 font-body text-[10px] tracking-[0.12em] uppercase font-semibold flex items-center justify-center gap-1.5 transition-all duration-200 active:scale-[0.97]"
               style={{
                 background: "linear-gradient(135deg, #B06080, #8A4060)",
                 color: "#fff",
-                boxShadow: "0 4px 16px rgba(176,96,128,0.35), inset 0 1px 0 rgba(255,255,255,0.15)",
+                boxShadow: "0 3px 12px rgba(176,96,128,0.35)",
               }}
             >
-              <span className="material-symbols-outlined text-[17px]" style={{ fontVariationSettings: "'FILL' 1" }}>shopping_bag</span>
+              <span
+                className="material-symbols-outlined text-[15px]"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                shopping_bag
+              </span>
               Add to Cart
             </button>
           </div>
-        </div>
+        </Link>
 
-        {/* ── Card Content ── */}
+        {/* ── Card Info ── */}
         <div className="flex flex-col flex-grow px-0.5">
           <Link href={`/products/${product.slug}`} className="flex flex-col flex-grow">
-            {/* Category & variant */}
-            <p className="font-body text-[10px] tracking-[0.14em] uppercase mb-1.5 transition-colors duration-300"
-              style={{ color: isHovered ? "#B06080" : "rgba(138,106,90,0.75)" }}>
-              {categoryLabel}{product.variant_name ? ` · ${product.variant_name}` : ""}
+            {/* Category tag */}
+            <p
+              className="font-body text-[9.5px] tracking-[0.12em] uppercase mb-1 transition-colors duration-300"
+              style={{ color: isHovered ? "#B06080" : "rgba(138,106,90,0.65)" }}
+            >
+              {categoryLabel}
+              {product.variant_name ? ` · ${product.variant_name}` : ""}
             </p>
 
             {/* Product name */}
             <h3
               className="font-display leading-tight mb-2 transition-colors duration-300"
               style={{
-                fontSize: "clamp(17px, 1.6vw, 21px)",
+                fontSize: "clamp(14px, 1.4vw, 18px)",
                 color: isHovered ? "#8A3A60" : "#2A1A14",
                 letterSpacing: "-0.01em",
               }}
@@ -221,93 +279,78 @@ export default function ProductCard({
               {product.name}
             </h3>
 
-            {/* Description snippet — desktop only */}
-            {product.description && (
-              <p className="hidden md:block font-body text-[13px] leading-relaxed mb-3"
-                style={{
-                  color: "rgba(90,58,44,0.7)",
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                }}>
-                {product.description}
-              </p>
-            )}
-
             {/* Spacer */}
             <div className="flex-grow" />
 
-            {/* Rating stars */}
-            <div className="flex items-center gap-1 mb-3">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <svg key={star} width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M6 1L7.36 4.16L10.85 4.49L8.28 6.74L9.06 10.15L6 8.35L2.94 10.15L3.72 6.74L1.15 4.49L4.64 4.16L6 1Z"
-                    fill={star <= 4 ? "#C9A74D" : star === 5 ? "url(#halfStar)" : "#E3C8B8"}
-                    stroke={star <= 4 ? "#C9A74D" : "#D4B8A8"} strokeWidth="0.5" />
-                  {star === 5 && (
-                    <defs>
-                      <linearGradient id="halfStar">
-                        <stop offset="50%" stopColor="#C9A74D" />
-                        <stop offset="50%" stopColor="#E3C8B8" />
-                      </linearGradient>
-                    </defs>
-                  )}
-                </svg>
-              ))}
-              <span className="font-body text-[10px] text-[#8A6A5A]/70 ml-0.5">4.8</span>
-            </div>
-
             {/* Price row */}
-            <div className="flex flex-col gap-0.5 w-full">
-              <div className="flex items-end justify-between gap-2">
-                <div className="flex items-baseline gap-2 flex-wrap">
-                  <span className="font-display text-[18px] md:text-[20px]" style={{ color: "#8B3A5E", letterSpacing: "-0.01em" }}>
-                    {formatPrice(product.price)}
-                  </span>
-                  {product.compare_price && (
-                    <span className="font-body text-[13px] line-through" style={{ color: "rgba(138,106,90,0.45)" }}>
-                      {formatPrice(product.compare_price)}
-                    </span>
-                  )}
-                  {product.compare_price && (
-                    <span className="font-body text-[10px] px-1.5 py-0.5 rounded-full"
-                      style={{ background: "rgba(176,96,128,0.1)", color: "#B06080" }}>
-                      {Math.round((1 - product.price / product.compare_price) * 100)}% off
-                    </span>
-                  )}
-                </div>
-
-                {/* Mobile add to cart */}
-                <button
-                  type="button"
-                  onClick={handleAddToCart}
-                  className="md:hidden shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 active:scale-95"
-                  style={{
-                    background: "linear-gradient(135deg, #B06080, #8A4060)",
-                    boxShadow: "0 4px 12px rgba(176,96,128,0.3)",
-                  }}
-                  aria-label={`Add ${product.name} to cart`}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span
+                className="font-display"
+                style={{
+                  fontSize: "clamp(14px, 1.5vw, 18px)",
+                  color: isSoldOut ? "rgba(42,26,20,0.35)" : "#8B3A5E",
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                {formatPrice(product.price)}
+              </span>
+              {product.compare_price && (
+                <span
+                  className="font-body text-[11px] line-through"
+                  style={{ color: "rgba(138,106,90,0.40)" }}
                 >
-                  <span className="material-symbols-outlined text-[18px] text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    shopping_bag
-                  </span>
-                </button>
-              </div>
-              <p className="font-body text-[9px] leading-[1.2]" style={{ color: "rgba(138,106,90,0.75)" }}>
-                (MRP inclusive of taxes)
-              </p>
+                  {formatPrice(product.compare_price)}
+                </span>
+              )}
+              {product.compare_price && (
+                <span
+                  className="font-body text-[9px] px-1.5 py-0.5 rounded-full"
+                  style={{
+                    background: "rgba(176,96,128,0.08)",
+                    color: "#B06080",
+                  }}
+                >
+                  {Math.round((1 - product.price / product.compare_price) * 100)}% off
+                </span>
+              )}
             </div>
-          </Link>
 
-          {/* Hover underline accent */}
-          <div
-            className="mt-3 h-px rounded-full transition-all duration-500"
-            style={{
-              width: isHovered ? "100%" : "0%",
-              background: "linear-gradient(90deg, #B06080, #C9A74D)",
-            }}
-          />
+            {/* Mobile — full-width Add to Cart button */}
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={isSoldOut}
+              className="md:hidden mt-2 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg font-body text-[10px] tracking-[0.08em] font-semibold uppercase transition-all duration-200 active:scale-[0.97]"
+              style={{
+                background: isSoldOut
+                  ? "rgba(42,26,20,0.10)"
+                  : "linear-gradient(135deg, #B06080, #8A4060)",
+                color: isSoldOut ? "rgba(42,26,20,0.35)" : "#fff",
+                boxShadow: isSoldOut ? "none" : "0 2px 8px rgba(176,96,128,0.30)",
+                cursor: isSoldOut ? "not-allowed" : "pointer",
+              }}
+              aria-label={
+                isSoldOut ? `${product.name} is sold out` : `Add ${product.name} to cart`
+              }
+            >
+              {isSoldOut ? (
+                "Sold Out"
+              ) : (
+                <>
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM5.83 6h12.84l-1.67 7H7.84L5.83 6zM3 2H1v2h2l3.6 7.59L5.25 14c-.16.28-.25.61-.25.96C5 16.1 5.9 17 7 17h14v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 23.5 4H5.21l-.94-2z" />
+                  </svg>
+                  Add to Cart
+                </>
+              )}
+            </button>
+          </Link>
         </div>
       </article>
 
@@ -339,8 +382,10 @@ export default function ProductCard({
               aria-label={`Quick view — ${product.name}`}
             >
               {/* Image panel */}
-              <div className="relative aspect-[4/5] md:aspect-auto min-h-[320px]"
-                style={{ background: "linear-gradient(145deg, #F4E4DA, #EDD5C8)" }}>
+              <div
+                className="relative aspect-[4/5] md:aspect-auto min-h-[320px]"
+                style={{ background: "linear-gradient(145deg, #F4E4DA, #EDD5C8)" }}
+              >
                 {product.images[0] && (
                   <Image
                     src={product.images[0]}
@@ -350,9 +395,28 @@ export default function ProductCard({
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 )}
-                {showBadge && (
-                  <div className="absolute top-4 left-4 px-3 py-1 rounded-full font-body text-[10px] tracking-[0.14em] font-semibold uppercase"
-                    style={{ background: "linear-gradient(135deg, rgba(176,96,128,0.92), rgba(138,64,96,0.92))", color: "#fff" }}>
+                {isSoldOut && (
+                  <div
+                    className="absolute inset-0 flex items-center justify-center z-[2]"
+                    style={{ background: "rgba(26,14,10,0.35)" }}
+                  >
+                    <span
+                      className="font-body text-[13px] tracking-[0.14em] uppercase font-bold px-5 py-2 rounded-full"
+                      style={{ background: "rgba(255,252,247,0.94)", color: "#1A0E0A" }}
+                    >
+                      Sold Out
+                    </span>
+                  </div>
+                )}
+                {showBadge && !isSoldOut && (
+                  <div
+                    className="absolute top-4 left-4 px-3 py-1 rounded-full font-body text-[10px] tracking-[0.12em] font-semibold uppercase"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, rgba(176,96,128,0.92), rgba(138,64,96,0.92))",
+                      color: "#fff",
+                    }}
+                  >
                     {showBadge}
                   </div>
                 )}
@@ -372,53 +436,79 @@ export default function ProductCard({
                 </button>
 
                 {/* Category */}
-                <p className="font-body text-[10px] tracking-[0.16em] uppercase mb-3"
-                  style={{ color: "#C9A74D" }}>
-                  {categoryLabel}{product.variant_name ? ` · ${product.variant_name}` : ""}
+                <p
+                  className="font-body text-[10px] tracking-[0.16em] uppercase mb-3"
+                  style={{ color: "#C9A74D" }}
+                >
+                  {categoryLabel}
+                  {product.variant_name ? ` · ${product.variant_name}` : ""}
                 </p>
 
                 {/* Name */}
-                <h3 className="font-display text-[#2A1A14] mb-4"
-                  style={{ fontSize: "clamp(24px, 3vw, 32px)", lineHeight: 1.15, letterSpacing: "-0.015em" }}>
+                <h3
+                  className="font-display text-[#2A1A14] mb-4"
+                  style={{
+                    fontSize: "clamp(22px, 3vw, 30px)",
+                    lineHeight: 1.15,
+                    letterSpacing: "-0.015em",
+                  }}
+                >
                   {product.name}
                 </h3>
 
                 {/* Price */}
                 <div className="mb-5">
                   <div className="flex items-baseline gap-3">
-                    <span className="font-display text-[28px]" style={{ color: "#B06080" }}>
+                    <span
+                      className="font-display text-[26px]"
+                      style={{ color: isSoldOut ? "rgba(42,26,20,0.35)" : "#B06080" }}
+                    >
                       {formatPrice(product.price)}
                     </span>
                     {product.compare_price && (
                       <>
-                        <span className="font-body text-[16px] line-through" style={{ color: "rgba(138,106,90,0.45)" }}>
+                        <span
+                          className="font-body text-[15px] line-through"
+                          style={{ color: "rgba(138,106,90,0.45)" }}
+                        >
                           {formatPrice(product.compare_price)}
                         </span>
-                        <span className="font-body text-[11px] px-2 py-0.5 rounded-full"
-                          style={{ background: "rgba(176,96,128,0.1)", color: "#B06080" }}>
-                          {Math.round((1 - product.price / product.compare_price) * 100)}% off
+                        <span
+                          className="font-body text-[11px] px-2 py-0.5 rounded-full"
+                          style={{ background: "rgba(176,96,128,0.1)", color: "#B06080" }}
+                        >
+                          {Math.round(
+                            (1 - product.price / product.compare_price) * 100,
+                          )}
+                          % off
                         </span>
                       </>
                     )}
                   </div>
-                  <p className="font-body text-[10px] leading-[1] mt-1" style={{ color: "rgba(138,106,90,0.6)" }}>
-                    (MRP inclusive of taxes)
-                  </p>
                 </div>
 
                 {/* Description */}
                 {product.description && (
-                  <p className="font-body text-[15px] leading-relaxed mb-6"
-                    style={{ color: "rgba(90,58,44,0.7)" }}>
+                  <p
+                    className="font-body text-[14px] leading-relaxed mb-6"
+                    style={{ color: "rgba(90,58,44,0.7)" }}
+                  >
                     {product.description}
                   </p>
                 )}
 
                 {/* Ingredients teaser */}
                 {product.ingredients && (
-                  <div className="mb-6 px-4 py-3 rounded-xl"
-                    style={{ background: "rgba(201,167,77,0.08)", border: "1px solid rgba(201,167,77,0.15)" }}>
-                    <p className="font-body text-[10px] tracking-[0.12em] uppercase text-[#8A6A00] mb-1.5">Key Ingredients</p>
+                  <div
+                    className="mb-6 px-4 py-3 rounded-xl"
+                    style={{
+                      background: "rgba(201,167,77,0.08)",
+                      border: "1px solid rgba(201,167,77,0.15)",
+                    }}
+                  >
+                    <p className="font-body text-[10px] tracking-[0.12em] uppercase text-[#8A6A00] mb-1.5">
+                      Key Ingredients
+                    </p>
                     <p className="font-body text-[13px] leading-relaxed text-[#5A3A2C]/70 line-clamp-2">
                       {product.ingredients}
                     </p>
@@ -427,19 +517,40 @@ export default function ProductCard({
 
                 {/* CTA */}
                 <div className="mt-auto flex flex-col sm:flex-row gap-3">
-                  <button
-                    type="button"
-                    onClick={() => { addProduct(); setQuickViewOpen(false); }}
-                    className="flex-1 py-3.5 rounded-full font-body text-[12px] tracking-[0.12em] uppercase font-semibold flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.97]"
-                    style={{
-                      background: "linear-gradient(135deg, #B06080, #8A4060)",
-                      color: "#fff",
-                      boxShadow: "0 6px 20px rgba(176,96,128,0.3)",
-                    }}
-                  >
-                    <span className="material-symbols-outlined text-[17px]" style={{ fontVariationSettings: "'FILL' 1" }}>shopping_bag</span>
-                    Add to Cart
-                  </button>
+                  {!isSoldOut ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        addProduct();
+                        setQuickViewOpen(false);
+                      }}
+                      className="flex-1 py-3.5 rounded-full font-body text-[12px] tracking-[0.12em] uppercase font-semibold flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.97]"
+                      style={{
+                        background: "linear-gradient(135deg, #B06080, #8A4060)",
+                        color: "#fff",
+                        boxShadow: "0 6px 20px rgba(176,96,128,0.3)",
+                      }}
+                    >
+                      <span
+                        className="material-symbols-outlined text-[17px]"
+                        style={{ fontVariationSettings: "'FILL' 1" }}
+                      >
+                        shopping_bag
+                      </span>
+                      Add to Cart
+                    </button>
+                  ) : (
+                    <div
+                      className="flex-1 py-3.5 rounded-full font-body text-[12px] tracking-[0.12em] uppercase font-semibold flex items-center justify-center"
+                      style={{
+                        background: "rgba(42,26,20,0.06)",
+                        color: "rgba(42,26,20,0.35)",
+                        border: "1px solid rgba(42,26,20,0.12)",
+                      }}
+                    >
+                      Sold Out
+                    </div>
+                  )}
                   <Link
                     href={`/products/${product.slug}`}
                     className="flex-1 py-3.5 rounded-full font-body text-[12px] tracking-[0.12em] uppercase font-medium text-center transition-all duration-200"
@@ -448,7 +559,7 @@ export default function ProductCard({
                       color: "rgba(42,26,20,0.7)",
                     }}
                   >
-                    View Full Details
+                    View Details
                   </Link>
                 </div>
               </div>

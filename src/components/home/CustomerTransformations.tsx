@@ -17,6 +17,8 @@ interface Transformation {
   duration: string;
   product: string;
   productHref: string;
+  productHref2?: string;
+  product2Label?: string;
   concerns: string[];
   result: string;
   /* Images: real customer photos will go here.
@@ -37,20 +39,22 @@ interface Transformation {
 const TRANSFORMATIONS: Transformation[] = [
   {
     id: "face-skin",
-    customer: "Devika M.",
-    age: 22,
+    customer: "Yuvaraj",
+    age: 37,
     location: "Chennai, Tamil Nadu",
     duration: "8 weeks",
-    product: "Pigmentation Cream",
-    productHref: "/products/saaral-anti-aging-pigmentation-cream-15g",
-    concerns: ["Acne Scars", "Dark Spots", "Hyperpigmentation"],
-    result: "Visible reduction in pigmentation and acne scars. Skin tone noticeably more even and luminous.",
+    product: "Skin Whitening Cream + Manjistha Soap",
+    productHref: "/products/saaral-skin-whitening-cream-15g",
+    productHref2: "/products?category=soap",
+    product2Label: "Manjistha Soap",
+    concerns: ["Skin Whitening", "Dark Spots", "Natural Glow"],
+    result: "Visible skin brightening and natural glow improvement. Manjistha Soap helped clear the skin noticeably.",
     beforeSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/1-before.avif",
     afterSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/1-after.avif",
     beforeBg: "linear-gradient(135deg, #E8C9B8 0%, #D4A88A 100%)",
     afterBg: "linear-gradient(135deg, #F0DDD0 0%, #E8C8B5 100%)",
     accentColor: "#B06080",
-    tagLabel: "Face Care",
+    tagLabel: "Skin Whitening",
     tagIcon: (
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <circle cx="12" cy="12" r="10" />
@@ -60,43 +64,47 @@ const TRANSFORMATIONS: Transformation[] = [
   },
   {
     id: "under-eye",
-    customer: "Sudharshan K.",
-    age: 40,
-    location: "Bengaluru, Karnataka",
+    customer: "Chitra",
+    age: 28,
+    location: "Chennai, Tamil Nadu",
     duration: "6 weeks",
-    product: "Sangupoo Face Wash",
-    productHref: "/products/butterfly-pea-facewash-sangoo-poo",
-    concerns: ["Dark Circles", "Puffiness", "Fine Lines"],
-    result: "Dark circles and puffiness significantly reduced. Skin appears more rested and visibly refreshed.",
+    product: "Skin Whitening Cream + Redwine Face Wash",
+    productHref: "/products/saaral-skin-whitening-cream-15g",
+    productHref2: "/products/redwine-facewash",
+    product2Label: "Redwine Face Wash",
+    concerns: ["Skin Whitening", "Dullness", "Uneven Skin Tone"],
+    result: "Skin tone visibly brightened and face appeared more radiant. Redwine Face Wash helped deeply cleanse and enhance glow.",
     beforeSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/2-before.avif",
     afterSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/2-after.avif",
     beforeBg: "linear-gradient(135deg, #C8B8A8 0%, #B0A090 100%)",
     afterBg: "linear-gradient(135deg, #DDD0C0 0%, #CCBCAA 100%)",
-    accentColor: "#4A7C59",
-    tagLabel: "Eye Care",
+    accentColor: "#7A2040",
+    tagLabel: "Glow & Radiance",
     tagIcon: (
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-        <circle cx="12" cy="12" r="3" />
+        <circle cx="12" cy="12" r="5" />
+        <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
       </svg>
     ),
   },
   {
-    id: "hair-care",
-    customer: "Amirtha N.",
-    age: 28,
-    location: "Coimbatore, Tamil Nadu",
+    id: "anti-aging",
+    customer: "Kavitha",
+    age: 25,
+    location: "Madurai, Tamil Nadu",
     duration: "10 weeks",
-    product: "Nalangu Maavu Ritual Pack",
-    productHref: "/products?category=nalangu-maavu",
-    concerns: ["Frizz & Dryness", "Split Ends", "Damaged Hair"],
-    result: "Hair visibly softer, shinier, and more manageable. Frizz reduced and natural bounce restored.",
+    product: "Anti Aging & Pigmentation Cream + Butterfly Pea Face Wash",
+    productHref: "/products/saaral-anti-aging-pigmentation-cream-15g",
+    productHref2: "/products/butterfly-pea-facewash-sangoo-poo",
+    product2Label: "Butterfly Pea Face Wash",
+    concerns: ["Pigmentation", "Anti-Aging", "Skin Brightening"],
+    result: "Significant reduction in pigmentation and fine lines. Butterfly Pea Face Wash visibly revived and refreshed the complexion.",
     beforeSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/3-before.avif",
     afterSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/3-after.avif",
     beforeBg: "linear-gradient(135deg, #3D2A1A 0%, #5A3E28 100%)",
     afterBg: "linear-gradient(135deg, #5A3E28 0%, #7A5A3A 100%)",
-    accentColor: "#C9A74D",
-    tagLabel: "Hair Care",
+    accentColor: "#4A7C59",
+    tagLabel: "Anti-Aging",
     tagIcon: (
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M12 2a10 10 0 0 1 10 10c0 4-2.5 7.5-6 9" />
@@ -105,6 +113,7 @@ const TRANSFORMATIONS: Transformation[] = [
     ),
   },
 ];
+
 
 /* ─────────────────────────────────────────────
    ANIMATED SECTION CONSTANTS
@@ -493,35 +502,59 @@ function BeforeAfterSlider({
                 {item.tagLabel}
               </span>
 
-              {/* Shop button */}
-              <Link
-                href={item.productHref}
-                className="group inline-flex items-center gap-1 rounded-full transition-all duration-300 active:scale-95"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  fontSize: "9px",
-                  fontWeight: 600,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "#fff",
-                  background: item.accentColor,
-                  padding: "6px 12px",
-                  boxShadow: `0 4px 12px ${item.accentColor}66`,
-                }}
-              >
-                Shop
-                <svg
-                  width="8"
-                  height="8"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  className="group-hover:translate-x-0.5 transition-transform duration-200"
-                  aria-hidden="true"
+              {/* Shop buttons — primary + optional secondary product */}
+              <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                <Link
+                  href={item.productHref}
+                  className="group inline-flex items-center gap-1 rounded-full transition-all duration-300 active:scale-95"
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    fontSize: "9px",
+                    fontWeight: 600,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: "#fff",
+                    background: item.accentColor,
+                    padding: "6px 12px",
+                    boxShadow: `0 4px 12px ${item.accentColor}66`,
+                  }}
                 >
-                  <line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                  <polyline points="7,3 10,6 7,9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </Link>
+                  Shop
+                  <svg
+                    width="8"
+                    height="8"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    className="group-hover:translate-x-0.5 transition-transform duration-200"
+                    aria-hidden="true"
+                  >
+                    <line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    <polyline points="7,3 10,6 7,9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </Link>
+                {item.productHref2 && (
+                  <Link
+                    href={item.productHref2}
+                    className="group inline-flex items-center gap-1 rounded-full transition-all duration-300 active:scale-95"
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      fontSize: "9px",
+                      fontWeight: 600,
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                      color: item.accentColor,
+                      background: "rgba(255,255,255,0.92)",
+                      border: `1px solid ${item.accentColor}44`,
+                      padding: "5px 10px",
+                      backdropFilter: "blur(8px)",
+                      WebkitBackdropFilter: "blur(8px)",
+                    }}
+                    aria-label={`Shop ${item.product2Label}`}
+                  >
+                    {item.product2Label}
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -815,7 +848,7 @@ export default function CustomerTransformations() {
           transition={{ duration: 0.6, delay: 0.2, ease }}
         >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-6">
-            <TrustStat value="500+" label="Happy Customers" delay={0.0} />
+            <TrustStat value="1,000+" label="Happy Customers" delay={0.0} />
             <TrustStat value="4.9★" label="Average Rating" delay={0.08} />
             <TrustStat value="100%" label="Natural Ingredients" delay={0.16} />
             <TrustStat value="6–10 wk" label="Visible Results" delay={0.24} />
