@@ -6,14 +6,14 @@ export default function MobileTrustBar() {
   return (
     <div
       className="block md:hidden w-full"
-      style={{ padding: "0 16px 0" }}
+      style={{ padding: "6px 16px", background: "#FDF6F0" }}
       aria-label="Customer trust signals"
     >
       <div
         style={{
-          background: "linear-gradient(135deg, #FFFDF8 0%, #FFF8F2 100%)",
+          background: "#FCEEF2",
           borderRadius: "16px",
-          border: "1px solid rgba(201,167,77,0.18)",
+          border: "1px solid rgba(139,58,94,0.18)",
           boxShadow: "0 2px 12px rgba(139,58,94,0.07), 0 1px 0 rgba(255,255,255,0.9) inset",
           padding: "14px 0",
           display: "flex",
@@ -23,7 +23,7 @@ export default function MobileTrustBar() {
         {/* LEFT — Stars */}
         <div
           className="flex-1 flex flex-col items-center gap-1"
-          style={{ borderRight: "1px solid rgba(201,167,77,0.22)" }}
+          style={{ borderRight: "1px solid rgba(139,58,94,0.2)" }}
         >
           {/* Star row */}
           <div className="flex items-center gap-[2px]" aria-label="5 stars">
@@ -44,8 +44,8 @@ export default function MobileTrustBar() {
             style={{
               fontFamily: "var(--font-body)",
               fontSize: "9px",
-              fontWeight: 500,
-              color: "rgba(42,26,20,0.55)",
+              fontWeight: 700,
+              color: "#000000",
               letterSpacing: "0.03em",
             }}
           >
@@ -56,14 +56,14 @@ export default function MobileTrustBar() {
         {/* CENTER — Happy Customers */}
         <div
           className="flex-[1.4] flex flex-col items-center gap-0.5"
-          style={{ borderRight: "1px solid rgba(201,167,77,0.22)" }}
+          style={{ borderRight: "1px solid rgba(139,58,94,0.2)" }}
         >
           <span
             style={{
               fontFamily: "var(--font-body)",
               fontSize: "16px",
-              fontWeight: 800,
-              color: "#2A1A14",
+              fontWeight: 850,
+              color: "#000000",
               letterSpacing: "-0.02em",
               lineHeight: 1.1,
             }}
@@ -74,8 +74,8 @@ export default function MobileTrustBar() {
             style={{
               fontFamily: "var(--font-body)",
               fontSize: "9.5px",
-              fontWeight: 600,
-              color: "rgba(42,26,20,0.65)",
+              fontWeight: 700,
+              color: "#000000",
               letterSpacing: "0.02em",
               textAlign: "center",
             }}
@@ -85,13 +85,15 @@ export default function MobileTrustBar() {
         </div>
 
         {/* RIGHT — Made For India */}
-        <div className="flex-1 flex flex-col items-center gap-0.5 px-1">
+        <div className="flex-1 flex items-center justify-center px-1">
           <div
             style={{
               background: "#2A1A14",
               borderRadius: "5px",
-              padding: "2px 6px",
-              marginBottom: "3px",
+              padding: "4px 8px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             <span
@@ -100,28 +102,14 @@ export default function MobileTrustBar() {
                 fontSize: "9px",
                 fontWeight: 800,
                 color: "#FDF6F0",
-                letterSpacing: "0.06em",
+                letterSpacing: "0.05em",
                 textTransform: "uppercase",
+                whiteSpace: "nowrap",
               }}
             >
-              INDIA
+              MADE FOR INDIA
             </span>
           </div>
-          <span
-            style={{
-              fontFamily: "var(--font-body)",
-              fontSize: "9px",
-              fontWeight: 500,
-              color: "rgba(42,26,20,0.55)",
-              letterSpacing: "0.02em",
-              textAlign: "center",
-              lineHeight: 1.3,
-            }}
-          >
-            Made For
-            <br />
-            Indian Skin
-          </span>
         </div>
       </div>
     </div>

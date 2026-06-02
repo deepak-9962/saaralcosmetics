@@ -158,14 +158,14 @@ export default function TopNavBar() {
     >
       {showPromoBar && (
           /* Single unified promo bar — same style on mobile & desktop */
-          <div className="flex min-h-7 bg-primary text-on-primary px-3 py-1.5 items-center justify-center">
-            <p className="font-body text-[9.5px] md:text-[10px] tracking-[0.08em] uppercase text-center whitespace-nowrap">
+          <div className="flex min-h-7 bg-primary text-on-primary px-3 py-1 md:py-1.5 items-center justify-center">
+            <p className="font-body text-[9px] md:text-[10px] tracking-[0.08em] uppercase text-center whitespace-nowrap">
               Product of the month: use code <strong>HURRY20</strong> for 20% off
             </p>
           </div>
       )}
 
-      <div className="relative flex justify-between items-center h-[56px] md:h-[68px] px-4 md:px-16 max-w-[1280px] mx-auto">
+      <div className="relative flex justify-between items-center h-[48px] md:h-[68px] px-4 md:px-16 max-w-[1280px] mx-auto">
         {/* LEFT — Hamburger (mobile) / Logo+hamburger (desktop) */}
         <div className="flex items-center gap-2 md:gap-3">
           <button
@@ -385,7 +385,7 @@ export default function TopNavBar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="md:hidden fixed inset-0 z-40 luxury-gradient-bg flex flex-col pt-[100px] px-6 pb-8 overflow-y-auto grain-overlay"
+            className="md:hidden fixed inset-0 z-40 luxury-gradient-bg flex flex-col pt-[80px] px-6 pb-8 overflow-y-auto grain-overlay"
           >
             {/* Staggered Links Container */}
             <div className="flex flex-col gap-6 mt-6 flex-grow justify-center pl-4 border-l border-outline-variant/30">

@@ -13,7 +13,6 @@ import MobileHeroBanner from "@/components/home/MobileHeroBanner";
 import MobileCategoryScroll from "@/components/home/MobileCategoryScroll";
 import MobilePromoGrid from "@/components/home/MobilePromoGrid";
 import MobileTrustBar from "@/components/home/MobileTrustBar";
-import MobileBenefitsStrip from "@/components/home/MobileBenefitsStrip";
 import FadeIn from "@/components/layout/FadeIn";
 import dynamic from "next/dynamic";
 
@@ -146,8 +145,8 @@ export default async function HomePage() {
 
       <main className="w-full flex-grow overflow-x-hidden">
 
-        {/* ── MOBILE-ONLY: Fixed nav spacer (promo bar 28px + h-14 header row = 84px total) ── */}
-        <div className="block md:hidden h-[84px]" aria-hidden="true" />
+        {/* ── MOBILE-ONLY: Fixed nav spacer (promo bar 22px + h-12 header row = 70px total) ── */}
+        <div className="block md:hidden h-[70px]" aria-hidden="true" />
 
         {/* ── MOBILE-ONLY: 1. Category Discovery Scroll — FIRST below nav ── */}
         <MobileCategoryScroll />
@@ -158,8 +157,7 @@ export default async function HomePage() {
         {/* ── MOBILE-ONLY: 3. Social Proof Bar — stars + customers + India ── */}
         <MobileTrustBar />
 
-        {/* ── MOBILE-ONLY: 4. Benefits Strip — Herbal | Beginner Friendly | Clinically Tested ── */}
-        <MobileBenefitsStrip />
+
 
         {/* ── MOBILE-ONLY: 5. Promotional Collection Grid — gradient cards ── */}
         <MobilePromoGrid />
