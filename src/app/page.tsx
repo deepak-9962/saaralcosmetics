@@ -145,8 +145,8 @@ export default async function HomePage() {
 
       <main className="w-full flex-grow overflow-x-hidden">
 
-        {/* ── MOBILE-ONLY: Fixed nav spacer (promo bar 22px + h-12 header row = 70px total) ── */}
-        <div className="block md:hidden h-[70px]" aria-hidden="true" />
+        {/* ── MOBILE-ONLY: Fixed nav spacer (promo bar 22px + h-14 header row = 78px total) ── */}
+        <div className="block md:hidden h-[78px]" aria-hidden="true" />
 
         {/* ── MOBILE-ONLY: 1. Category Discovery Scroll — FIRST below nav ── */}
         <MobileCategoryScroll />

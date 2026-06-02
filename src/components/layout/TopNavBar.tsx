@@ -165,7 +165,7 @@ export default function TopNavBar() {
           </div>
       )}
 
-      <div className="relative flex justify-between items-center h-[48px] md:h-[68px] px-4 md:px-16 max-w-[1280px] mx-auto">
+      <div className="relative flex justify-between items-center h-[56px] md:h-[68px] px-4 md:px-16 max-w-[1280px] mx-auto">
         {/* LEFT — Hamburger (mobile) / Logo+hamburger (desktop) */}
         <div className="flex items-center gap-2 md:gap-3">
           <button
@@ -182,7 +182,7 @@ export default function TopNavBar() {
           <Link
             href="/"
             className="hidden md:block font-display text-on-surface tracking-tight transition-all duration-200 active:scale-98"
-            style={{ fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 600 }}
+            style={{ fontSize: "clamp(28px, 4.5vw, 36px)", fontWeight: 700 }}
           >
             Saaral
           </Link>
@@ -191,8 +191,8 @@ export default function TopNavBar() {
         {/* CENTER — Logo (mobile only, absolutely centered) */}
         <Link
           href="/"
-          className="md:hidden absolute left-1/2 -translate-x-1/2 font-display text-on-surface tracking-tight transition-all duration-200 active:scale-95"
-          style={{ fontSize: "26px", fontWeight: 600, letterSpacing: "-0.02em" }}
+          className="md:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-display text-on-surface tracking-tight transition-all duration-200 active:scale-95"
+          style={{ fontSize: "27px", fontWeight: 700, letterSpacing: "-0.02em" }}
           aria-label="Saaral Cosmetics home"
         >
           Saaral
@@ -255,7 +255,7 @@ export default function TopNavBar() {
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-primary text-on-primary text-[10px] font-bold rounded-full flex items-center justify-center ring-1 ring-[#C9A74D]/30"
+                className="absolute top-0.5 right-0 min-w-5 h-5 px-1 bg-primary text-on-primary text-[10px] font-bold rounded-full flex items-center justify-center ring-1 ring-[#C9A74D]/30"
               >
                 {wishlistCount > 9 ? "9+" : wishlistCount}
               </motion.span>
@@ -276,7 +276,7 @@ export default function TopNavBar() {
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-primary text-on-primary text-[10px] font-bold rounded-full flex items-center justify-center ring-1 ring-[#C9A74D]/30"
+                className="absolute top-0.5 right-0 min-w-5 h-5 px-1 bg-primary text-on-primary text-[10px] font-bold rounded-full flex items-center justify-center ring-1 ring-[#C9A74D]/30"
               >
                 {itemCount > 9 ? "9+" : itemCount}
               </motion.span>

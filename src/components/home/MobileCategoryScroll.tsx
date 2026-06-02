@@ -31,7 +31,7 @@ const categories = [
   {
     name: "Nalangu Maavu",
     href: "/products?category=nalangu-maavu",
-    image: "/images/head4.avif",
+    image: "/images/head4_v2.avif",
     blobColor: "#F0E0A8",
     blobColor2: "#E8D090",
   },
@@ -62,7 +62,7 @@ function CategoryCard({
         className="relative flex items-end justify-center"
         style={{
           width: "82px",
-          height: "98px", /* tall enough for the overflowing product */
+          height: "88px", /* tall enough for the overflowing product */
           marginBottom: "4px",
         }}
       >
@@ -99,8 +99,8 @@ function CategoryCard({
         <Image
           src={cat.image}
           alt={cat.name}
-          width={72}
-          height={92}
+          width={68}
+          height={84}
           {...(index === 0
             ? { priority: true, fetchPriority: "high" as const }
             : { loading: "lazy" as const })}
@@ -109,7 +109,7 @@ function CategoryCard({
             zIndex: 2,
             objectFit: "contain",
             objectPosition: "bottom",
-            maxHeight: "92px",
+            maxHeight: "84px",
             width: "auto",
             filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.12))",
           }}
