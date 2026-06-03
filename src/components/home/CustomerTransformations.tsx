@@ -163,27 +163,27 @@ const TRANSFORMATIONS: Transformation[] = [
     ),
   },
   {
-    id: "tan-removal",
-    customer: "Divya",
-    age: 30,
-    location: "Salem, Tamil Nadu",
-    duration: "5 weeks",
-    product: "Skin Whitening Cream + Butterfly Pea Face Wash",
+    id: "whitening-pigmentation-prema",
+    customer: "Prema",
+    age: 27,
+    location: "Thirupathi, Andhra Pradesh",
+    duration: "8 weeks",
+    product: "Skin Whitening Cream + Anti Aging & Pigmentation Cream",
     productHref: "/products/saaral-skin-whitening-cream-15g",
-    productHref2: "/products/butterfly-pea-facewash-sangoo-poo",
-    product2Label: "Butterfly Pea Face Wash",
-    concerns: ["Sun Tan", "Dullness", "Uneven Skin"],
-    result: "Sun tan removed effectively. Skin regained its natural glow and evenness within 5 weeks of consistent use.",
+    productHref2: "/products/saaral-anti-aging-pigmentation-cream-15g",
+    product2Label: "Anti Aging Cream",
+    concerns: ["Skin Whitening", "Pigmentation", "Natural Glow"],
+    result: "Remarkable reduction in pigmentation and dark spots. Skin became significantly fairer, brighter, and more even-toned within 8 weeks of consistent use.",
     beforeSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/6-before.jpeg",
     afterSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/6-after.jpeg",
     beforeBg: "linear-gradient(135deg, #C8A060 0%, #A87A40 100%)",
     afterBg: "linear-gradient(135deg, #E8C080 0%, #D0A860 100%)",
-    accentColor: "#C07A20",
-    tagLabel: "Tan Removal",
+    accentColor: "#B06080",
+    tagLabel: "Complete Glow",
     tagIcon: (
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <circle cx="12" cy="12" r="5" />
-        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
       </svg>
     ),
   },
