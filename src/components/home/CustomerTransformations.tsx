@@ -112,6 +112,81 @@ const TRANSFORMATIONS: Transformation[] = [
       </svg>
     ),
   },
+  /* ── Slots 4-6: upload images to Supabase at 4-before.avif / 4-after.avif etc. ── */
+  {
+    id: "pigmentation-ponni",
+    customer: "Ponni",
+    age: 50,
+    location: "Chennai, Tamil Nadu",
+    duration: "8 weeks",
+    product: "Anti Aging & Pigmentation Cream + Redwine Face Wash",
+    productHref: "/products/saaral-anti-aging-pigmentation-cream-15g",
+    productHref2: "/products/redwine-facewash",
+    product2Label: "Redwine Face Wash",
+    concerns: ["Pigmentation", "Dark Spots", "Skin Brightening"],
+    result: "Visible reduction in stubborn pigmentation and dark spots. Redwine Face Wash deeply refreshed and brightened the face.",
+    beforeSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/4-before.jpeg",
+    afterSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/4-after.jpeg",
+    beforeBg: "linear-gradient(135deg, #B8A8C8 0%, #9890B0 100%)",
+    afterBg: "linear-gradient(135deg, #D8C8E8 0%, #C8B8D8 100%)",
+    accentColor: "#8B3A5E",
+    tagLabel: "Pigmentation",
+    tagIcon: (
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+    ),
+  },
+  {
+    id: "complete-glow-kalavathi",
+    customer: "Kalavathi",
+    age: 30,
+    location: "Ambattur, Chennai",
+    duration: "10 weeks",
+    product: "Skin Whitening Cream + Anti Aging & Pigmentation Cream + Butterfly Pea Face Wash",
+    productHref: "/products/saaral-skin-whitening-cream-15g",
+    productHref2: "/products/butterfly-pea-facewash-sangoo-poo",
+    product2Label: "Butterfly Pea Face Wash",
+    concerns: ["Skin Whitening", "Pigmentation", "Natural Glow"],
+    result: "Excellent brightness and reduced dark spots. The combination of Whitening Cream, Pigmentation Cream, and Butterfly Pea Face Wash completely transformed the texture and glow.",
+    beforeSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/5-before.jpeg",
+    afterSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/5-after.jpeg",
+    beforeBg: "linear-gradient(135deg, #C8A890 0%, #B08870 100%)",
+    afterBg: "linear-gradient(135deg, #E0C8B0 0%, #D0B8A0 100%)",
+    accentColor: "#2E5B82",
+    tagLabel: "Complete Glow",
+    tagIcon: (
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="5" />
+        <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+      </svg>
+    ),
+  },
+  {
+    id: "tan-removal",
+    customer: "Divya",
+    age: 30,
+    location: "Salem, Tamil Nadu",
+    duration: "5 weeks",
+    product: "Skin Whitening Cream + Butterfly Pea Face Wash",
+    productHref: "/products/saaral-skin-whitening-cream-15g",
+    productHref2: "/products/butterfly-pea-facewash-sangoo-poo",
+    product2Label: "Butterfly Pea Face Wash",
+    concerns: ["Sun Tan", "Dullness", "Uneven Skin"],
+    result: "Sun tan removed effectively. Skin regained its natural glow and evenness within 5 weeks of consistent use.",
+    beforeSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/6-before.jpeg",
+    afterSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/6-after.jpeg",
+    beforeBg: "linear-gradient(135deg, #C8A060 0%, #A87A40 100%)",
+    afterBg: "linear-gradient(135deg, #E8C080 0%, #D0A860 100%)",
+    accentColor: "#C07A20",
+    tagLabel: "Tan Removal",
+    tagIcon: (
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="5" />
+        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+      </svg>
+    ),
+  },
 ];
 
 
@@ -604,9 +679,7 @@ function TrustStat({ value, label, delay }: { value: string; label: string; dela
 export default function CustomerTransformations() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
-    breakpoints: {
-      "(min-width: 768px)": { active: false },
-    },
+    align: "start",
     /*
      * watchDrag — Embla calls this before starting a drag.
      * Return false to cancel the drag entirely.
@@ -763,13 +836,13 @@ export default function CustomerTransformations() {
           </motion.div>
         </div>
 
-        {/* ── Three equal transformation cards (carousel on mobile, grid on desktop) ── */}
-        <div className="overflow-hidden md:overflow-visible" ref={emblaRef}>
-          <div className="flex md:grid md:grid-cols-3 md:gap-7 items-stretch">
+        {/* ── Infinite carousel — active on all screen sizes ── */}
+        <div className="overflow-hidden" ref={emblaRef}>
+          <div className="flex items-stretch" style={{ gap: "0px" }}>
             {TRANSFORMATIONS.map((item, i) => (
               <div
                 key={item.id}
-                className="flex-[0_0_100%] min-w-0 px-2 md:flex-none md:px-0 flex flex-col"
+                className="flex-[0_0_100%] min-w-0 px-2 md:flex-[0_0_calc(33.333%-18px)] md:mx-[9px] flex flex-col"
               >
                 <BeforeAfterSlider item={item} index={i} />
               </div>
@@ -777,20 +850,22 @@ export default function CustomerTransformations() {
           </div>
         </div>
 
-        {/* ── Carousel navigation: arrows + dots (mobile only) ── */}
-        <div className="flex md:hidden items-center justify-center gap-4 mt-8">
+        {/* ── Carousel navigation: arrows + dots (all screen sizes) ── */}
+        <div className="flex items-center justify-center gap-4 mt-8">
 
           {/* Prev arrow */}
           <button
             onClick={() => emblaApi?.scrollPrev()}
             aria-label="Previous transformation"
-            className="flex items-center justify-center w-9 h-9 rounded-full transition-all duration-200 active:scale-90"
+            className="flex items-center justify-center rounded-full transition-all duration-200 active:scale-90 hover:scale-105"
             style={{
-              background: "rgba(255,255,255,0.72)",
+              width: "clamp(36px, 3vw, 44px)",
+              height: "clamp(36px, 3vw, 44px)",
+              background: "rgba(255,255,255,0.82)",
               backdropFilter: "blur(10px)",
               WebkitBackdropFilter: "blur(10px)",
-              border: "1px solid rgba(201,167,77,0.28)",
-              boxShadow: "0 2px 10px rgba(42,26,20,0.10), inset 0 1px 0 rgba(255,255,255,0.6)",
+              border: "1px solid rgba(201,167,77,0.35)",
+              boxShadow: "0 2px 14px rgba(42,26,20,0.12), inset 0 1px 0 rgba(255,255,255,0.7)",
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B3A5E" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -799,14 +874,14 @@ export default function CustomerTransformations() {
           </button>
 
           {/* Dot indicators */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             {TRANSFORMATIONS.map((_, index) => (
               <button
                 key={index}
                 onClick={() => emblaApi?.scrollTo(index)}
                 className="rounded-full transition-all duration-300 cursor-pointer"
                 style={{
-                  width: index === selectedIndex ? "20px" : "8px",
+                  width: index === selectedIndex ? "24px" : "8px",
                   height: "8px",
                   background: index === selectedIndex ? "#B06080" : "rgba(90,58,44,0.22)",
                 }}
@@ -819,13 +894,15 @@ export default function CustomerTransformations() {
           <button
             onClick={() => emblaApi?.scrollNext()}
             aria-label="Next transformation"
-            className="flex items-center justify-center w-9 h-9 rounded-full transition-all duration-200 active:scale-90"
+            className="flex items-center justify-center rounded-full transition-all duration-200 active:scale-90 hover:scale-105"
             style={{
-              background: "rgba(255,255,255,0.72)",
+              width: "clamp(36px, 3vw, 44px)",
+              height: "clamp(36px, 3vw, 44px)",
+              background: "rgba(255,255,255,0.82)",
               backdropFilter: "blur(10px)",
               WebkitBackdropFilter: "blur(10px)",
-              border: "1px solid rgba(201,167,77,0.28)",
-              boxShadow: "0 2px 10px rgba(42,26,20,0.10), inset 0 1px 0 rgba(255,255,255,0.6)",
+              border: "1px solid rgba(201,167,77,0.35)",
+              boxShadow: "0 2px 14px rgba(42,26,20,0.12), inset 0 1px 0 rgba(255,255,255,0.7)",
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B3A5E" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -833,6 +910,21 @@ export default function CustomerTransformations() {
             </svg>
           </button>
 
+        </div>
+
+        {/* ── Slide counter (desktop only) ── */}
+        <div className="hidden md:flex justify-center mt-3">
+          <span
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: "10px",
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+              color: "rgba(90,58,44,0.4)",
+            }}
+          >
+            {selectedIndex + 1} / {TRANSFORMATIONS.length}
+          </span>
         </div>
 
 
