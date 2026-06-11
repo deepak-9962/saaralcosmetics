@@ -66,24 +66,10 @@ export default function CuratedRituals() {
     <section
       className="relative w-full overflow-hidden"
       style={{
-        background:
-          "linear-gradient(180deg, #FDF6F0 0%, #F7EAE2 40%, #F2E0D5 100%)",
+        background: "#ffffff",
         padding: "80px 0 96px",
       }}
     >
-      {/* ── Ambient background orbs ── */}
-      <div
-        className="absolute top-[-80px] left-[-100px] w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none opacity-30"
-        style={{ background: "radial-gradient(circle, #F2D5E0 0%, transparent 70%)" }}
-      />
-      <div
-        className="absolute bottom-[-60px] right-[-80px] w-[400px] h-[400px] rounded-full blur-[100px] pointer-events-none opacity-25"
-        style={{ background: "radial-gradient(circle, #C9A74D 0%, transparent 70%)" }}
-      />
-      <div
-        className="absolute top-[30%] right-[15%] w-[300px] h-[300px] rounded-full blur-[90px] pointer-events-none opacity-20"
-        style={{ background: "radial-gradient(circle, #7E6B9A 0%, transparent 70%)" }}
-      />
 
       <div className="relative z-10 max-w-[1280px] mx-auto px-5 md:px-[72px]">
         {/* ── Section Header ── */}

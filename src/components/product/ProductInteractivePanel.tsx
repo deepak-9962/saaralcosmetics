@@ -110,7 +110,7 @@ export default function ProductInteractivePanel({
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <h1 className="font-display text-[32px] md:text-[48px] leading-[1.2] text-on-surface mb-2">
+          <h1 className="font-display text-[36px] md:text-[54px] leading-[1.15] text-on-surface mb-2 font-bold">
             {product.name}
           </h1>
           <p className="font-body text-[16px] md:text-[18px] leading-[1.6] text-on-surface-variant mb-6">
@@ -119,7 +119,7 @@ export default function ProductInteractivePanel({
 
           <div className="mb-6">
             <div className="flex items-end gap-3">
-              <span className="font-display text-[28px] md:text-[32px] leading-[1.3] text-on-surface font-semibold">
+              <span className="font-body text-[20px] md:text-[26px] leading-[1.3] text-on-surface font-semibold">
                 {formatPrice(product.price)}
               </span>
               {product.compare_price && (
@@ -249,7 +249,7 @@ export default function ProductInteractivePanel({
         <div className="bg-surface-container-lowest/95 backdrop-blur rounded-xl border border-outline-variant/30 shadow-[0_8px_16px_-8px_rgba(42,26,20,0.28)] px-2.5 py-1.5 flex items-center gap-2">
           <div className="flex flex-col min-w-[96px]">
             <span className="font-body text-[10px] uppercase tracking-[0.08em] text-on-surface-variant">Price</span>
-            <span className="font-display text-[18px] leading-[1] text-on-surface">{formatPrice(product.price)}</span>
+            <span className="font-body text-[16px] leading-[1] text-on-surface font-semibold">{formatPrice(product.price)}</span>
             <span className="font-body text-[7px] text-on-surface-variant/60 leading-[1] mt-0.5">(MRP inclusive of taxes)</span>
           </div>
           <button

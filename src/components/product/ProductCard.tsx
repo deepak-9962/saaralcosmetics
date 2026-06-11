@@ -223,36 +223,6 @@ export default function ProductCard({
               visibility
             </span>
           </button>
-
-          {/* Add to cart overlay — desktop hover */}
-          <div
-            className="hidden md:flex absolute inset-x-0 bottom-0 z-[3] flex-col items-stretch px-3 pb-3 pt-10"
-            style={{
-              background:
-                "linear-gradient(to top, rgba(42,26,20,0.68) 0%, rgba(42,26,20,0.30) 55%, transparent 100%)",
-              transform: isHovered && !isSoldOut ? "translateY(0)" : "translateY(100%)",
-              transition: "transform 0.38s cubic-bezier(0.22,1,0.36,1)",
-            }}
-          >
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              className="w-full rounded-lg py-2.5 font-body text-[10px] tracking-[0.12em] uppercase font-semibold flex items-center justify-center gap-1.5 transition-all duration-200 active:scale-[0.97]"
-              style={{
-                background: "linear-gradient(135deg, #B06080, #8A4060)",
-                color: "#fff",
-                boxShadow: "0 3px 12px rgba(176,96,128,0.35)",
-              }}
-            >
-              <span
-                className="material-symbols-outlined text-[15px]"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                shopping_bag
-              </span>
-              Add to Cart
-            </button>
-          </div>
         </Link>
 
         {/* ── Card Info ── */}
@@ -271,7 +241,8 @@ export default function ProductCard({
             <h3
               className="font-display leading-tight mb-2 transition-colors duration-300"
               style={{
-                fontSize: "clamp(14px, 1.4vw, 18px)",
+                fontSize: "clamp(17px, 1.7vw, 22px)",
+                fontWeight: 600,
                 color: isHovered ? "#8A3A60" : "#2A1A14",
                 letterSpacing: "-0.01em",
               }}
@@ -285,9 +256,10 @@ export default function ProductCard({
             {/* Price row */}
             <div className="flex items-center gap-1.5 flex-wrap">
               <span
-                className="font-display"
+                className="font-body"
                 style={{
-                  fontSize: "clamp(14px, 1.5vw, 18px)",
+                  fontSize: "clamp(14px, 1.3vw, 16px)",
+                  fontWeight: 600,
                   color: isSoldOut ? "rgba(42,26,20,0.35)" : "#8B3A5E",
                   letterSpacing: "-0.01em",
                 }}
@@ -315,12 +287,12 @@ export default function ProductCard({
               )}
             </div>
 
-            {/* Mobile — full-width Add to Cart button */}
+            {/* Always-visible Add to Cart button */}
             <button
               type="button"
               onClick={handleAddToCart}
               disabled={isSoldOut}
-              className="md:hidden mt-2 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg font-body text-[10px] tracking-[0.08em] font-semibold uppercase transition-all duration-200 active:scale-[0.97]"
+              className="mt-3 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg font-body text-[10px] tracking-[0.10em] font-semibold uppercase transition-all duration-200 active:scale-[0.97]"
               style={{
                 background: isSoldOut
                   ? "rgba(42,26,20,0.10)"
@@ -337,15 +309,12 @@ export default function ProductCard({
                 "Sold Out"
               ) : (
                 <>
-                  <svg
-                    width="11"
-                    height="11"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    aria-hidden="true"
+                  <span
+                    className="material-symbols-outlined text-[14px]"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
                   >
-                    <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM5.83 6h12.84l-1.67 7H7.84L5.83 6zM3 2H1v2h2l3.6 7.59L5.25 14c-.16.28-.25.61-.25.96C5 16.1 5.9 17 7 17h14v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 23.5 4H5.21l-.94-2z" />
-                  </svg>
+                    shopping_bag
+                  </span>
                   Add to Cart
                 </>
               )}
@@ -448,7 +417,8 @@ export default function ProductCard({
                 <h3
                   className="font-display text-[#2A1A14] mb-4"
                   style={{
-                    fontSize: "clamp(22px, 3vw, 30px)",
+                    fontSize: "clamp(26px, 3.5vw, 36px)",
+                    fontWeight: 700,
                     lineHeight: 1.15,
                     letterSpacing: "-0.015em",
                   }}
@@ -460,8 +430,8 @@ export default function ProductCard({
                 <div className="mb-5">
                   <div className="flex items-baseline gap-3">
                     <span
-                      className="font-display text-[26px]"
-                      style={{ color: isSoldOut ? "rgba(42,26,20,0.35)" : "#B06080" }}
+                      className="font-body text-[22px] md:text-[26px]"
+                      style={{ fontWeight: 600, color: isSoldOut ? "rgba(42,26,20,0.35)" : "#B06080" }}
                     >
                       {formatPrice(product.price)}
                     </span>

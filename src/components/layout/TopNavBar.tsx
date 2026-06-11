@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart";
@@ -23,87 +23,14 @@ export default function TopNavBar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
 
-  const navRef = useRef<HTMLElement>(null);
-  const prevScrollY = useRef(0);
-  const scrolledRef = useRef(false);
+  const isAdminRoute = pathname.startsWith("/admin");
+  const showPromoBar = !isAdminRoute;
+  const currentSearch = isMounted && typeof window !== "undefined" ? window.location.search : "";
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  const currentSearch = isMounted && typeof window !== "undefined" ? window.location.search : "";
-
-  const isAdminRoute = pathname.startsWith("/admin");
-  const showPromoBar = !isAdminRoute;
-
-  useEffect(() => {
-    const isHomepage = pathname === "/";
-
-    // Sync initial scroll state on mount
-    const initScrollY = window.scrollY;
-    const isInitialScrolled = initScrollY > 20;
-    scrolledRef.current = isInitialScrolled;
-    setIsScrolled(isInitialScrolled);
-    prevScrollY.current = initScrollY;
-
-    if (navRef.current) {
-      if (scrolledRef.current) {
-        navRef.current.classList.remove("bg-transparent", "bg-[#FDF6F0]/80", "backdrop-blur-none", "border-transparent");
-        navRef.current.classList.add("bg-[#FDF6F0]/95", "shadow-lg", "backdrop-blur-xl", "border-b");
-      } else {
-        navRef.current.classList.add(isHomepage ? "bg-transparent" : "bg-[#FDF6F0]/80", "border-transparent");
-        if (isHomepage) {
-          navRef.current.classList.add("backdrop-blur-none");
-          navRef.current.classList.remove("backdrop-blur-xl");
-        } else {
-          navRef.current.classList.add("backdrop-blur-xl");
-          navRef.current.classList.remove("backdrop-blur-none");
-        }
-        navRef.current.classList.remove("bg-[#FDF6F0]/95", "shadow-lg", "border-b");
-      }
-    }
-
-    const handleScroll = () => {
-      const latest = window.scrollY;
-
-      // 1. Scrolled styling for Navbar
-      if (navRef.current) {
-        let scrolled = scrolledRef.current;
-        if (latest > 40 && !scrolled) {
-          scrolled = true;
-        } else if (latest < 10 && scrolled) {
-          scrolled = false;
-        }
-
-        if (scrolled !== scrolledRef.current) {
-          scrolledRef.current = scrolled;
-          setIsScrolled(scrolled);
-          if (scrolled) {
-            navRef.current.classList.remove("bg-transparent", "bg-[#FDF6F0]/80", "backdrop-blur-none", "border-transparent");
-            navRef.current.classList.add("bg-[#FDF6F0]/95", "shadow-lg", "backdrop-blur-xl", "border-b");
-          } else {
-            navRef.current.classList.add(isHomepage ? "bg-transparent" : "bg-[#FDF6F0]/80", "border-transparent");
-            if (isHomepage) {
-              navRef.current.classList.add("backdrop-blur-none");
-              navRef.current.classList.remove("backdrop-blur-xl");
-            } else {
-              navRef.current.classList.add("backdrop-blur-xl");
-              navRef.current.classList.remove("backdrop-blur-none");
-            }
-            navRef.current.classList.remove("bg-[#FDF6F0]/95", "shadow-lg", "border-b");
-          }
-        }
-      }
-      prevScrollY.current = latest;
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [pathname]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,14 +73,10 @@ export default function TopNavBar() {
 
   return (
     <nav
-      ref={navRef}
-      className={
-        pathname === "/"
-          ? "fixed top-0 w-full z-50 transition-all duration-300 bg-transparent border-transparent"
-          : "sticky top-0 w-full z-50 transition-all duration-300 bg-[#FDF6F0]/80 backdrop-blur-xl border-transparent"
-      }
+      className="sticky top-0 w-full z-50 bg-[#FDF6F0] border-b shadow-sm"
       style={{
-        borderImage: "linear-gradient(to right, rgba(176,96,128,0.15) 0%, rgba(201,167,77,0.3) 50%, rgba(176,96,128,0.15) 100%) 1"
+        borderColor: "rgba(201,167,77,0.2)",
+        boxShadow: "0 1px 12px rgba(42,26,20,0.06)",
       }}
     >
       {showPromoBar && (

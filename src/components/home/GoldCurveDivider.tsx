@@ -1,47 +1,4 @@
-import { memo } from "react";
 
-/* ─────────────────────────────────────────────
-   Isolated shimmer — pure CSS, no state re-renders
-───────────────────────────────────────────── */
-const GoldShimmer = memo(function GoldShimmer() {
-  return (
-    <div
-      className="absolute inset-0 pointer-events-none overflow-hidden"
-      aria-hidden="true"
-    >
-      {/* Primary sweep */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "42%",
-          height: "100%",
-          background:
-            "linear-gradient(90deg, transparent 0%, rgba(255,248,218,0.20) 48%, rgba(255,252,230,0.12) 55%, transparent 100%)",
-          animation: "shimmer-ribbon 13s ease-in-out 2s infinite",
-          pointerEvents: "none",
-          willChange: "transform",
-        }}
-      />
-      {/* Secondary delayed sweep */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "30%",
-          height: "100%",
-          background:
-            "linear-gradient(90deg, transparent 0%, rgba(201,167,77,0.09) 50%, transparent 100%)",
-          animation: "shimmer-ribbon 13s ease-in-out 8.5s infinite",
-          pointerEvents: "none",
-          willChange: "transform",
-        }}
-      />
-    </div>
-  );
-});
 
 /* ─────────────────────────────────────────────
    MAIN — desktop only  (hidden md:block handled
@@ -67,11 +24,11 @@ export default function GoldCurveDivider() {
       style={{
         height: "108px",
         /*
-         * Top: ending warm tone of CuratedRituals (#F2E0D5)
+         * Top: ending warm tone of CuratedRituals (#ffffff)
          * Bottom: Featured Products background (#FAF0EE)
          */
         background:
-          "linear-gradient(to bottom, #F2E0D5 0%, #F6E8E0 28%, #FAF3EE 65%, #FAF0EE 100%)",
+          "linear-gradient(to bottom, #ffffff 0%, #FAF6F4 40%, #FAF0EE 100%)",
       }}
       aria-hidden="true"
     >
@@ -189,8 +146,6 @@ export default function GoldCurveDivider() {
         }}
       />
 
-      {/* Shimmer sweep layer */}
-      <GoldShimmer />
     </div>
   );
 }

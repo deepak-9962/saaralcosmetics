@@ -583,10 +583,10 @@ export default function CheckoutPage() {
                 <div className="h-px bg-outline-variant/30 w-full my-3" />
                 <div className="flex flex-col gap-1">
                   <div className="flex justify-between">
-                    <span className="font-display text-[24px] leading-[1.4] text-on-surface font-bold">
+                    <span className="font-display text-[18px] leading-[1.4] text-on-surface font-semibold">
                       Total
                     </span>
-                    <span className="font-display text-[24px] leading-[1.4] text-on-surface font-bold">
+                    <span className="font-body text-[18px] leading-[1.4] text-on-surface font-semibold">
                        {formatPrice(grandTotal)}
                      </span>
                   </div>
