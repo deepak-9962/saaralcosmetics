@@ -22,17 +22,10 @@ const slides: Slide[] = [
   },
   {
     id: "slide2",
-    image: "/images/slide2.avif",
+    image: "/images/NewHeader/head2.avif",
     alt: "Saaral Face Wash — Ancient Herbal Cleanse for Radiant Skin",
     ctaHref: "/products?category=face-wash",
     indicatorColor: "#8B3A5E",
-  },
-  {
-    id: "slide3",
-    image: "/images/slide3.avif",
-    alt: "Saaral Heritage Ritual — Nalangu Maavu and Premium Soap Collection",
-    ctaHref: "/products",
-    indicatorColor: "#1A5828",
   },
 ];
 
