@@ -67,11 +67,11 @@ export default function RootLayout({
           type="image/webp"
           media="(max-width: 767px)"
         />
-        {/* Desktop hero (768px and above) */}
+        {/* Desktop hero carousel slide 1 (768px and above) */}
         <link
           rel="preload"
           as="image"
-          href="/images/hero.avif"
+          href="/images/slide1.avif"
           type="image/avif"
           media="(min-width: 768px)"
         />

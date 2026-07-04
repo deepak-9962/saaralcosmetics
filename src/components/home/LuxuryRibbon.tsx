@@ -194,113 +194,26 @@ export default function LuxuryRibbon() {
       </section>
 
       {/* ══════════════════════════════════════
-          DESKTOP — full cinematic luxury ribbon
+          DESKTOP — clean solid ribbon
           ══════════════════════════════════════ */}
       <section
-        className="hidden md:block relative w-full overflow-hidden select-none luxury-ribbon-sec"
-        style={{ height: "58px" }}
+        className="hidden md:block relative w-full overflow-hidden select-none"
+        style={{
+          height: "52px",
+          background: "#E4F4D1",
+          borderTop: "1px solid rgba(80,140,50,0.18)",
+          borderBottom: "1px solid rgba(80,140,50,0.18)",
+        }}
         aria-label="Saaral Cosmetics brand values"
       >
-        {/* ── Layer 1: Cinematic background gradient ── */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `
-              radial-gradient(ellipse 55% 200% at 15% 50%, rgba(242,213,224,0.50) 0%, transparent 65%),
-              radial-gradient(ellipse 45% 200% at 85% 50%, rgba(201,167,77,0.12) 0%, transparent 60%),
-              radial-gradient(ellipse 65% 250% at 50% 50%, rgba(176,96,128,0.07) 0%, transparent 70%),
-              linear-gradient(90deg,
-                #F8EEF0 0%,
-                #FCF0EC 18%,
-                #FEF4EF 35%,
-                #FDF2EC 52%,
-                #FCF0EC 68%,
-                #FAEEEf 85%,
-                #F8EEF0 100%
-              )
-            `,
-          }}
-        />
-
-        {/* ── Layer 2: Ambient glow blobs ── */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            left: "12%",
-            top: "-40px",
-            width: "240px",
-            height: "130px",
-            background:
-              "radial-gradient(ellipse, rgba(176,96,128,0.22) 0%, transparent 70%)",
-            filter: "blur(24px)",
-            opacity: "var(--bg-glow-1)",
-            transition: "opacity 1s ease",
-            pointerEvents: "none",
-          }}
-        />
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            right: "18%",
-            top: "-30px",
-            width: "180px",
-            height: "110px",
-            background:
-              "radial-gradient(ellipse, rgba(201,167,77,0.2) 0%, transparent 70%)",
-            filter: "blur(20px)",
-            opacity: "var(--bg-glow-2)",
-            transition: "opacity 1s ease",
-            pointerEvents: "none",
-          }}
-        />
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            left: "46%",
-            top: "-20px",
-            width: "260px",
-            height: "100px",
-            background:
-              "radial-gradient(ellipse, rgba(255,215,195,0.22) 0%, transparent 70%)",
-            filter: "blur(26px)",
-            opacity: 0.55,
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* ── Layer 3: Glassmorphism overlay ── */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "rgba(255,250,247,0.30)",
-            backdropFilter: "blur(1.5px)",
-            WebkitBackdropFilter: "blur(1.5px)",
-            borderTop: "1px solid rgba(255,255,255,0.58)",
-            borderBottom: "1px solid rgba(255,255,255,0.42)",
-            boxShadow:
-              "inset 0 1px 0 rgba(255,255,255,0.65), inset 0 -1px 0 rgba(255,255,255,0.32)",
-          }}
-        />
-
-        {/* ── Layer 4: Shimmer sweep ── */}
-        <ShimmerSweep />
-
-        {/* ── Layer 5: Particles ── */}
-        <LuxuryParticles />
-
-        {/* ── Layer 6: Scrolling text (mask-image creates soft fade edges) ── */}
+        {/* Scrolling text with soft fade edges */}
         <div
           className="absolute inset-0 flex items-center overflow-hidden"
           style={{
             maskImage:
-              "linear-gradient(to right, transparent 0%, black 9%, black 91%, transparent 100%)",
+              "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
             WebkitMaskImage:
-              "linear-gradient(to right, transparent 0%, black 9%, black 91%, transparent 100%)",
+              "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)",
           }}
         >
           <div
@@ -313,19 +226,13 @@ export default function LuxuryRibbon() {
             {marqueeItems.map((signal, i) => (
               <span key={i} className="inline-flex items-center">
                 <Separator index={i} />
-
                 <span
                   style={{
                     fontFamily: "var(--font-body)",
                     fontSize: "10px",
-                    fontWeight: 500,
+                    fontWeight: 650,
                     letterSpacing: "0.26em",
-                    color:
-                      i % 4 < 2
-                        ? "rgba(140,64,96,0.88)"
-                        : "rgba(130,90,55,0.82)",
-                    textShadow: "var(--text-glow)",
-                    transition: "text-shadow 0.7s ease",
+                    color: "#1A3A0A",
                   }}
                 >
                   {signal.text}
@@ -334,44 +241,8 @@ export default function LuxuryRibbon() {
             ))}
           </div>
         </div>
-
-        {/* ── Layer 8: Top glow border ── */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "1px",
-            background:
-              "linear-gradient(90deg, transparent 0%, rgba(201,167,77,0.45) 20%, rgba(176,96,128,0.55) 50%, rgba(201,167,77,0.45) 80%, transparent 100%)",
-            boxShadow: "0 0 8px rgba(201,167,77,0.25)",
-            opacity: "var(--border-1)",
-            transition: "opacity 0.6s ease",
-            zIndex: 10,
-            pointerEvents: "none",
-          }}
-        />
-        {/* ── Layer 8: Bottom glow border ── */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: "1px",
-            background:
-              "linear-gradient(90deg, transparent 0%, rgba(176,96,128,0.38) 30%, rgba(201,167,77,0.48) 50%, rgba(176,96,128,0.38) 70%, transparent 100%)",
-            boxShadow: "0 0 6px rgba(176,96,128,0.2)",
-            opacity: "var(--border-2)",
-            transition: "opacity 0.6s ease",
-            zIndex: 10,
-            pointerEvents: "none",
-          }}
-        />
       </section>
+
     </>
   );
 }

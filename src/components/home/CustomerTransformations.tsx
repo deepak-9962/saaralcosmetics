@@ -38,31 +38,6 @@ interface Transformation {
 ───────────────────────────────────────────── */
 const TRANSFORMATIONS: Transformation[] = [
   {
-    id: "face-skin",
-    customer: "Yuvaraj",
-    age: 37,
-    location: "Chennai, Tamil Nadu",
-    duration: "8 weeks",
-    product: "Skin Whitening Cream + Manjistha Soap",
-    productHref: "/products/saaral-skin-whitening-cream-15g",
-    productHref2: "/products?category=soap",
-    product2Label: "Manjistha Soap",
-    concerns: ["Skin Whitening", "Dark Spots", "Natural Glow"],
-    result: "Visible skin brightening and natural glow improvement. Manjistha Soap helped clear the skin noticeably.",
-    beforeSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/1-before.avif",
-    afterSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/1-after.avif",
-    beforeBg: "linear-gradient(135deg, #E8C9B8 0%, #D4A88A 100%)",
-    afterBg: "linear-gradient(135deg, #F0DDD0 0%, #E8C8B5 100%)",
-    accentColor: "#B06080",
-    tagLabel: "Skin Whitening",
-    tagIcon: (
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 8c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z" />
-      </svg>
-    ),
-  },
-  {
     id: "under-eye",
     customer: "Chitra",
     age: 28,
@@ -109,56 +84,6 @@ const TRANSFORMATIONS: Transformation[] = [
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M12 2a10 10 0 0 1 10 10c0 4-2.5 7.5-6 9" />
         <path d="M12 22a10 10 0 0 1-10-10c0-4 2.5-7.5 6-9" />
-      </svg>
-    ),
-  },
-  /* ── Slots 4-6: upload images to Supabase at 4-before.avif / 4-after.avif etc. ── */
-  {
-    id: "pigmentation-ponni",
-    customer: "Ponni",
-    age: 50,
-    location: "Chennai, Tamil Nadu",
-    duration: "8 weeks",
-    product: "Anti Aging & Pigmentation Cream + Redwine Face Wash",
-    productHref: "/products/saaral-anti-aging-pigmentation-cream-15g",
-    productHref2: "/products/redwine-facewash",
-    product2Label: "Redwine Face Wash",
-    concerns: ["Pigmentation", "Dark Spots", "Skin Brightening"],
-    result: "Visible reduction in stubborn pigmentation and dark spots. Redwine Face Wash deeply refreshed and brightened the face.",
-    beforeSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/4-before.avif",
-    afterSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/4-after.avif",
-    beforeBg: "linear-gradient(135deg, #B8A8C8 0%, #9890B0 100%)",
-    afterBg: "linear-gradient(135deg, #D8C8E8 0%, #C8B8D8 100%)",
-    accentColor: "#8B3A5E",
-    tagLabel: "Pigmentation",
-    tagIcon: (
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    ),
-  },
-  {
-    id: "complete-glow-kalavathi",
-    customer: "Kalavathi",
-    age: 30,
-    location: "Ambattur, Chennai",
-    duration: "10 weeks",
-    product: "Skin Whitening Cream + Anti Aging & Pigmentation Cream + Butterfly Pea Face Wash",
-    productHref: "/products/saaral-skin-whitening-cream-15g",
-    productHref2: "/products/butterfly-pea-facewash-sangoo-poo",
-    product2Label: "Butterfly Pea Face Wash",
-    concerns: ["Skin Whitening", "Pigmentation", "Natural Glow"],
-    result: "Excellent brightness and reduced dark spots. The combination of Whitening Cream, Pigmentation Cream, and Butterfly Pea Face Wash completely transformed the texture and glow.",
-    beforeSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/5-before.avif",
-    afterSrc: "https://tmcfyzcfcrjzdwnquvhf.supabase.co/storage/v1/object/public/customer-transformations/5-after.avif",
-    beforeBg: "linear-gradient(135deg, #C8A890 0%, #B08870 100%)",
-    afterBg: "linear-gradient(135deg, #E0C8B0 0%, #D0B8A0 100%)",
-    accentColor: "#2E5B82",
-    tagLabel: "Complete Glow",
-    tagIcon: (
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="5" />
-        <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
       </svg>
     ),
   },

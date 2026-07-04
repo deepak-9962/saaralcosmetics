@@ -15,10 +15,13 @@ import MobilePromoGrid from "@/components/home/MobilePromoGrid";
 import MobileTrustBar from "@/components/home/MobileTrustBar";
 import FadeIn from "@/components/layout/FadeIn";
 import dynamic from "next/dynamic";
+import DesktopCategoryStrip from "@/components/home/DesktopCategoryStrip";
 
 const BestsellersCarousel = dynamic(() => import("@/components/home/BestsellersCarousel"));
 const TestimonialShowcase = dynamic(() => import("@/components/home/TestimonialShowcase"));
 const CustomerTransformations = dynamic(() => import("@/components/home/CustomerTransformations"));
+
+const DesktopBannerSlider = dynamic(() => import("@/components/home/DesktopBannerSlider"));
 import { listProducts } from "@/lib/supabase/data";
 import { Product } from "@/lib/types";
 
@@ -160,109 +163,12 @@ export default async function HomePage() {
         {/* ── MOBILE-ONLY: 5. Promotional Collection Grid — gradient cards ── */}
         <MobilePromoGrid />
 
-        {/* Desktop Hero (visible only on md and above) */}
-        <section
-          className="hidden md:block relative w-full overflow-hidden"
-          style={{
-            minHeight: "clamp(500px, 88vh, 820px)",
-            background: "#FDF6F0",
-          }}
-        >
-          {/* Hero Background Image - Scaled to fit height, aligned right-bottom to show full reflection */}
-          <div className="absolute inset-0 pointer-events-none select-none" style={{ transform: "translateX(3.5%)" }}>
-            <Image
-              src="/images/hero.avif"
-              alt="Saaral Cosmetics"
-              priority
-              fetchPriority="high"
-              fill
-              sizes="(min-width: 768px) 50vw, 100vw"
-              className="object-contain object-right-bottom"
-              style={{ pointerEvents: "none", userSelect: "none" }}
-            />
-          </div>
+        {/* ── DESKTOP ONLY: Category Showcase Strip ── */}
+        <DesktopCategoryStrip />
 
-          {/* Left-to-Right Blend Gradient Overlay */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              backgroundImage: `
-                linear-gradient(to right,
-                  #FDF6F0 0%,
-                  #FDF6F0 22%,
-                  rgba(253,246,240,0.82) 32%,
-                  rgba(253,246,240,0.18) 43%,
-                  transparent 54%
-                )
-              `,
-            }}
-          />
+        {/* ── DESKTOP ONLY: Large Banner Slider ── */}
+        <DesktopBannerSlider />
 
-          {/* ── LEFT — Text content ── */}
-          <div
-            className="relative z-10 flex flex-col justify-center px-14 lg:px-20 pt-32 pb-12 w-[48%] lg:w-[46%]"
-            style={{ minHeight: "clamp(520px, 90vh, 860px)" }}
-          >
-            {/* Eyebrow — no opacity:0 initial, visible on SSR */}
-            <div
-              className="flex items-center gap-3 mb-6 animate-fade-in"
-              style={{ animationDelay: "0.15s", animationFillMode: "both" }}
-            >
-              <div className="w-8 h-px bg-[#C9A74D]" />
-              <span className="font-body text-[#C9A74D] text-[11px] tracking-[0.16em] uppercase font-medium">
-                Apothecary Heritage · Tamil Nadu
-              </span>
-            </div>
-
-            {/* Headline — immediately visible, CSS fade-up */}
-            <div className="overflow-hidden mb-5">
-              {["Luxury Skincare,", "Rooted in Nature."].map((line, i) => (
-                <div
-                  key={line}
-                  className="animate-fade-up"
-                  style={{ animationDelay: `${0.25 + i * 0.12}s`, animationFillMode: "both" }}
-                >
-                  <span
-                    className="font-display text-[#2A1A14] block"
-                    style={{ fontSize: "clamp(34px, 4.8vw, 72px)", lineHeight: 1.08, letterSpacing: "-0.025em" }}
-                  >
-                    {line}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Sub-text */}
-            <div
-              className="animate-fade-up"
-              style={{ animationDelay: "0.55s", animationFillMode: "both" }}
-            >
-              <p className="font-body text-[#2A1A14]/55 text-[15px] leading-relaxed max-w-[260px] mb-8">
-                Ancient botanical ingredients crafted<br />for naturally radiant modern skin.
-              </p>
-            </div>
-
-            {/* CTAs */}
-            <div
-              className="flex flex-wrap items-center gap-3 animate-fade-in"
-              style={{ animationDelay: "0.7s", animationFillMode: "both" }}
-            >
-              <Link
-                href="/products"
-                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-body text-[12px] tracking-[0.16em] uppercase font-semibold transition-all duration-300 hover:scale-105 active:scale-95 shadow-md"
-                style={{ background: "#8B3A5E", color: "#fff" }}
-              >
-                Shop the Ritual
-              </Link>
-              <Link
-                href="/contact"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-body text-[12px] tracking-[0.16em] uppercase font-medium border border-[#2A1A14]/25 text-[#2A1A14]/65 hover:border-[#8B3A5E]/60 hover:text-[#8B3A5E] transition-all duration-300"
-              >
-                Our Story
-              </Link>
-            </div>
-          </div>
-        </section>
 
 
         {/* ── LUXURY RIBBON ── */}
