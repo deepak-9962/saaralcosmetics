@@ -62,6 +62,33 @@ const SLIDES = [
     arrowColor: "#C7A36A",
     progressBg: "rgba(199,163,106,0.15)",
   },
+  {
+    id: "tamil-heritage",
+    badge: "ANCIENT TAMIL SKINCARE",
+    lines: ["Ancient Rituals.", "Modern Radiance."],
+    desc: "Timeless herbal formulations inspired by generations of Tamil skincare wisdom.",
+    primary: { text: "DISCOVER HERITAGE", href: "/products?category=nalangu-maavu" },
+    secondary: { text: "VIEW COLLECTION", href: "/products" },
+    img: "/images/NewHeader/head3.avif",
+    imgWebp: "/images/NewHeader/head3.webp",
+    imgAlt: "Saaral Tamil Heritage Collection — traditional herbal skincare",
+    /* Slide palette */
+    sectionBg: "#F2E4CC",
+    overlayRgb: "242,228,204",
+    accent: "#8A6A00",
+    label: "#8A6A00",
+    text: "#2A1A14",
+    muted: "rgba(42,26,20,0.50)",
+    btnBg: "#4B3425",
+    btnText: "#F5EDE0",
+    btnShadow: "rgba(75,52,37,0.35)",
+    outlineBorder: "rgba(75,52,37,0.22)",
+    outlineText: "#4B3425",
+    dot: "#8A6A00",
+    arrowBorder: "rgba(75,52,37,0.20)",
+    arrowColor: "#4B3425",
+    progressBg: "rgba(138,106,0,0.15)",
+  },
 ] as const;
 
 const AUTOPLAY_MS = 5000;

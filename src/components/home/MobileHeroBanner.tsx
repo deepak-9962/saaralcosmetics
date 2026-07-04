@@ -27,6 +27,13 @@ const slides: Slide[] = [
     ctaHref: "/products?category=face-wash",
     indicatorColor: "#8B3A5E",
   },
+  {
+    id: "slide3",
+    image: "/images/NewHeader/head3.avif",
+    alt: "Saaral Heritage Ritual — Nalangu Maavu and Premium Soap Collection",
+    ctaHref: "/products",
+    indicatorColor: "#1A5828",
+  },
 ];
 
 export default function MobileHeroBanner() {

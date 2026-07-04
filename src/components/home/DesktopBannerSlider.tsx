@@ -26,6 +26,15 @@ const SLIDES = [
     dotBg: "rgba(199,163,106,0.18)",
     bg: "#140308",
   },
+  {
+    id: "tamil-heritage",
+    img: "/images/NewHeader/head3.avif",
+    imgAlt: "Saaral Tamil Heritage Collection — traditional herbal skincare",
+    href: "/products?category=nalangu-maavu",
+    dot: "#8A6A00",
+    dotBg: "rgba(138,106,0,0.18)",
+    bg: "#F2E4CC",
+  },
 ] as const;
 
 const AUTOPLAY_MS = 5000;
