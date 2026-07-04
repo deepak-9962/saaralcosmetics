@@ -12,7 +12,6 @@ import useEmblaCarousel from "embla-carousel-react";
 interface Transformation {
   id: string;
   customer: string;
-  age: number;
   location: string;
   duration: string;
   product: string;
@@ -40,7 +39,6 @@ const TRANSFORMATIONS: Transformation[] = [
   {
     id: "under-eye",
     customer: "Chitra",
-    age: 28,
     location: "Chennai, Tamil Nadu",
     duration: "6 weeks",
     product: "Skin Whitening Cream + Redwine Face Wash",
@@ -65,7 +63,6 @@ const TRANSFORMATIONS: Transformation[] = [
   {
     id: "anti-aging",
     customer: "Kavitha",
-    age: 25,
     location: "Madurai, Tamil Nadu",
     duration: "10 weeks",
     product: "Anti Aging & Pigmentation Cream + Butterfly Pea Face Wash",
@@ -90,7 +87,6 @@ const TRANSFORMATIONS: Transformation[] = [
   {
     id: "whitening-pigmentation-prema",
     customer: "Prema",
-    age: 27,
     location: "Thirupathi, Andhra Pradesh",
     duration: "8 weeks",
     product: "Skin Whitening Cream + Anti Aging & Pigmentation Cream",
@@ -447,7 +443,7 @@ function BeforeAfterSlider({
                     letterSpacing: "0.03em",
                   }}
                 >
-                  Age {item.age} · {item.location}
+                  {item.location}
                 </p>
               </div>
 
