@@ -222,6 +222,65 @@ export default function DesktopBannerSlider() {
           ))}
         </div>
 
+        {/* ── Left/Right navigation arrows — bottom right ── */}
+        <div
+          className="absolute bottom-6 right-6 flex items-center gap-2.5 z-10"
+        >
+          {/* Prev arrow */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              stopTimer();
+              prev();
+              startTimer();
+            }}
+            aria-label="Previous slide"
+            className="flex items-center justify-center rounded-full transition-all duration-200 active:scale-90 hover:scale-105"
+            style={{
+              width: "36px",
+              height: "36px",
+              background: "rgba(255,255,255,0.82)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              border: "1px solid rgba(201,167,77,0.35)",
+              boxShadow: "0 2px 10px rgba(42,26,20,0.10)",
+              cursor: "pointer",
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B3A5E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+
+          {/* Next arrow */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              stopTimer();
+              next();
+              startTimer();
+            }}
+            aria-label="Next slide"
+            className="flex items-center justify-center rounded-full transition-all duration-200 active:scale-90 hover:scale-105"
+            style={{
+              width: "36px",
+              height: "36px",
+              background: "rgba(255,255,255,0.82)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              border: "1px solid rgba(201,167,77,0.35)",
+              boxShadow: "0 2px 10px rgba(42,26,20,0.10)",
+              cursor: "pointer",
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B3A5E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </div>
+
         {/* ── Bottom progress bar ── */}
         <div
           aria-hidden="true"
