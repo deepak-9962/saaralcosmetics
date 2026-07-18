@@ -14,6 +14,9 @@ export interface Product {
   ingredients: string | null;
   how_to_use: string | null;
   images: string[];
+  /** Supabase Storage bucket-relative path of the primary uploaded image. Used for deletion.
+   *  Optional on legacy products created before this column existed. */
+  image_path?: string | null;
   stock: number;
   is_active: boolean;
   created_at: string;

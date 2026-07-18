@@ -74,6 +74,8 @@ function normalizeProduct(row: ProductRow): Product {
     ingredients: row.ingredients,
     how_to_use: row.how_to_use,
     images: normalizeProductImages(row.images, row.category),
+    // image_path stores the Supabase Storage bucket-relative path (used for deletion)
+    image_path: (row as typeof row & { image_path?: string | null }).image_path ?? null,
     stock: row.stock,
     is_active: row.is_active,
     created_at: row.created_at,
@@ -383,6 +385,46 @@ export async function deleteProduct(productId: string): Promise<void> {
     .eq("id", productId);
 
   if (error) throw new Error(error.message);
+}
+
+/**
+ * Deletes a product's Storage file first, then removes the DB row.
+ *
+ * The Storage delete uses the authenticated browser client — the authenticated
+ * RLS policy on storage.objects allows signed-in admins to DELETE from the
+ * "product-images" bucket.
+ *
+ * @param productId  - UUID of the products row to delete
+ * @param imagePath  - Supabase Storage path (e.g. "3f8b2c1a-uuid.webp"). If null/undefined,
+ *                     only the DB row is deleted.
+ */
+export async function deleteProductWithStorage(
+  productId: string,
+  imagePath?: string | null
+): Promise<void> {
+  const supabase = getSupabaseBrowserClient();
+
+  // Step 1: Remove the image from Storage (best-effort — don't fail if missing)
+  if (imagePath) {
+    const { error: storageError } = await supabase.storage
+      .from("product-images")
+      .remove([imagePath]);
+
+    if (storageError) {
+      // Log but do not throw — we still want to delete the DB row
+      console.warn(
+        `[deleteProductWithStorage] Could not remove storage file "${imagePath}": ${storageError.message}`
+      );
+    }
+  }
+
+  // Step 2: Delete the DB row
+  const { error: dbError } = await supabase
+    .from("products")
+    .delete()
+    .eq("id", productId);
+
+  if (dbError) throw new Error(dbError.message);
 }
 
 // ============================================================

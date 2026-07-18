@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
@@ -9,6 +8,7 @@ import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
+import ProductImage from "./ProductImage";
 
 interface ProductCardProps {
   product: Product;
@@ -89,20 +89,16 @@ export default function ProductCard({
           }}
           aria-label={`View ${product.name}`}
         >
-          {/* Product Image */}
-          {product.images[0] && (
-            <Image
-              src={product.images[0]}
-              alt={product.name}
-              fill
-              className="object-cover"
-              style={{
-                transform: isHovered && !isSoldOut ? "scale(1.06)" : "scale(1)",
-                transition: "transform 0.65s cubic-bezier(0.22,1,0.36,1)",
-              }}
-              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            />
-          )}
+          {/* Product Image — uses ProductImage for skeleton + fallback */}
+          <ProductImage
+            src={product.images[0]}
+            alt={product.name}
+            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            imageStyle={{
+              transform: isHovered && !isSoldOut ? "scale(1.06)" : "scale(1)",
+              transition: "transform 0.65s cubic-bezier(0.22,1,0.36,1)",
+            }}
+          />
 
           {/* Bottom vignette */}
           <div
@@ -356,12 +352,11 @@ export default function ProductCard({
                 style={{ background: "linear-gradient(145deg, #F4E4DA, #EDD5C8)" }}
               >
                 {product.images[0] && (
-                  <Image
+                  <ProductImage
                     src={product.images[0]}
                     alt={product.name}
-                    fill
-                    className="object-cover"
                     sizes="(max-width: 768px) 100vw, 50vw"
+                    className="absolute inset-0 w-full h-full"
                   />
                 )}
                 {isSoldOut && (

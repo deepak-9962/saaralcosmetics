@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
-import { createProduct } from "@/lib/supabase/data";
 import type { Product } from "@/lib/types";
 
+// ── Types ────────────────────────────────────────────────────────────────────
 type ProductFormState = {
   name: string;
   category: Product["category"];
@@ -17,7 +18,6 @@ type ProductFormState = {
   description: string;
   ingredients: string;
   how_to_use: string;
-  images: string;
   stock: string;
   is_active: boolean;
 };
@@ -31,84 +31,155 @@ const initialState: ProductFormState = {
   description: "",
   ingredients: "",
   how_to_use: "",
-  images: "",
   stock: "0",
   is_active: true,
 };
 
+/** Allowed file types — mirrors the bucket's allowed_mime_types */
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_SIZE_LABEL = "5 MB";
+
+// ── Label helper ─────────────────────────────────────────────────────────────
+const inputClass =
+  "w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body text-[16px] leading-[1.6] text-on-surface focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all";
+const labelClass =
+  "font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant";
+
 export default function AdminAddProductPage() {
   const router = useRouter();
-  const [form, setForm] = useState<ProductFormState>(initialState);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [form, setForm] = useState<ProductFormState>(initialState);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // ── Field change handler ─────────────────────────────────────────────────
   const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    event: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const target = event.target;
     if (target instanceof HTMLInputElement && target.type === "checkbox") {
       setForm((prev) => ({ ...prev, [target.name]: target.checked }));
       return;
     }
-
     setForm((prev) => ({ ...prev, [target.name]: target.value }));
   };
 
+  // ── File picker handler ──────────────────────────────────────────────────
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFileError(null);
+    const file = e.target.files?.[0] ?? null;
+
+    if (!file) {
+      setImageFile(null);
+      setImagePreview(null);
+      return;
+    }
+
+    // Client-side validation (server also validates as defence-in-depth)
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setFileError("Only JPG, PNG, or WebP images are allowed.");
+      setImageFile(null);
+      setImagePreview(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+    if (file.size > MAX_SIZE_BYTES) {
+      setFileError(`Image must be smaller than ${MAX_SIZE_LABEL}.`);
+      setImageFile(null);
+      setImagePreview(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setImageFile(file);
+    // Generate a local object URL for the instant preview
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setFileError(null);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // ── Submit ───────────────────────────────────────────────────────────────
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setError(null);
+    setFormError(null);
 
-    const parsedPrice = Number(form.price);
-    const parsedStock = Number(form.stock);
-    const parsedComparePrice = form.compare_price ? Number(form.compare_price) : null;
-    const imageList = form.images
-      .split(",")
-      .map((entry) => entry.trim())
-      .filter(Boolean);
-
+    // Basic client-side validation
     if (!form.name.trim()) {
-      setError("Product name is required.");
+      setFormError("Product name is required.");
       return;
     }
+    const parsedPrice = Number(form.price);
     if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
-      setError("Enter a valid product price.");
+      setFormError("Enter a valid product price.");
       return;
     }
+    const parsedStock = Number(form.stock);
     if (!Number.isFinite(parsedStock) || parsedStock < 0) {
-      setError("Enter a valid stock quantity.");
+      setFormError("Enter a valid stock quantity.");
       return;
     }
-    if (imageList.length === 0) {
-      setError("Add at least one product image URL.");
+    if (!imageFile) {
+      setFormError("Please select a product image to upload.");
       return;
     }
 
     try {
       setIsSaving(true);
-      await createProduct({
-        name: form.name.trim(),
-        category: form.category,
-        variant_name: form.variant_name.trim() || null,
-        price: parsedPrice,
-        compare_price: parsedComparePrice,
-        description: form.description.trim() || null,
-        ingredients: form.ingredients.trim() || null,
-        how_to_use: form.how_to_use.trim() || null,
-        images: imageList,
-        stock: parsedStock,
-        is_active: form.is_active,
+
+      // Build multipart/form-data — the API route handles upload + DB insert
+      const fd = new FormData();
+      fd.append("file", imageFile);
+      fd.append("name", form.name.trim());
+      fd.append("category", form.category);
+      fd.append("variant_name", form.variant_name.trim());
+      fd.append("price", String(parsedPrice));
+      fd.append("compare_price", form.compare_price || "");
+      fd.append("description", form.description.trim());
+      fd.append("ingredients", form.ingredients.trim());
+      fd.append("how_to_use", form.how_to_use.trim());
+      fd.append("stock", String(parsedStock));
+      fd.append("is_active", String(form.is_active));
+
+      const response = await fetch("/api/products/upload", {
+        method: "POST",
+        body: fd,
+        // Do NOT set Content-Type — browser sets it automatically with the correct boundary
       });
 
-      toast.success("Product created");
+      const json = await response.json();
+
+      if (!response.ok) {
+        throw new Error(json.error ?? "Upload failed. Please try again.");
+      }
+
+      toast.success("Product created successfully!");
       router.push("/admin/products");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Failed to create product.");
+      const msg =
+        saveError instanceof Error
+          ? saveError.message
+          : "Failed to create product.";
+      setFormError(msg);
       setIsSaving(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
+      {/* ── Sticky header ─────────────────────────────────────────────────── */}
       <header className="flex items-center justify-between px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-md)] border-b border-outline-variant/30 bg-surface/80 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <Link
@@ -136,9 +207,18 @@ export default function AdminAddProductPage() {
           <button
             type="submit"
             disabled={isSaving}
-            className="px-6 py-2 rounded bg-tertiary-container text-on-tertiary-container hover:bg-tertiary-fixed-dim transition-colors duration-200 font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium shadow-sm disabled:opacity-50"
+            className="px-6 py-2 rounded bg-tertiary-container text-on-tertiary-container hover:bg-tertiary-fixed-dim transition-colors duration-200 font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium shadow-sm disabled:opacity-50 flex items-center gap-2"
           >
-            {isSaving ? "Saving..." : "Save Product"}
+            {isSaving ? (
+              <>
+                <span className="material-symbols-outlined animate-spin text-[18px]">
+                  progress_activity
+                </span>
+                Uploading...
+              </>
+            ) : (
+              "Save Product"
+            )}
           </button>
         </div>
       </header>
@@ -148,165 +228,247 @@ export default function AdminAddProductPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <section className="bg-surface p-6 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow space-y-5">
-          <h2 className="font-display text-[24px] leading-[1.4] text-on-surface">Basics</h2>
+        {/* ── LEFT COLUMN — Basics & Image ──────────────────────────────── */}
+        <div className="flex flex-col gap-[var(--spacing-gutter)]">
+          <section className="bg-surface p-6 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow space-y-5">
+            <h2 className="font-display text-[24px] leading-[1.4] text-on-surface">
+              Basics
+            </h2>
 
-          <div className="space-y-2">
-            <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
-              Product Name
-            </label>
-            <input
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              required
-              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
-                Category
-              </label>
-              <select
-                name="category"
-                value={form.category}
-                onChange={handleChange}
-                className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
-              >
-                <option value="face-cream">Face Cream</option>
-                <option value="face-wash">Face Wash</option>
-                <option value="soap">Soap</option>
-                <option value="nalangu-maavu">Nalangu Maavu</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
-                Variant
-              </label>
+              <label className={labelClass}>Product Name</label>
               <input
-                name="variant_name"
-                value={form.variant_name}
-                onChange={handleChange}
-                className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
-                Price (INR)
-              </label>
-              <input
-                name="price"
-                type="number"
-                value={form.price}
+                name="name"
+                value={form.name}
                 onChange={handleChange}
                 required
-                className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
+                className={inputClass}
               />
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className={labelClass}>Category</label>
+                <select
+                  name="category"
+                  value={form.category}
+                  onChange={handleChange}
+                  className={inputClass}
+                >
+                  <option value="face-cream">Face Cream</option>
+                  <option value="face-wash">Face Wash</option>
+                  <option value="soap">Soap</option>
+                  <option value="nalangu-maavu">Nalangu Maavu</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className={labelClass}>Variant</label>
+                <input
+                  name="variant_name"
+                  value={form.variant_name}
+                  onChange={handleChange}
+                  className={inputClass}
+                  placeholder="e.g. 50g, Rose"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className={labelClass}>Price (INR)</label>
+                <input
+                  name="price"
+                  type="number"
+                  value={form.price}
+                  onChange={handleChange}
+                  required
+                  min={0}
+                  className={inputClass}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className={labelClass}>Compare Price (Optional)</label>
+                <input
+                  name="compare_price"
+                  type="number"
+                  value={form.compare_price}
+                  onChange={handleChange}
+                  min={0}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
-                Compare Price (Optional)
-              </label>
+              <label className={labelClass}>Stock</label>
               <input
-                name="compare_price"
+                name="stock"
                 type="number"
-                value={form.compare_price}
+                value={form.stock}
                 onChange={handleChange}
-                className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
+                min={0}
+                className={inputClass}
               />
             </div>
-          </div>
+
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                name="is_active"
+                type="checkbox"
+                checked={form.is_active}
+                onChange={handleChange}
+                className="w-4 h-4 accent-primary"
+              />
+              <span className="font-body text-[14px] leading-[1.6] text-on-surface">
+                Active product (visible in store)
+              </span>
+            </label>
+          </section>
+
+          {/* ── Product Image Upload ─────────────────────────────────────── */}
+          <section className="bg-surface p-6 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow space-y-4">
+            <div>
+              <h2 className="font-display text-[24px] leading-[1.4] text-on-surface">
+                Product Image
+              </h2>
+              <p className="font-body text-[13px] text-on-surface-variant mt-1">
+                JPG, PNG, or WebP · Max {MAX_SIZE_LABEL}
+              </p>
+            </div>
+
+            {/* Preview area */}
+            {imagePreview ? (
+              <div className="relative">
+                <div
+                  className="relative w-full aspect-square rounded-xl overflow-hidden border border-outline-variant/40"
+                  style={{
+                    background:
+                      "linear-gradient(145deg, #F4E4DA 0%, #EDD5C8 100%)",
+                  }}
+                >
+                  <Image
+                    src={imagePreview}
+                    alt="Product preview"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    unoptimized // local blob URL — Next.js optimiser can't process it
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={clearImage}
+                  className="absolute top-2 right-2 p-1.5 rounded-full bg-surface/90 border border-outline-variant text-on-surface hover:bg-error-container hover:text-on-error-container transition-all shadow-sm"
+                  aria-label="Remove image"
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    close
+                  </span>
+                </button>
+                <p className="mt-2 font-body text-[12px] text-on-surface-variant text-center">
+                  {imageFile?.name} ({(imageFile!.size / 1024 / 1024).toFixed(2)} MB)
+                </p>
+              </div>
+            ) : (
+              /* Drop / click zone */
+              <label
+                className="flex flex-col items-center justify-center gap-3 w-full aspect-square rounded-xl border-2 border-dashed border-outline-variant/60 cursor-pointer hover:border-primary/40 hover:bg-primary-fixed/30 transition-all"
+                htmlFor="product-image-input"
+              >
+                <span className="material-symbols-outlined text-[48px] text-on-surface-variant/50">
+                  add_photo_alternate
+                </span>
+                <span className="font-body text-[14px] text-on-surface-variant">
+                  Click to choose or drag an image
+                </span>
+                <span className="font-body text-[12px] text-on-surface-variant/60">
+                  JPG, PNG, WebP · Max {MAX_SIZE_LABEL}
+                </span>
+              </label>
+            )}
+
+            {/* Hidden file input */}
+            <input
+              id="product-image-input"
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleFileChange}
+              className="sr-only"
+            />
+
+            {/* Inline file validation error */}
+            {fileError && (
+              <p className="font-body text-[13px] text-error flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px]">
+                  error
+                </span>
+                {fileError}
+              </p>
+            )}
+
+            {imagePreview && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full py-2.5 rounded-xl border border-outline-variant text-on-surface-variant hover:border-primary/40 hover:text-primary transition-all font-body text-[13px] font-medium"
+              >
+                Choose a different image
+              </button>
+            )}
+          </section>
+        </div>
+
+        {/* ── RIGHT COLUMN — Details ────────────────────────────────────── */}
+        <section className="bg-surface p-6 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow space-y-5 self-start">
+          <h2 className="font-display text-[24px] leading-[1.4] text-on-surface">
+            Details
+          </h2>
 
           <div className="space-y-2">
-            <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
-              Stock
-            </label>
-            <input
-              name="stock"
-              type="number"
-              value={form.stock}
-              onChange={handleChange}
-              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
-            />
-          </div>
-
-          <label className="flex items-center gap-3">
-            <input
-              name="is_active"
-              type="checkbox"
-              checked={form.is_active}
-              onChange={handleChange}
-            />
-            <span className="font-body text-[14px] leading-[1.6] text-on-surface">
-              Active product
-            </span>
-          </label>
-        </section>
-
-        <section className="bg-surface p-6 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow space-y-5">
-          <h2 className="font-display text-[24px] leading-[1.4] text-on-surface">Details</h2>
-
-          <div className="space-y-2">
-            <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
-              Description
-            </label>
+            <label className={labelClass}>Description</label>
             <textarea
               name="description"
               rows={4}
               value={form.description}
               onChange={handleChange}
-              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
+              className={inputClass}
             />
           </div>
 
           <div className="space-y-2">
-            <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
-              Ingredients
-            </label>
+            <label className={labelClass}>Ingredients</label>
             <textarea
               name="ingredients"
               rows={3}
               value={form.ingredients}
               onChange={handleChange}
-              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
+              className={inputClass}
             />
           </div>
 
           <div className="space-y-2">
-            <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
-              How to Use
-            </label>
+            <label className={labelClass}>How to Use</label>
             <textarea
               name="how_to_use"
               rows={3}
               value={form.how_to_use}
               onChange={handleChange}
-              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
-              Image URLs (comma-separated)
-            </label>
-            <textarea
-              name="images"
-              rows={4}
-              value={form.images}
-              onChange={handleChange}
-              placeholder="https://.../image-1.jpg, https://.../image-2.jpg"
-              className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3"
+              className={inputClass}
             />
           </div>
         </section>
 
-        {error && (
-          <p className="lg:col-span-2 font-body text-[14px] leading-[1.6] text-error">{error}</p>
+        {/* ── Global form error ─────────────────────────────────────────── */}
+        {formError && (
+          <div className="lg:col-span-2 flex items-center gap-2 p-4 rounded-xl bg-error-container border border-error/20">
+            <span className="material-symbols-outlined text-error text-[20px]">
+              error
+            </span>
+            <p className="font-body text-[14px] leading-[1.6] text-on-error-container">
+              {formError}
+            </p>
+          </div>
         )}
       </motion.div>
     </form>

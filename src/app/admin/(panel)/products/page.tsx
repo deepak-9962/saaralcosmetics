@@ -4,9 +4,15 @@ import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { listAllProductsForAdmin, updateProductActive, deleteProduct, subscribeToProducts } from "@/lib/supabase/data";
+import {
+  listAllProductsForAdmin,
+  updateProductActive,
+  deleteProductWithStorage,
+  subscribeToProducts,
+} from "@/lib/supabase/data";
 import { formatPrice } from "@/lib/utils";
 import type { Product } from "@/lib/types";
+import ProductImage from "@/components/product/ProductImage";
 
 function StockBadge({ stock }: { stock: number }) {
   if (stock === 0) return <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[11px] font-medium font-body">Out of Stock</span>;
@@ -72,10 +78,13 @@ export default function AdminProductsPage() {
 
   const handleDelete = async (productId: string) => {
     setIsDeleting(true);
+    // Find the product's image_path before deleting so we can clean up Storage
+    const product = products.find((p) => p.id === productId);
     try {
-      await deleteProduct(productId);
+      // deleteProductWithStorage removes the Storage file first, then the DB row
+      await deleteProductWithStorage(productId, product?.image_path);
       setProducts((prev) => prev.filter((p) => p.id !== productId));
-      toast.success("Product deleted");
+      toast.success("Product and image deleted");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to delete product.");
     } finally {
@@ -171,9 +180,17 @@ export default function AdminProductsPage() {
                   <tr key={product.id} className="hover:bg-surface-container-low/50 transition-colors group">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-lg bg-surface-container overflow-hidden flex-shrink-0">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                        {/* Thumbnail using ProductImage for skeleton + fallback */}
+                        <div
+                          className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0"
+                          style={{ background: "linear-gradient(145deg, #F4E4DA 0%, #EDD5C8 100%)" }}
+                        >
+                          <ProductImage
+                            src={product.images[0]}
+                            alt={product.name}
+                            sizes="48px"
+                            className="w-full h-full"
+                          />
                         </div>
                         <div>
                           <p className="font-medium text-[15px]">{product.name}</p>
@@ -249,7 +266,8 @@ export default function AdminProductsPage() {
                 <h3 className="font-display text-[20px] text-on-surface">Delete Product?</h3>
               </div>
               <p className="font-body text-[14px] text-on-surface-variant leading-[1.6] mb-6">
-                This will permanently remove the product from your store. This action cannot be undone.
+                This will permanently remove the product from your store and delete its image from Storage.
+                This action cannot be undone.
               </p>
               <div className="flex gap-3">
                 <button

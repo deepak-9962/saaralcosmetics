@@ -9,6 +9,38 @@ import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 
+// Helper to render text as clean, line-by-line bullet points
+function renderBulletPoints(text: string | null | undefined) {
+  if (!text) return null;
+
+  // Split either by newlines or by bullet points
+  let lines: string[] = [];
+  if (text.includes("\n")) {
+    lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+  } else if (text.includes("•")) {
+    lines = text.split("•").map((line) => line.trim()).filter(Boolean);
+  } else {
+    lines = [text.trim()];
+  }
+
+  // Clean each line by stripping existing bullet markers (•, -, *)
+  const cleanLines = lines
+    .map((line) => line.replace(/^[•\-\*]\s*/, "").trim())
+    .filter(Boolean);
+
+  if (cleanLines.length === 0) return null;
+
+  return (
+    <ul className="list-disc pl-5 space-y-2">
+      {cleanLines.map((line, idx) => (
+        <li key={idx} className="font-body text-[15px] md:text-[16px] leading-[1.6] text-on-surface-variant">
+          {line}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 interface ProductInteractivePanelProps {
   initialProduct: Product;
   variants: Product[];
@@ -55,52 +87,55 @@ export default function ProductInteractivePanel({
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-[var(--spacing-gutter)] mb-[var(--spacing-stack-lg)]">
-        {/* Left Gallery Panel */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-[var(--spacing-gutter)] items-start mb-[var(--spacing-stack-lg)]">
+        {/* Left Gallery Panel — items-start prevents vertical stretching */}
         <motion.div
-          className="md:col-span-7 flex flex-col gap-4"
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
+          className="md:col-span-7 flex flex-col-reverse md:flex-row items-start gap-4"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-surface-container-low flex items-center justify-center">
-            <Image
-              src={product.images[selectedImage] || product.images[0]}
-              alt={product.name}
-              fill
-              className="object-cover"
-              priority
-              sizes="(max-width: 768px) 100vw, 60vw"
-            />
-            {product.compare_price && (
-              <div className="absolute top-4 left-4 bg-tertiary-container text-on-tertiary-container font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium px-3 py-1 rounded-full custom-shadow">
-                Bestseller
-              </div>
-            )}
-          </div>
+          {/* Thumbnails */}
           {product.images.length > 1 && (
-            <div className="grid grid-cols-4 gap-3 md:gap-4">
-              {product.images.map((img, i) => (
+            <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 scrollbar-none">
+              {product.images.map((img, idx) => (
                 <button
-                  key={img}
-                  onClick={() => setSelectedImage(i)}
-                  className={`aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
-                    selectedImage === i
-                      ? "border-tertiary-container"
-                      : "border-outline-variant opacity-70 hover:opacity-100"
+                  key={idx}
+                  onClick={() => setSelectedImage(idx)}
+                  className={`relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border transition-all duration-300 ${
+                    selectedImage === idx
+                      ? "border-primary shadow-[0_4px_12px_rgba(176,96,128,0.15)] scale-[1.03]"
+                      : "border-outline-variant/40 hover:border-primary/45"
                   }`}
                 >
                   <Image
                     src={img}
-                    alt={`${product.name} thumbnail ${i + 1}`}
-                    width={120}
-                    height={120}
-                    className="w-full h-full object-cover"
+                    alt={`${product.name} gallery image ${idx + 1}`}
+                    fill
+                    className="object-cover"
+                    sizes="80px"
                   />
                 </button>
               ))}
             </div>
           )}
+
+          {/* Main Display Image */}
+          <div
+            className="relative flex-1 aspect-square rounded-2xl overflow-hidden border border-outline-variant/30"
+            style={{ background: "linear-gradient(145deg, #F4E4DA 0%, #EDD5C8 100%)" }}
+          >
+            {product.images[selectedImage] && (
+              <Image
+                src={product.images[selectedImage]}
+                alt={product.name}
+                fill
+                priority
+                className="object-cover transition-all duration-500 hover:scale-[1.03]"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+            )}
+          </div>
         </motion.div>
 
         {/* Right Product Details Selection Panel */}
@@ -138,13 +173,13 @@ export default function ProductInteractivePanel({
           {/* Description with Read More toggle */}
           {product.description && (
             <div className="mb-8">
-              <p
-                className={`font-body text-[15px] md:text-[16px] leading-[1.7] text-on-surface-variant transition-all duration-300 ${
+              <div
+                className={`transition-all duration-300 overflow-hidden ${
                   isDescExpanded ? "" : "line-clamp-3"
                 }`}
               >
-                {product.description}
-              </p>
+                {renderBulletPoints(product.description)}
+              </div>
               <button
                 onClick={() => setIsDescExpanded((prev) => !prev)}
                 className="mt-2 font-body text-[13px] leading-[1.0] tracking-[0.05em] font-medium text-primary hover:underline underline-offset-4 flex items-center gap-1 transition-all"
@@ -215,34 +250,37 @@ export default function ProductInteractivePanel({
               Add to Cart
             </button>
           </div>
-
-          {/* Details Accordion Toggles — Description removed (shown inline above with Read more) */}
-          <div className="flex flex-col border-t border-outline-variant/50">
-            <details className="group py-4 border-b border-outline-variant/50">
-              <summary className="flex justify-between items-center cursor-pointer list-none font-body text-[16px] leading-[1.6] font-medium text-on-surface select-none">
-                <span>Ingredients</span>
-                <span className="material-symbols-outlined group-open:rotate-180 transition-transform">
-                  expand_more
-                </span>
-              </summary>
-              <div className="pt-4 font-body text-[16px] leading-[1.6] text-on-surface-variant">
-                {product.ingredients}
-              </div>
-            </details>
-            <details className="group py-4 border-b border-outline-variant/50">
-              <summary className="flex justify-between items-center cursor-pointer list-none font-body text-[16px] leading-[1.6] font-medium text-on-surface select-none">
-                <span>How to Use</span>
-                <span className="material-symbols-outlined group-open:rotate-180 transition-transform">
-                  expand_more
-                </span>
-              </summary>
-              <div className="pt-4 font-body text-[16px] leading-[1.6] text-on-surface-variant">
-                {product.how_to_use}
-              </div>
-            </details>
-          </div>
         </motion.div>
       </div>
+
+      {/* Ingredients & How to Use Section — Displayed below the picture and details card */}
+      {(product.ingredients || product.how_to_use) && (
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mt-12 pt-12 border-t border-outline-variant/40">
+          {product.ingredients && (
+            <div className="space-y-4">
+              <h2 className="font-display text-[22px] md:text-[26px] leading-[1.3] text-on-surface font-semibold flex items-center gap-2">
+                <span className="material-symbols-outlined text-[24px] text-primary">spa</span>
+                Ingredients Used
+              </h2>
+              <div className="bg-surface-container-lowest p-6 md:p-8 rounded-2xl border border-outline-variant/40 shadow-[0_4px_16px_rgba(42,26,20,0.03)]">
+                {renderBulletPoints(product.ingredients)}
+              </div>
+            </div>
+          )}
+
+          {product.how_to_use && (
+            <div className="space-y-4">
+              <h2 className="font-display text-[22px] md:text-[26px] leading-[1.3] text-on-surface font-semibold flex items-center gap-2">
+                <span className="material-symbols-outlined text-[24px] text-primary">clean_hands</span>
+                How to Use
+              </h2>
+              <div className="bg-surface-container-lowest p-6 md:p-8 rounded-2xl border border-outline-variant/40 shadow-[0_4px_16px_rgba(42,26,20,0.03)]">
+                {renderBulletPoints(product.how_to_use)}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Mobile Floating Action Bar */}
       <div className="md:hidden fixed bottom-20 inset-x-0 z-40 px-3">
