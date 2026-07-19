@@ -1,5 +1,5 @@
 import { generateOrderNumber, generateSlug } from "@/lib/utils";
-import type { CartItem, CategoryFilter, Order, OrderItem, Product } from "@/lib/types";
+import type { CartItem, CategoryFilter, Order, OrderItem, Product, ProductImage, ProductWithImages } from "@/lib/types";
 import { getSupabaseBrowserClient } from "./client";
 import type { Database, Json } from "./database.types";
 
@@ -648,6 +648,111 @@ export function subscribeToCustomers(onAnyChange: () => void) {
     .subscribe();
 
   return () => { void supabase.removeChannel(channel); };
+}
+
+// ============================================================
+// PRODUCT IMAGES — READ
+// ============================================================
+
+/**
+ * Fetches a product with its FULL ordered gallery from product_images.
+ * Use on the product detail page where all gallery images are displayed.
+ *
+ * Falls back gracefully: if the product has no product_images rows yet
+ * (legacy products not yet migrated), the product_images array will be empty
+ * and the caller can fall back to product.images[].
+ *
+ * @param productId UUID of the product
+ * @returns ProductWithImages (product + ordered gallery) or null if not found
+ */
+export async function getProductWithImages(
+  productId: string
+): Promise<ProductWithImages | null> {
+  const supabase = getSupabaseBrowserClient();
+
+  // Parallel fetch: product row + all its gallery images
+  const [productResult, imagesResult] = await Promise.all([
+    supabase.from("products").select("*").eq("id", productId).maybeSingle(),
+    supabase
+      .from("product_images")
+      .select("*")
+      .eq("product_id", productId)
+      .order("display_order", { ascending: true }),
+  ]);
+
+  if (productResult.error) throw new Error(productResult.error.message);
+  if (!productResult.data) return null;
+
+  const product = normalizeProduct(productResult.data);
+
+  const images: ProductImage[] = (imagesResult.data ?? []).map((row) => ({
+    id: row.id,
+    product_id: row.product_id,
+    image_url: row.image_url,
+    image_path: row.image_path,
+    display_order: row.display_order,
+    alt_text: row.alt_text,
+    created_at: row.created_at,
+  }));
+
+  return { ...product, product_images: images };
+}
+
+/**
+ * Fetches all active products with ONLY their main/thumbnail image
+ * (display_order = 0 from product_images). Optimised for listing and grid
+ * pages (homepage, /products, category pages) where loading all 5-6 gallery
+ * images per product would waste bandwidth.
+ *
+ * Falls back to product.images[0] for legacy products that have no
+ * product_images rows yet — so nothing breaks during the migration window.
+ *
+ * @param category Optional category filter (default: "all")
+ */
+export async function getAllProductsWithMainImage(
+  category: CategoryFilter = "all"
+): Promise<Product[]> {
+  const supabase = getSupabaseBrowserClient();
+
+  let query = supabase
+    .from("products")
+    .select("*")
+    .eq("is_active", true)
+    .order("price", { ascending: true });
+
+  if (category !== "all") {
+    query = query.eq("category", category);
+  }
+
+  const { data: productRows, error } = await query;
+  if (error) throw new Error(error.message);
+  if (!productRows?.length) return [];
+
+  // Fetch ONLY display_order=0 images for these products.
+  // This is O(1) extra queries regardless of product count.
+  const productIds = productRows.map((r) => r.id);
+  const { data: mainImages } = await supabase
+    .from("product_images")
+    .select("product_id, image_url")
+    .in("product_id", productIds)
+    .eq("display_order", 0);
+
+  // Build a lookup: product_id → main image URL
+  const mainImageMap = new Map<string, string>(
+    (mainImages ?? []).map((img) => [img.product_id, img.image_url])
+  );
+
+  return productRows.map((row) => {
+    const product = normalizeProduct(row);
+    const mainImageUrl = mainImageMap.get(row.id);
+    // Override images[0] with the product_images main image if available.
+    // If the product has no product_images rows (legacy), images[] from
+    // normalizeProduct() is used unchanged — backward compat preserved.
+    if (mainImageUrl) {
+      product.images = [mainImageUrl, ...product.images.slice(1)];
+    }
+    return product;
+  });
 }
 
 // ============================================================

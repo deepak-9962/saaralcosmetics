@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/utils";
 import type { Product } from "@/lib/types";
+import ProductGallery, { type GalleryImage } from "@/components/product/ProductGallery";
+import { getProductWithImages } from "@/lib/supabase/data";
 
 // Helper to render text as clean, line-by-line bullet points
 function renderBulletPoints(text: string | null | undefined) {
@@ -52,15 +53,54 @@ export default function ProductInteractivePanel({
 }: ProductInteractivePanelProps) {
   const { addItem } = useCart();
   const [product, setProduct] = useState<Product>(initialProduct);
-  const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isDescExpanded, setIsDescExpanded] = useState(false);
 
+  // ── Gallery images — fetched from product_images table ────────────────────
+  // We start with the product.images[] array (always available, populated by the
+  // upload route for backward compat) and upgrade to the richer product_images
+  // rows (which have alt text, correct display_order) once the async fetch lands.
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>(
+    initialProduct.images.map((url, i) => ({
+      url,
+      alt: `${initialProduct.name} — image ${i + 1}`,
+    }))
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    getProductWithImages(product.id)
+      .then((result) => {
+        if (cancelled || !result) return;
+        if (result.product_images.length > 0) {
+          // product_images rows are sorted by display_order by the helper
+          setGalleryImages(
+            result.product_images.map((img) => ({
+              url: img.image_url,
+              alt: img.alt_text ?? `${product.name} — image ${img.display_order + 1}`,
+            }))
+          );
+        }
+        // If no product_images rows exist (legacy product), keep the fallback above
+      })
+      .catch(() => {
+        // Non-fatal: fallback images already set in initial state
+      });
+    return () => { cancelled = true; };
+  // Re-fetch whenever the variant changes (different product.id)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id]);
+
   const handleVariantChange = (selectedVariant: Product) => {
     setProduct(selectedVariant);
-    setSelectedImage(0);
+    // Reset gallery to the new variant's images[] immediately (before async fetch lands)
+    setGalleryImages(
+      selectedVariant.images.map((url, i) => ({
+        url,
+        alt: `${selectedVariant.name} — image ${i + 1}`,
+      }))
+    );
     setQuantity(1);
-    // Update the browser URL without scrolling or page re-fetches
     window.history.replaceState(null, "", `/products/${selectedVariant.slug}`);
   };
 
@@ -88,54 +128,20 @@ export default function ProductInteractivePanel({
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-[var(--spacing-gutter)] items-start mb-[var(--spacing-stack-lg)]">
-        {/* Left Gallery Panel — items-start prevents vertical stretching */}
+        {/* Left Gallery Panel */}
         <motion.div
-          className="md:col-span-7 flex flex-col-reverse md:flex-row items-start gap-4"
+          className="md:col-span-7"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          {/* Thumbnails */}
-          {product.images.length > 1 && (
-            <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 scrollbar-none">
-              {product.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImage(idx)}
-                  className={`relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border transition-all duration-300 ${
-                    selectedImage === idx
-                      ? "border-primary shadow-[0_4px_12px_rgba(176,96,128,0.15)] scale-[1.03]"
-                      : "border-outline-variant/40 hover:border-primary/45"
-                  }`}
-                >
-                  <Image
-                    src={img}
-                    alt={`${product.name} gallery image ${idx + 1}`}
-                    fill
-                    className="object-cover"
-                    sizes="80px"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Main Display Image */}
-          <div
-            className="relative flex-1 aspect-square rounded-2xl overflow-hidden border border-outline-variant/30"
-            style={{ background: "linear-gradient(145deg, #F4E4DA 0%, #EDD5C8 100%)" }}
-          >
-            {product.images[selectedImage] && (
-              <Image
-                src={product.images[selectedImage]}
-                alt={product.name}
-                fill
-                priority
-                className="object-cover transition-all duration-500 hover:scale-[1.03]"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-            )}
-          </div>
+          {/*
+           * ProductGallery owns activeIndex state internally.
+           * It reads galleryImages from this component (derived from product_images
+           * table, falling back to products.images[] for legacy products).
+           * The gallery's thumbnail strip manages its own scroll state independently.
+           */}
+          <ProductGallery images={galleryImages} />
         </motion.div>
 
         {/* Right Product Details Selection Panel */}

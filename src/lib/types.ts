@@ -14,14 +14,30 @@ export interface Product {
   ingredients: string | null;
   how_to_use: string | null;
   images: string[];
-  /** Supabase Storage bucket-relative path of the primary uploaded image. Used for deletion.
-   *  Optional on legacy products created before this column existed. */
+  /** @deprecated Use product_images query instead. Kept for backward-compat fallback. */
   image_path?: string | null;
   stock: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
 }
+
+/** One row from the product_images table. display_order=0 is the main/thumbnail image. */
+export interface ProductImage {
+  id: string;
+  product_id: string;
+  image_url: string;
+  image_path: string;
+  display_order: number;
+  alt_text: string | null;
+  created_at: string;
+}
+
+/** A Product with its full ordered gallery fetched from product_images. */
+export interface ProductWithImages extends Product {
+  product_images: ProductImage[];
+}
+
 
 export type OrderStatus =
   | "new"

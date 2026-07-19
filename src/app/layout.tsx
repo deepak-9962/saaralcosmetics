@@ -19,6 +19,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+  ),
   title: "Saaral Cosmetics | Apothecary Heritage",
   description:
     "Rediscover the essence of ancient Indian rituals blended with modern dermatology. Crafted for a radiant, balanced complexion using ethically sourced botanicals.",
@@ -47,7 +51,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="light" suppressHydrationWarning>
+    <html lang="en" className="light" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
         <meta name="color-scheme" content="only light" />
         {/* Hero image preloads — browser fetches before JS executes, fixing NO_LCP */}

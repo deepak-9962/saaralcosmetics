@@ -22,7 +22,7 @@ export interface Database {
           ingredients: string | null;
           how_to_use: string | null;
           images: string[];
-          /** Supabase Storage bucket-relative path of the primary uploaded image. Used for deletion. */
+          /** @deprecated Use product_images table instead. */
           image_path: string | null;
           stock: number;
           is_active: boolean;
@@ -41,7 +41,7 @@ export interface Database {
           ingredients?: string | null;
           how_to_use?: string | null;
           images?: string[];
-          /** Supabase Storage bucket-relative path of the primary uploaded image. Used for deletion. */
+          /** @deprecated Use product_images table instead. */
           image_path?: string | null;
           stock?: number;
           is_active?: boolean;
@@ -50,6 +50,35 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["products"]["Insert"]>;
         Relationships: [];
+      };
+      product_images: {
+        Row: {
+          id: string;
+          product_id: string;
+          image_url: string;
+          image_path: string;
+          display_order: number;
+          alt_text: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          product_id: string;
+          image_url: string;
+          image_path: string;
+          display_order?: number;
+          alt_text?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["product_images"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "product_images_product_id_fkey";
+            columns: ["product_id"];
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       orders: {
         Row: {

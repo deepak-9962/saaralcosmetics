@@ -7,9 +7,9 @@ import toast from "react-hot-toast";
 import {
   listAllProductsForAdmin,
   updateProductActive,
-  deleteProductWithStorage,
   subscribeToProducts,
 } from "@/lib/supabase/data";
+import { deleteProductImages } from "@/lib/supabase/deleteProductImages";
 import { formatPrice } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 import ProductImage from "@/components/product/ProductImage";
@@ -78,13 +78,13 @@ export default function AdminProductsPage() {
 
   const handleDelete = async (productId: string) => {
     setIsDeleting(true);
-    // Find the product's image_path before deleting so we can clean up Storage
     const product = products.find((p) => p.id === productId);
     try {
-      // deleteProductWithStorage removes the Storage file first, then the DB row
-      await deleteProductWithStorage(productId, product?.image_path);
+      // deleteProductImages removes ALL Storage files for the product
+      // (new folder layout + legacy flat path fallback), then deletes the DB row.
+      await deleteProductImages(productId, product?.image_path);
       setProducts((prev) => prev.filter((p) => p.id !== productId));
-      toast.success("Product and image deleted");
+      toast.success("Product and all images deleted");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to delete product.");
     } finally {
@@ -218,6 +218,13 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Link
+                          href={`/admin/products/${product.id}/images`}
+                          className="p-1.5 rounded-lg hover:bg-tertiary-container/30 text-on-surface-variant hover:text-on-surface transition-colors"
+                          title="Edit Images"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">photo_library</span>
+                        </Link>
                         <Link
                           href={`/admin/products/${product.id}/edit`}
                           className="p-1.5 rounded-lg hover:bg-primary-container text-on-surface-variant hover:text-on-primary-container transition-colors"

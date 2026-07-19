@@ -1,22 +1,26 @@
 /**
  * POST /api/products/upload
  *
- * Handles product image uploads. Called from the admin new-product form.
+ * Creates a new product with up to 6 images, OR adds images to an existing
+ * product (when `product_id` is provided in the form data).
  *
- * Steps:
- *  1. Parse multipart/form-data (file + optional product metadata)
- *  2. Validate file type and size server-side (defence-in-depth on top of client checks)
- *  3. Upload to the "product-images" Supabase Storage bucket using SERVICE_ROLE_KEY
- *     — the service role bypasses RLS so this works even if the admin session cookie
- *       is not forwarded to this Route Handler.
- *  4. Get the public URL of the uploaded file
- *  5. Insert a new row into public.products (or update if productId is provided)
- *  6. Return { success, product } or { error }
+ * Multi-file upload flow:
+ *  1. Parse multipart/form-data — expects files named file_0, file_1, … file_N
+ *  2. Validate every file (type + size) before any upload starts
+ *  3. If creating a new product: insert the products row first to get the UUID
+ *     (needed for the storage folder path {product_id}/{order}-{uuid}.ext)
+ *  4. Upload each file to product-images/{product_id}/{order}-{uuid}.ext
+ *  5. Insert one product_images row per image with correct display_order
+ *  6. Update products.images[] with all URLs (backward-compat for existing code)
+ *
+ * Rollback on failure:
+ *  If any Storage upload or DB insert fails mid-way, ALL already-uploaded files
+ *  for that product are deleted from Storage, and the product row is deleted
+ *  (if it was created in this request). A clear error is returned.
  *
  * Security note:
- *  - SUPABASE_SERVICE_ROLE_KEY is a server-only env var (no NEXT_PUBLIC_ prefix).
- *    It is never sent to the browser.
- *  - The anon/browser client is NOT used here.
+ *  - SUPABASE_SERVICE_ROLE_KEY is server-only (no NEXT_PUBLIC_ prefix).
+ *  - The service-role client bypasses RLS — safe inside this Route Handler.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -27,6 +31,8 @@ import { generateSlug } from "@/lib/utils";
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 /** Max file size in bytes — must match the bucket's file_size_limit (5 MB) */
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+/** Maximum images per product */
+const MAX_IMAGES = 6;
 
 /** Map MIME type → file extension */
 const MIME_TO_EXT: Record<string, string> = {
@@ -37,7 +43,7 @@ const MIME_TO_EXT: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   try {
-    // ── Parse multipart form data ────────────────────────────
+    // ── Parse multipart form data ──────────────────────────────────────────
     let formData: FormData;
     try {
       formData = await request.formData();
@@ -48,7 +54,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const file = formData.get("file") as File | null;
+    // ── Collect files (file_0, file_1, …, file_5) ─────────────────────────
+    const files: File[] = [];
+    for (let i = 0; i < MAX_IMAGES; i++) {
+      const f = formData.get(`file_${i}`) as File | null;
+      if (f) files.push(f);
+    }
+
+    if (files.length === 0) {
+      return NextResponse.json(
+        { error: "No image files provided. Please select at least one image." },
+        { status: 400 }
+      );
+    }
+
+    // ── Server-side validation (all files, before any upload) ─────────────
+    // Fail fast: validate every file before touching Storage.
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!ALLOWED_MIME_TYPES.has(file.type)) {
+        return NextResponse.json(
+          { error: `Image ${i + 1}: file type "${file.type}" not allowed. Upload JPG, PNG, or WebP only.` },
+          { status: 400 }
+        );
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        return NextResponse.json(
+          { error: `Image ${i + 1} (${file.name}) exceeds 5 MB limit.` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // ── Parse product metadata ─────────────────────────────────────────────
+    const existingProductId = (formData.get("product_id") as string | null)?.trim() || null;
     const name = (formData.get("name") as string | null)?.trim() ?? "";
     const description = (formData.get("description") as string | null)?.trim() ?? null;
     const priceRaw = formData.get("price") as string | null;
@@ -60,116 +99,189 @@ export async function POST(request: NextRequest) {
     const stockRaw = formData.get("stock") as string | null;
     const isActiveRaw = formData.get("is_active") as string | null;
 
-    // ── Server-side validation ────────────────────────────────
-    if (!file) {
-      return NextResponse.json(
-        { error: "No image file provided." },
-        { status: 400 }
-      );
-    }
-    if (!ALLOWED_MIME_TYPES.has(file.type)) {
-      return NextResponse.json(
-        { error: "File type not allowed. Upload a JPG, PNG, or WebP image." },
-        { status: 400 }
-      );
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { error: "File too large. Maximum size is 5 MB." },
-        { status: 400 }
-      );
-    }
-    if (!name) {
-      return NextResponse.json(
-        { error: "Product name is required." },
-        { status: 400 }
-      );
-    }
-    const price = Number(priceRaw);
-    if (!Number.isFinite(price) || price <= 0) {
-      return NextResponse.json(
-        { error: "A valid price is required." },
-        { status: 400 }
-      );
+    // Product name and price are only required when creating a new product
+    if (!existingProductId) {
+      if (!name) {
+        return NextResponse.json(
+          { error: "Product name is required." },
+          { status: 400 }
+        );
+      }
+      const price = Number(priceRaw);
+      if (!Number.isFinite(price) || price <= 0) {
+        return NextResponse.json(
+          { error: "A valid price is required." },
+          { status: 400 }
+        );
+      }
     }
 
-    // ── Initialise service-role Supabase client ───────────────
-    // This uses SUPABASE_SERVICE_ROLE_KEY (server-only, never exposed to client).
+    // ── Initialise service-role Supabase client ────────────────────────────
     const supabase = getSupabaseServiceClient();
 
-    // ── Generate unique storage path ──────────────────────────
-    // crypto.randomUUID() is available in Node 18+ and on Vercel Edge/Node runtimes.
-    const ext = MIME_TO_EXT[file.type] ?? "jpg";
-    const storagePath = `${crypto.randomUUID()}.${ext}`;
+    let productId: string;
+    let productCreatedInThisRequest = false;
 
-    // ── Upload file to "product-images" bucket ────────────────
-    const fileBuffer = await file.arrayBuffer();
-    const { error: uploadError } = await supabase.storage
-      .from("product-images")
-      .upload(storagePath, fileBuffer, {
-        contentType: file.type,
-        // upsert: false ensures we never silently overwrite (UUID collision is astronomically unlikely)
-        upsert: false,
-      });
+    if (existingProductId) {
+      // ── Adding images to an existing product ─────────────────────────────
+      productId = existingProductId;
+    } else {
+      // ── Create a new product row first to get the UUID ───────────────────
+      // We need the UUID before uploads so we can use it in the storage path.
+      const price = Number(priceRaw);
+      const stock = Number(stockRaw) || 0;
+      const isActive = isActiveRaw === "false" ? false : true;
+      const comparePriceNum = comparePrice ? Number(comparePrice) : null;
+      const slug = generateSlug(name, variantName ?? undefined);
 
-    if (uploadError) {
-      console.error("[upload] Storage error:", uploadError);
-      return NextResponse.json(
-        { error: `Storage upload failed: ${uploadError.message}` },
-        { status: 500 }
-      );
+      const { data: newProduct, error: insertError } = await supabase
+        .from("products")
+        .insert({
+          name,
+          slug,
+          category: category as "face-cream" | "face-wash" | "soap" | "nalangu-maavu",
+          variant_name: variantName,
+          price,
+          compare_price: comparePriceNum && Number.isFinite(comparePriceNum) ? comparePriceNum : null,
+          description: description || null,
+          ingredients: ingredients || null,
+          how_to_use: howToUse || null,
+          images: [],     // will be updated after all uploads succeed
+          image_path: null,
+          stock,
+          is_active: isActive,
+        })
+        .select("id")
+        .single();
+
+      if (insertError || !newProduct) {
+        console.error("[upload] Product insert error:", insertError);
+        return NextResponse.json(
+          { error: `Database error creating product: ${insertError?.message ?? "unknown"}` },
+          { status: 500 }
+        );
+      }
+
+      productId = newProduct.id;
+      productCreatedInThisRequest = true;
     }
 
-    // ── Get the public URL of the uploaded image ──────────────
-    // getPublicUrl() is synchronous and never throws — it just constructs the URL.
-    const { data: publicUrlData } = supabase.storage
-      .from("product-images")
-      .getPublicUrl(storagePath);
+    // ── Upload each file ───────────────────────────────────────────────────
+    // Track what we've uploaded so we can roll back on partial failure.
+    const uploadedPaths: string[] = [];
+    const imageUrls: string[] = [];
 
-    const publicUrl = publicUrlData.publicUrl;
+    // Determine starting display_order for existing product (append after current max)
+    let startOrder = 0;
+    if (existingProductId) {
+      const { data: existing } = await supabase
+        .from("product_images")
+        .select("display_order")
+        .eq("product_id", productId)
+        .order("display_order", { ascending: false })
+        .limit(1);
+      if (existing && existing.length > 0) {
+        startOrder = (existing[0].display_order ?? -1) + 1;
+      }
+    }
 
-    // ── Insert product row into the database ──────────────────
-    // We use the service role client so RLS doesn't block the insert.
-    const slug = generateSlug(name);
-    const stock = Number(stockRaw) || 0;
-    const isActive = isActiveRaw === "false" ? false : true;
-    const comparePriceNum = comparePrice ? Number(comparePrice) : null;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const ext = MIME_TO_EXT[file.type] ?? "jpg";
+      const displayOrder = startOrder + i;
 
-    const { data: product, error: insertError } = await supabase
+      // Path: product-images/{product_id}/{displayOrder}-{uuid}.{ext}
+      const storagePath = `${productId}/${displayOrder}-${crypto.randomUUID()}.${ext}`;
+
+      // Upload to Storage
+      const fileBuffer = await file.arrayBuffer();
+      const { error: uploadError } = await supabase.storage
+        .from("product-images")
+        .upload(storagePath, fileBuffer, {
+          contentType: file.type,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        // ── ROLLBACK: delete already-uploaded files ──────────────────────
+        console.error(`[upload] Storage error on image ${i + 1}:`, uploadError);
+        if (uploadedPaths.length > 0) {
+          await supabase.storage.from("product-images").remove(uploadedPaths);
+        }
+        // Delete product row if we created it in this request
+        if (productCreatedInThisRequest) {
+          await supabase.from("products").delete().eq("id", productId);
+        }
+        return NextResponse.json(
+          { error: `Storage upload failed for image ${i + 1}: ${uploadError.message}. All changes have been rolled back.` },
+          { status: 500 }
+        );
+      }
+
+      uploadedPaths.push(storagePath);
+
+      // Get public URL (synchronous — no network call)
+      const { data: urlData } = supabase.storage
+        .from("product-images")
+        .getPublicUrl(storagePath);
+      imageUrls.push(urlData.publicUrl);
+
+      // Insert product_images row
+      const { error: imgInsertError } = await supabase
+        .from("product_images")
+        .insert({
+          product_id: productId,
+          image_url: urlData.publicUrl,
+          image_path: storagePath,
+          display_order: displayOrder,
+          alt_text: name || null,
+        });
+
+      if (imgInsertError) {
+        // ── ROLLBACK ─────────────────────────────────────────────────────
+        console.error(`[upload] product_images insert error for image ${i + 1}:`, imgInsertError);
+        await supabase.storage.from("product-images").remove(uploadedPaths);
+        if (productCreatedInThisRequest) {
+          await supabase.from("products").delete().eq("id", productId);
+        }
+        return NextResponse.json(
+          { error: `Database error saving image ${i + 1}: ${imgInsertError.message}. All changes have been rolled back.` },
+          { status: 500 }
+        );
+      }
+    }
+
+    // ── Update products.images[] for backward compatibility ────────────────
+    // Existing frontend code reads product.images[0] — keep it populated.
+    // Fetch all current URLs (existing + newly uploaded) in order.
+    const { data: allImages } = await supabase
+      .from("product_images")
+      .select("image_url")
+      .eq("product_id", productId)
+      .order("display_order", { ascending: true });
+
+    const allUrls = (allImages ?? []).map((r) => r.image_url);
+
+    await supabase
       .from("products")
-      .insert({
-        name,
-        slug,
-        category: category as "face-cream" | "face-wash" | "soap" | "nalangu-maavu",
-        variant_name: variantName,
-        price,
-        compare_price: comparePriceNum && Number.isFinite(comparePriceNum) ? comparePriceNum : null,
-        description,
-        ingredients,
-        how_to_use: howToUse,
-        // Push the uploaded image URL as the first (and primary) image in the array
-        images: [publicUrl],
-        // Store the storage path so we can delete the file from Storage later
-        image_path: storagePath,
-        stock,
-        is_active: isActive,
+      .update({
+        images: allUrls,
+        // Keep image_path pointing to the main image (display_order=0) for legacy deletion code
+        image_path: uploadedPaths[0] ?? null,
+        updated_at: new Date().toISOString(),
       })
-      .select()
+      .eq("id", productId);
+
+    // ── Fetch and return the final product ────────────────────────────────
+    const { data: finalProduct } = await supabase
+      .from("products")
+      .select("*")
+      .eq("id", productId)
       .single();
 
-    if (insertError) {
-      // Upload succeeded but DB insert failed — clean up the orphaned Storage file
-      console.error("[upload] DB insert error:", insertError);
-      await supabase.storage.from("product-images").remove([storagePath]);
-      return NextResponse.json(
-        { error: `Database error: ${insertError.message}` },
-        { status: 500 }
-      );
-    }
-
     return NextResponse.json(
-      { success: true, product, publicUrl, storagePath },
-      { status: 201 }
+      { success: true, product: finalProduct, uploadedCount: files.length },
+      { status: existingProductId ? 200 : 201 }
     );
   } catch (err) {
     console.error("[upload] Unexpected error:", err);
