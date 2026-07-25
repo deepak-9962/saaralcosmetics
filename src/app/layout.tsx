@@ -20,28 +20,52 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ||
     process.env.NEXT_PUBLIC_APP_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
+    "https://saaralcosmetics.com"
   ),
-  title: "Saaral Cosmetics | Apothecary Heritage",
+  title: "Saaral Cosmetics | Natural Herbal Skincare & Beauty Products",
   description:
-    "Rediscover the essence of ancient Indian rituals blended with modern dermatology. Crafted for a radiant, balanced complexion using ethically sourced botanicals.",
+    "Handcrafted 100% natural herbal skincare products in India. Shop organic soaps, face wash, foot repair balm, skin creams & traditional beauty rituals.",
   keywords: [
     "saaral cosmetics",
     "natural skincare",
-    "apothecary",
-    "botanical",
-    "face cream",
-    "face wash",
-    "soap",
+    "herbal face wash",
+    "organic handmade soap",
+    "foot repair balm",
     "nalangu maavu",
-    "indian skincare",
+    "anti aging skin cream",
+    "herbal beauty products",
+    "ayurvedic skincare india",
   ],
+  alternates: {
+    canonical: "https://saaralcosmetics.com",
+  },
   openGraph: {
-    title: "Saaral Cosmetics | Pure. Natural. You.",
+    title: "Saaral Cosmetics | Natural Herbal Skincare & Beauty Products",
     description:
-      "Premium natural skincare rooted in ancient Indian apothecary heritage.",
+      "Handcrafted 100% natural herbal skincare products in India. Shop organic soaps, face wash, foot repair balm & skin creams.",
+    url: "https://saaralcosmetics.com",
+    siteName: "Saaral Cosmetics",
     type: "website",
+    locale: "en_IN",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Saaral Cosmetics | Natural Herbal Skincare & Beauty Products",
+    description:
+      "Handcrafted 100% natural herbal skincare products in India. Shop organic soaps, face wash & foot repair balm.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 
@@ -54,6 +78,54 @@ export default function RootLayout({
     <html lang="en" className="light" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
         <meta name="color-scheme" content="only light" />
+        {/* Schema.org JSON-LD Structured Data for Google SERP Rich Results & Sitelinks */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": "https://saaralcosmetics.com/#organization",
+                  "name": "Saaral Cosmetics",
+                  "url": "https://saaralcosmetics.com",
+                  "logo": "https://saaralcosmetics.com/images/explore-best-sellers.avif",
+                  "description": "Handcrafted 100% natural herbal skincare products rooted in traditional apothecary heritage.",
+                  "sameAs": [
+                    "https://www.instagram.com/saaralcosmetics",
+                    "https://www.facebook.com/saaralcosmetics"
+                  ]
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://saaralcosmetics.com/#website",
+                  "url": "https://saaralcosmetics.com",
+                  "name": "Saaral Cosmetics",
+                  "publisher": {
+                    "@id": "https://saaralcosmetics.com/#organization"
+                  },
+                  "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": "https://saaralcosmetics.com/products?search={search_term_string}",
+                    "query-input": "required name=search_term_string"
+                  }
+                },
+                {
+                  "@type": "SiteNavigationElement",
+                  "name": ["Handcrafted Soaps", "Herbal Face Wash", "Foot Repair Balm", "Skin Creams", "About Us"],
+                  "url": [
+                    "https://saaralcosmetics.com/products?category=soap",
+                    "https://saaralcosmetics.com/products?category=face-wash",
+                    "https://saaralcosmetics.com/products?category=foot-care",
+                    "https://saaralcosmetics.com/products?category=face-cream",
+                    "https://saaralcosmetics.com/contact"
+                  ]
+                }
+              ]
+            }),
+          }}
+        />
         {/* Hero image preloads — browser fetches before JS executes, fixing NO_LCP */}
         {/* Mobile hero (below 768px) */}
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}

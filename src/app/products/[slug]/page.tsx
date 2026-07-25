@@ -95,8 +95,63 @@ export default async function ProductDetailPage({ params }: Props) {
     );
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://saaralcosmetics.com";
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Product",
+        "name": product.name,
+        "image": product.images,
+        "description": product.description || `${product.name} handcrafted natural herbal skincare product.`,
+        "brand": {
+          "@type": "Brand",
+          "name": "Saaral Cosmetics"
+        },
+        "offers": {
+          "@type": "Offer",
+          "url": `${baseUrl}/products/${product.slug}`,
+          "priceCurrency": "INR",
+          "price": product.price,
+          "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "seller": {
+            "@type": "Organization",
+            "name": "Saaral Cosmetics"
+          }
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": baseUrl
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Products",
+            "item": `${baseUrl}/products`
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": product.name,
+            "item": `${baseUrl}/products/${product.slug}`
+          }
+        ]
+      }
+    ]
+  };
+
   return (
     <div className="min-h-[100dvh] flex flex-col grain-overlay">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <GradientBackground />
       <TopNavBar />
 
