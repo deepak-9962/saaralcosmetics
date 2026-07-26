@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const navItems = [
   { label: "Shop", href: "/products" },
   { label: "Collections", href: "/products?category=face-cream" },
+  { label: "Blog", href: "/blog" },
   { label: "Heritage", href: "/contact?section=heritage" },
   { label: "Rituals", href: "/contact?section=rituals" },
 ];

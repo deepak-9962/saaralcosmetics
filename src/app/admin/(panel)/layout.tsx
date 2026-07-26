@@ -11,6 +11,7 @@ const navItems = [
   { label: "Dashboard", href: "/admin/dashboard", icon: "dashboard" },
   { label: "Orders", href: "/admin/orders", icon: "shopping_cart" },
   { label: "Products", href: "/admin/products", icon: "inventory_2" },
+  { label: "Blog", href: "/admin/blog", icon: "article" },
   { label: "Customers", href: "/admin/customers", icon: "group" },
   { label: "Export", href: "/admin/export", icon: "ios_share" },
 ];

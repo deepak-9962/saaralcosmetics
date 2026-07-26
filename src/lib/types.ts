@@ -166,3 +166,47 @@ export const INDIAN_STATES = [
   "Chandigarh",
   "Puducherry",
 ];
+
+// ============================================
+// BLOG TYPES
+// ============================================
+
+export type BlogPostStatus = "draft" | "published";
+
+export interface BlogCategory {
+  id: string;
+  name: string;
+  slug: string;
+  created_at: string;
+}
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: any; // Tiptap JSON Document
+  cover_image_url: string | null;
+  category_id: string | null;
+  status: BlogPostStatus;
+  author_name: string;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BlogPostWithCategory extends BlogPost {
+  blog_categories: BlogCategory | null;
+}
+
+export interface BlogPostInput {
+  title: string;
+  slug: string;
+  excerpt?: string | null;
+  content?: any;
+  cover_image_url?: string | null;
+  category_id?: string | null;
+  status: BlogPostStatus;
+  author_name?: string;
+}
+

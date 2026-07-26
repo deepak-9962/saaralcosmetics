@@ -36,6 +36,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.7,
     },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.8,
+    },
   ];
 
   // 2. Dynamic Product Pages from Database
@@ -52,5 +58,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Failed to generate dynamic product entries for sitemap:", error);
   }
 
-  return [...staticPages, ...productEntries];
+  // 3. Dynamic Published Blog Post Pages
+  let blogEntries: MetadataRoute.Sitemap = [];
+  try {
+    const { listPublishedBlogPosts } = await import("@/lib/supabase/blog");
+    const blogPosts = await listPublishedBlogPosts();
+    blogEntries = blogPosts.map((post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: new Date(post.updated_at || post.published_at || new Date()),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    }));
+  } catch (error) {
+    console.error("Failed to generate dynamic blog entries for sitemap:", error);
+  }
+
+  return [...staticPages, ...productEntries, ...blogEntries];
 }
+

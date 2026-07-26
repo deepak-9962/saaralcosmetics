@@ -154,6 +154,61 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["customers"]["Insert"]>;
         Relationships: [];
       };
+      blog_categories: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["blog_categories"]["Insert"]>;
+        Relationships: [];
+      };
+      blog_posts: {
+        Row: {
+          id: string;
+          title: string;
+          slug: string;
+          excerpt: string | null;
+          content: Json | null;
+          cover_image_url: string | null;
+          category_id: string | null;
+          status: "draft" | "published";
+          author_name: string;
+          published_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          slug: string;
+          excerpt?: string | null;
+          content?: Json | null;
+          cover_image_url?: string | null;
+          category_id?: string | null;
+          status?: "draft" | "published";
+          author_name?: string;
+          published_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["blog_posts"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_category_id_fkey";
+            columns: ["category_id"];
+            referencedRelation: "blog_categories";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -161,3 +216,4 @@ export interface Database {
     CompositeTypes: Record<string, never>;
   };
 }
+
