@@ -2,51 +2,20 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { ChevronLeft, ZoomIn } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import ThumbnailStrip, { type GalleryImage } from "./ThumbnailStrip";
 import ImageLightbox from "./ImageLightbox";
 
 // Re-export so consumers can import GalleryImage from ProductGallery directly
 export type { GalleryImage };
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
 interface ProductGalleryProps {
   images: GalleryImage[];
 }
 
-// ── ProductGallery ────────────────────────────────────────────────────────────
-/**
- * ARCHITECTURE — TWO SEPARATE NAVIGATION SYSTEMS
- *
- * 1. MAIN IMAGE NAVIGATION  (activeIndex state in this component)
- *    Controlled by:
- *      a) Left arrow button (top-left of main image) → decrement, wrap to last
- *      b) Keyboard: ← ArrowLeft / → ArrowRight
- *      c) Clicking a thumbnail → ThumbnailStrip calls onThumbnailClick(idx)
- *
- * 2. THUMBNAIL STRIP SCROLL NAVIGATION  (managed entirely inside ThumbnailStrip)
- *    Controlled by:
- *      a) Prev/Next arrows below the progress bar → scroll strip left/right 200px
- *      b) User's native swipe/scroll on the strip
- *    DOES NOT affect activeIndex — it only moves the visible window of thumbnails.
- *
- * The progress bar inside ThumbnailStrip reflects the strip's scroll position,
- * not which image is active. These are intentionally decoupled.
- */
 export default function ProductGallery({ images }: ProductGalleryProps) {
-  // ── Main image active index ────────────────────────────────────────────────
-  // This is the ONLY shared state between the main image and the thumbnail strip.
-  // ThumbnailStrip reads it (to show the active ring) but cannot write it directly —
-  // it calls onThumbnailClick() and this component decides how to update state.
   const [activeIndex, setActiveIndex] = useState(0);
-
-  // ── Lightbox ───────────────────────────────────────────────────────────────
   const [lightboxOpen, setLightboxOpen] = useState(false);
-
-  // ── Crossfade transition ───────────────────────────────────────────────────
-  // We trigger a brief opacity dip when the activeIndex changes to create a
-  // smooth 200ms crossfade between images (no external animation library needed).
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Guard: clamp activeIndex if images array shrinks
@@ -54,9 +23,20 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
 
   // ── Go to previous image (wraps from 0 → last) ────────────────────────────
   const goToPrev = useCallback(() => {
+    if (images.length <= 1) return;
     setIsTransitioning(true);
     setTimeout(() => {
       setActiveIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+      setIsTransitioning(false);
+    }, 150);
+  }, [images.length]);
+
+  // ── Go to next image (wraps from last → 0) ────────────────────────────────
+  const goToNext = useCallback(() => {
+    if (images.length <= 1) return;
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setActiveIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
       setIsTransitioning(false);
     }, 150);
   }, [images.length]);
@@ -73,23 +53,19 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
 
   // ── Keyboard support (← → arrow keys for accessibility) ──────────────────
   useEffect(() => {
-    if (lightboxOpen) return; // lightbox handles its own keyboard events
+    if (lightboxOpen) return;
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") {
         e.preventDefault();
         goToPrev();
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        setIsTransitioning(true);
-        setTimeout(() => {
-          setActiveIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-          setIsTransitioning(false);
-        }, 150);
+        goToNext();
       }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [images.length, goToPrev, lightboxOpen]);
+  }, [goToPrev, goToNext, lightboxOpen]);
 
   if (images.length === 0) {
     return (
@@ -98,7 +74,9 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
         style={{ background: "linear-gradient(145deg, #F4E4DA 0%, #EDD5C8 100%)" }}
         aria-label="No product images available"
       >
-        <span className="material-symbols-outlined text-[64px] text-on-surface-variant/30">image</span>
+        <span className="material-symbols-outlined text-[64px] text-on-surface-variant/30">
+          image
+        </span>
       </div>
     );
   }
@@ -108,12 +86,11 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
   return (
     <>
       <div className="flex flex-col gap-4 w-full">
-        {/* ── PART 1: MAIN IMAGE CONTAINER ──────────────────────────────────── */}
+        {/* ── MAIN IMAGE CONTAINER WITH SPLIT CLICK ZONES ──────────────────── */}
         <div
-          className="relative w-full aspect-square rounded-2xl overflow-hidden border border-outline-variant/30"
+          className="relative w-full aspect-square rounded-2xl overflow-hidden border border-outline-variant/30 select-none group"
           style={{ background: "linear-gradient(145deg, #F4E4DA 0%, #EDD5C8 100%)" }}
-          // Touch swipe support (mobile)
-          role="img"
+          role="region"
           aria-label={`Product gallery — image ${safeIndex + 1} of ${images.length}: ${currentImage.alt}`}
         >
           {/* Main image with crossfade transition */}
@@ -123,55 +100,99 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
             fill
             priority={safeIndex === 0}
             className={[
-              "object-cover transition-opacity duration-200",
+              "object-cover transition-opacity duration-200 pointer-events-none",
               isTransitioning ? "opacity-0" : "opacity-100",
             ].join(" ")}
             sizes="(max-width: 768px) 100vw, 50vw"
           />
 
-          {/* ── LEFT ARROW — TOP-LEFT, not vertically centered ─────────────── */}
-          {/*
-           * Positioned at top-4 left-4 (near the top-left corner per spec).
-           * onClick: go to previous image (wraps to last if at index 0).
-           * Only shown when there are multiple images.
-           */}
+          {/* ── INVISIBLE SPLIT-CLICK ZONES (LEFT 50% & RIGHT 50%) ─────────── */}
           {images.length > 1 && (
-            <button
-              onClick={goToPrev}
-              aria-label="Previous image"
-              className="absolute top-4 left-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-md cursor-pointer transition-all duration-200 hover:scale-110 hover:bg-white"
-            >
-              <ChevronLeft size={16} className="text-gray-700" />
-            </button>
+            <>
+              {/* LEFT HALF — Click to Previous Image */}
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToPrev();
+                }}
+                className="absolute left-0 top-0 w-1/2 h-full z-10"
+                style={{
+                  cursor:
+                    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10' fill='rgba(42,26,20,0.65)'/%3E%3Cpolyline points='14 18 8 12 14 6'/%3E%3C/svg%3E\") 16 16, w-resize",
+                }}
+                title="Previous Image (Click left side)"
+                aria-label="Previous Image"
+              />
+
+              {/* RIGHT HALF — Click to Next Image */}
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToNext();
+                }}
+                className="absolute right-0 top-0 w-1/2 h-full z-10"
+                style={{
+                  cursor:
+                    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10' fill='rgba(42,26,20,0.65)'/%3E%3Cpolyline points='10 6 16 12 10 18'/%3E%3C/svg%3E\") 16 16, e-resize",
+                }}
+                title="Next Image (Click right side)"
+                aria-label="Next Image"
+              />
+            </>
           )}
 
-          {/* ── ZOOM BUTTON — BOTTOM-RIGHT ─────────────────────────────────── */}
+          {/* ── VISIBLE CHEVRON HINTS (Higher Z-index so they don't block clicks) ── */}
+          {images.length > 1 && (
+            <>
+              {/* Left Chevron Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToPrev();
+                }}
+                aria-label="Previous image"
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-white/85 backdrop-blur-sm shadow-md cursor-pointer transition-all duration-200 hover:scale-110 hover:bg-white text-gray-800"
+              >
+                <ChevronLeft size={18} />
+              </button>
+
+              {/* Right Chevron Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToNext();
+                }}
+                aria-label="Next image"
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-white/85 backdrop-blur-sm shadow-md cursor-pointer transition-all duration-200 hover:scale-110 hover:bg-white text-gray-800"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </>
+          )}
+
+          {/* ── ZOOM BUTTON — BOTTOM-RIGHT (z-20 stops event propagation) ── */}
           <button
-            onClick={() => setLightboxOpen(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightboxOpen(true);
+            }}
             aria-label="Open full-screen image"
-            className="absolute bottom-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-md cursor-pointer transition-all duration-200 hover:scale-110 hover:bg-white"
+            className="absolute bottom-4 right-4 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-md cursor-pointer transition-all duration-200 hover:scale-110 hover:bg-white"
           >
             <ZoomIn size={18} className="text-gray-700" />
           </button>
 
-          {/* Image counter pill — subtle, top-right */}
+          {/* Image counter pill — top-right (z-20) */}
           {images.length > 1 && (
-            <div className="absolute top-4 right-4 px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-sm">
-              <span className="font-body text-[11px] text-white/90 tabular-nums">
+            <div className="absolute top-4 right-4 z-20 px-2.5 py-0.5 rounded-full bg-black/35 backdrop-blur-sm">
+              <span className="font-body text-[11px] font-medium text-white/90 tabular-nums">
                 {safeIndex + 1} / {images.length}
               </span>
             </div>
           )}
         </div>
 
-        {/* ── PART 2: THUMBNAIL STRIP ────────────────────────────────────────── */}
-        {/*
-         * ThumbnailStrip manages its OWN scroll state (ref + onScroll handler).
-         * It receives activeIndex READ-ONLY (for the ring highlight) and calls
-         * onThumbnailClick when the user selects a thumbnail, which updates
-         * this component's activeIndex. The strip's prev/next arrows ONLY
-         * scroll the strip viewport — they never touch activeIndex.
-         */}
+        {/* ── THUMBNAIL STRIP ────────────────────────────────────────────────── */}
         {images.length > 1 && (
           <ThumbnailStrip
             images={images}
