@@ -14,14 +14,17 @@ import MobileCategoryScroll from "@/components/home/MobileCategoryScroll";
 import MobilePromoGrid from "@/components/home/MobilePromoGrid";
 import MobileTrustBar from "@/components/home/MobileTrustBar";
 import FadeIn from "@/components/layout/FadeIn";
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
 import DesktopCategoryStrip from "@/components/home/DesktopCategoryStrip";
 
-const BestsellersCarousel = dynamic(() => import("@/components/home/BestsellersCarousel"));
-const TestimonialShowcase = dynamic(() => import("@/components/home/TestimonialShowcase"));
-const CustomerTransformations = dynamic(() => import("@/components/home/CustomerTransformations"));
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-const DesktopBannerSlider = dynamic(() => import("@/components/home/DesktopBannerSlider"));
+const BestsellersCarousel = dynamicImport(() => import("@/components/home/BestsellersCarousel"));
+const TestimonialShowcase = dynamicImport(() => import("@/components/home/TestimonialShowcase"));
+const CustomerTransformations = dynamicImport(() => import("@/components/home/CustomerTransformations"));
+
+const DesktopBannerSlider = dynamicImport(() => import("@/components/home/DesktopBannerSlider"));
 import { listProducts } from "@/lib/supabase/data";
 import { Product } from "@/lib/types";
 

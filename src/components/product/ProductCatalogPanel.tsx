@@ -58,7 +58,7 @@ export default function ProductCatalogPanel({ products }: ProductCatalogPanelPro
 
   // Filter and sort products
   const visibleProducts = useMemo(() => {
-    let next = products;
+    let next = products.filter((p) => p.is_active !== false);
 
     if (activeCategory !== "all") {
       next = next.filter((p) => p.category === activeCategory);
