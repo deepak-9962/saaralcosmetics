@@ -75,7 +75,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    const supabase = getSupabaseServiceClient();
+    const supabase = getSupabaseServiceClient() as any;
 
     // Verify the product exists
     const { data: product, error: productError } = await supabase
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .eq("product_id", productId)
       .order("display_order", { ascending: true });
 
-    const allUrls = (allImages ?? []).map((r) => r.image_url);
+    const allUrls = (allImages ?? []).map((r: any) => r.image_url);
 
     await supabase
       .from("products")

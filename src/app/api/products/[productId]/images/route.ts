@@ -53,7 +53,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const supabase = getSupabaseServiceClient();
+    const supabase = getSupabaseServiceClient() as any;
 
     // ── Phase 1: Offset existing display_orders by +1000 to avoid unique conflicts ──
     // We only offset the rows we're about to reorder.
@@ -97,7 +97,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .eq("product_id", productId)
       .order("display_order", { ascending: true });
 
-    const allUrls = (allImages ?? []).map((r) => r.image_url);
+    const allUrls = (allImages ?? []).map((r: any) => r.image_url);
 
     await supabase
       .from("products")
@@ -140,7 +140,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const supabase = getSupabaseServiceClient();
+    const supabase = getSupabaseServiceClient() as any;
 
     // Step 1: Delete the Storage file (best-effort — don't abort if missing)
     const { error: storageError } = await supabase.storage
@@ -174,7 +174,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       .eq("product_id", productId)
       .order("display_order", { ascending: true });
 
-    const remainingUrls = (remaining ?? []).map((r) => r.image_url);
+    const remainingUrls = (remaining ?? []).map((r: any) => r.image_url);
 
     await supabase
       .from("products")

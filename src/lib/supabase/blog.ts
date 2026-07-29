@@ -19,7 +19,7 @@ export function slugify(text: string): string {
 /** Check slug uniqueness against blog_posts, appending -2, -3 if collision found */
 export async function generateUniquePostSlug(title: string, currentPostId?: string): Promise<string> {
   const baseSlug = slugify(title) || "post";
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
 
   let candidate = baseSlug;
   let counter = 1;
@@ -40,7 +40,7 @@ export async function generateUniquePostSlug(title: string, currentPostId?: stri
 
 /** List all blog categories */
 export async function listBlogCategories(): Promise<BlogCategory[]> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
     .from("blog_categories")
     .select("*")
@@ -55,11 +55,11 @@ export async function listBlogCategories(): Promise<BlogCategory[]> {
 
 /** Create a new category */
 export async function createBlogCategory(name: string, customSlug?: string): Promise<BlogCategory | null> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const slug = customSlug ? slugify(customSlug) : slugify(name);
   const { data, error } = await supabase
     .from("blog_categories")
-    .insert({ name: name.trim(), slug })
+    .insert({ name: name.trim(), slug } as any)
     .select()
     .single();
 
@@ -72,7 +72,7 @@ export async function createBlogCategory(name: string, customSlug?: string): Pro
 
 /** List posts for Admin table with optional status filter */
 export async function listAdminBlogPosts(statusFilter: "all" | BlogPostStatus = "all"): Promise<BlogPostWithCategory[]> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   let query = supabase
     .from("blog_posts")
     .select("*, blog_categories(*)")
@@ -92,7 +92,7 @@ export async function listAdminBlogPosts(statusFilter: "all" | BlogPostStatus = 
 
 /** Get post by ID (for edit form) */
 export async function getBlogPostById(id: string): Promise<BlogPostWithCategory | null> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
     .from("blog_posts")
     .select("*, blog_categories(*)")
@@ -108,7 +108,7 @@ export async function getBlogPostById(id: string): Promise<BlogPostWithCategory 
 
 /** Get published post by slug (for public post page) */
 export async function getBlogPostBySlug(slug: string): Promise<BlogPostWithCategory | null> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
     .from("blog_posts")
     .select("*, blog_categories(*)")
@@ -125,7 +125,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPostWithCateg
 
 /** List published blog posts for public listing page with optional category slug filter */
 export async function listPublishedBlogPosts(categorySlug?: string): Promise<BlogPostWithCategory[]> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   let query = supabase
     .from("blog_posts")
     .select("*, blog_categories(*)")
@@ -141,7 +141,7 @@ export async function listPublishedBlogPosts(categorySlug?: string): Promise<Blo
       .maybeSingle();
 
     if (category) {
-      query = query.eq("category_id", category.id);
+      query = query.eq("category_id", (category as any).id);
     }
   }
 
@@ -155,7 +155,7 @@ export async function listPublishedBlogPosts(categorySlug?: string): Promise<Blo
 
 /** Get related published articles excluding current post */
 export async function listRelatedBlogPosts(currentPostId: string, limit = 3): Promise<BlogPostWithCategory[]> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
     .from("blog_posts")
     .select("*, blog_categories(*)")
@@ -173,7 +173,7 @@ export async function listRelatedBlogPosts(currentPostId: string, limit = 3): Pr
 
 /** Create a new blog post */
 export async function createBlogPost(input: BlogPostInput): Promise<BlogPost> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const publishedAt = input.status === "published" ? new Date().toISOString() : null;
 
   const { data, error } = await supabase
@@ -188,7 +188,7 @@ export async function createBlogPost(input: BlogPostInput): Promise<BlogPost> {
       status: input.status,
       author_name: input.author_name || "Saaral Cosmetics",
       published_at: publishedAt,
-    })
+    } as any)
     .select()
     .single();
 
@@ -201,7 +201,7 @@ export async function createBlogPost(input: BlogPostInput): Promise<BlogPost> {
 
 /** Update an existing blog post */
 export async function updateBlogPost(id: string, input: Partial<BlogPostInput>, existingStatus?: BlogPostStatus): Promise<BlogPost> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   
   const updatePayload: any = { ...input };
 
@@ -229,7 +229,7 @@ export async function updateBlogPost(id: string, input: Partial<BlogPostInput>, 
 
 /** Delete a blog post */
 export async function deleteBlogPost(id: string): Promise<boolean> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { error } = await supabase.from("blog_posts").delete().eq("id", id);
   if (error) {
     console.error("Error deleting blog post:", error);
@@ -240,7 +240,7 @@ export async function deleteBlogPost(id: string): Promise<boolean> {
 
 /** Upload image to Supabase blog-images bucket */
 export async function uploadBlogImage(file: File): Promise<string> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const fileExt = file.name.split(".").pop();
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
   const filePath = `posts/${fileName}`;

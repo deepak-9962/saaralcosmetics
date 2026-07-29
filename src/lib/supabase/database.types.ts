@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       products: {
@@ -214,6 +214,70 @@ export interface Database {
             referencedColumns: ["id"];
           }
         ];
+      };
+      promo_codes: {
+        Row: {
+          id: string;
+          code: string;
+          discount_type: "percentage" | "flat";
+          discount_value: number;
+          max_discount_cap: number | null;
+          min_order_value: number | null;
+          usage_limit_total: number | null;
+          usage_limit_per_user: number | null;
+          times_used: number;
+          applies_to: "all" | "category" | "product";
+          applies_to_id: string | null;
+          starts_at: string | null;
+          expires_at: string | null;
+          is_active: boolean;
+          show_in_banner: boolean;
+          description: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          code: string;
+          discount_type: "percentage" | "flat";
+          discount_value: number;
+          max_discount_cap?: number | null;
+          min_order_value?: number | null;
+          usage_limit_total?: number | null;
+          usage_limit_per_user?: number | null;
+          times_used?: number;
+          applies_to?: "all" | "category" | "product";
+          applies_to_id?: string | null;
+          starts_at?: string | null;
+          expires_at?: string | null;
+          is_active?: boolean;
+          show_in_banner?: boolean;
+          description?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["promo_codes"]["Insert"]>;
+        Relationships: [];
+      };
+      promo_code_redemptions: {
+        Row: {
+          id: string;
+          promo_code_id: string | null;
+          user_id: string | null;
+          order_id: string | null;
+          discount_applied: number;
+          redeemed_at: string;
+        };
+        Insert: {
+          id?: string;
+          promo_code_id?: string | null;
+          user_id?: string | null;
+          order_id?: string | null;
+          discount_applied: number;
+          redeemed_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["promo_code_redemptions"]["Insert"]>;
+        Relationships: [];
       };
     };
     Views: {

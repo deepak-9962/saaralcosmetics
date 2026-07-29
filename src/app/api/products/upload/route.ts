@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Initialise service-role Supabase client ────────────────────────────
-    const supabase = getSupabaseServiceClient();
+    const supabase = getSupabaseServiceClient() as any;
 
     let productId: string;
     let productCreatedInThisRequest = false;
@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
       .eq("product_id", productId)
       .order("display_order", { ascending: true });
 
-    const allUrls = (allImages ?? []).map((r) => r.image_url);
+    const allUrls = (allImages ?? []).map((r: any) => r.image_url);
 
     await supabase
       .from("products")

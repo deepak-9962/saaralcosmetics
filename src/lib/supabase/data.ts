@@ -158,7 +158,7 @@ function parseOrderItems(items: Json): OrderItem[] {
 // ============================================================
 
 export async function listProducts(category: CategoryFilter = "all"): Promise<Product[]> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   let query = supabase
     .from("products")
     .select("*")
@@ -174,7 +174,7 @@ export async function listProducts(category: CategoryFilter = "all"): Promise<Pr
 
   const uniqueProducts: Product[] = [];
   const seenNames = new Set<string>();
-  (data ?? []).forEach((row) => {
+  (data ?? []).forEach((row: any) => {
     const normalized = normalizeProduct(row);
     if (!seenNames.has(normalized.name)) {
       seenNames.add(normalized.name);
@@ -186,7 +186,7 @@ export async function listProducts(category: CategoryFilter = "all"): Promise<Pr
 }
 
 export async function listFeaturedProducts(limit = 3): Promise<Product[]> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -197,7 +197,7 @@ export async function listFeaturedProducts(limit = 3): Promise<Product[]> {
 
   const uniqueProducts: Product[] = [];
   const seenNames = new Set<string>();
-  (data ?? []).forEach((row) => {
+  (data ?? []).forEach((row: any) => {
     const normalized = normalizeProduct(row);
     if (!seenNames.has(normalized.name)) {
       seenNames.add(normalized.name);
@@ -209,7 +209,7 @@ export async function listFeaturedProducts(limit = 3): Promise<Product[]> {
 }
 
 export async function getProductVariants(name: string): Promise<Product[]> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -222,7 +222,7 @@ export async function getProductVariants(name: string): Promise<Product[]> {
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -236,7 +236,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -253,7 +253,7 @@ export async function listRelatedProducts(
   category: Product["category"],
   limit = 4
 ): Promise<Product[]> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -268,7 +268,7 @@ export async function listRelatedProducts(
 }
 
 export async function listAllProductsForAdmin(): Promise<Product[]> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -285,7 +285,7 @@ export async function listAllProductsForAdmin(): Promise<Product[]> {
  */
 export async function getActiveProductIds(productIds: string[]): Promise<Set<string>> {
   if (productIds.length === 0) return new Set();
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
     .from("products")
     .select("id")
@@ -293,7 +293,7 @@ export async function getActiveProductIds(productIds: string[]): Promise<Set<str
     .eq("is_active", true);
 
   if (error) throw new Error(error.message);
-  return new Set((data ?? []).map((row) => row.id));
+  return new Set((data ?? []).map((row: any) => row.id));
 }
 
 
@@ -317,7 +317,7 @@ interface CreateProductInput {
 }
 
 export async function createProduct(input: CreateProductInput): Promise<Product> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const payload: ProductInsert = {
     name: input.name,
     slug: generateSlug(input.name, input.variant_name ?? undefined),
@@ -335,7 +335,7 @@ export async function createProduct(input: CreateProductInput): Promise<Product>
 
   const { data, error } = await supabase
     .from("products")
-    .insert(payload)
+    .insert(payload as any)
     .select("*")
     .single();
 
@@ -346,14 +346,14 @@ export async function createProduct(input: CreateProductInput): Promise<Product>
 interface UpdateProductInput extends Partial<CreateProductInput> {}
 
 export async function updateProduct(productId: string, input: UpdateProductInput): Promise<Product> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
 
   const { data, error } = await supabase
     .from("products")
     .update({
       ...input,
       updated_at: new Date().toISOString(),
-    })
+    } as any)
     .eq("id", productId)
     .select("*")
     .single();
@@ -363,10 +363,10 @@ export async function updateProduct(productId: string, input: UpdateProductInput
 }
 
 export async function updateProductActive(productId: string, isActive: boolean): Promise<void> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
     .from("products")
-    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .update({ is_active: isActive, updated_at: new Date().toISOString() } as any)
     .eq("id", productId)
     .select("id");
 
@@ -381,7 +381,7 @@ export async function updateProductActive(productId: string, isActive: boolean):
 }
 
 export async function deleteProduct(productId: string): Promise<void> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { error } = await supabase
     .from("products")
     .delete()
@@ -405,7 +405,7 @@ export async function deleteProductWithStorage(
   productId: string,
   imagePath?: string | null
 ): Promise<void> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
 
   // Step 1: Remove the image from Storage (best-effort — don't fail if missing)
   if (imagePath) {
@@ -487,7 +487,7 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
 
   const { data, error } = await supabase
     .from("orders")
-    .insert(payload)
+    .insert(payload as any)
     .select("*")
     .single();
 
@@ -497,7 +497,7 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
 }
 
 export async function getOrderById(orderId: string): Promise<Order | null> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
     .from("orders")
     .select("*")
@@ -510,7 +510,7 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
 }
 
 export async function listOrders(): Promise<Order[]> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
     .from("orders")
     .select("*")
@@ -521,10 +521,10 @@ export async function listOrders(): Promise<Order[]> {
 }
 
 export async function updateOrderStatus(orderId: string, status: Order["order_status"]): Promise<void> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { error } = await supabase
     .from("orders")
-    .update({ order_status: status })
+    .update({ order_status: status } as any)
     .eq("id", orderId);
 
   if (error) throw new Error(error.message);
@@ -534,10 +534,10 @@ export async function updateOrderPaymentStatus(
   orderId: string,
   status: Order["payment_status"]
 ): Promise<void> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { error } = await supabase
     .from("orders")
-    .update({ payment_status: status })
+    .update({ payment_status: status } as any)
     .eq("id", orderId);
 
   if (error) throw new Error(error.message);
@@ -551,10 +551,10 @@ export async function updateOrderRazorpayDetails(
     payment_status?: Order["payment_status"];
   }
 ): Promise<void> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { error } = await supabase
     .from("orders")
-    .update(details)
+    .update(details as any)
     .eq("id", orderId);
 
   if (error) throw new Error(error.message);
@@ -562,10 +562,10 @@ export async function updateOrderRazorpayDetails(
 
 
 export async function updateOrderNotes(orderId: string, notes: string | null): Promise<void> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
   const { error } = await supabase
     .from("orders")
-    .update({ notes })
+    .update({ notes } as any)
     .eq("id", orderId);
 
   if (error) throw new Error(error.message);
@@ -695,7 +695,7 @@ export async function getProductWithImages(
 
   const product = normalizeProduct(productResult.data);
 
-  const images: ProductImage[] = (imagesResult.data ?? []).map((row) => ({
+  const images: ProductImage[] = (imagesResult.data ?? []).map((row: any) => ({
     id: row.id,
     product_id: row.product_id,
     image_url: row.image_url,
@@ -722,7 +722,7 @@ export async function getProductWithImages(
 export async function getAllProductsWithMainImage(
   category: CategoryFilter = "all"
 ): Promise<Product[]> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
 
   let query = supabase
     .from("products")
@@ -740,7 +740,7 @@ export async function getAllProductsWithMainImage(
 
   // Fetch ONLY display_order=0 images for these products.
   // This is O(1) extra queries regardless of product count.
-  const productIds = productRows.map((r) => r.id);
+  const productIds = productRows.map((r: any) => r.id);
   const { data: mainImages } = await supabase
     .from("product_images")
     .select("product_id, image_url")
@@ -749,10 +749,10 @@ export async function getAllProductsWithMainImage(
 
   // Build a lookup: product_id → main image URL
   const mainImageMap = new Map<string, string>(
-    (mainImages ?? []).map((img) => [img.product_id, img.image_url])
+    (mainImages ?? []).map((img: any) => [img.product_id, img.image_url])
   );
 
-  return productRows.map((row) => {
+  return productRows.map((row: any) => {
     const product = normalizeProduct(row);
     const mainImageUrl = mainImageMap.get(row.id);
     // Override images[0] with the product_images main image if available.

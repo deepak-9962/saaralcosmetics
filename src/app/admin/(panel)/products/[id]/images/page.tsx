@@ -65,7 +65,7 @@ export default function ProductImagesPage() {
       }
       setProduct(productData);
       setImages(
-        (imagesData.data ?? []).map((img) => ({
+        ((imagesData.data as ProductImage[] | null) ?? []).map((img) => ({
           ...img,
           localKey: img.id,
         }))
