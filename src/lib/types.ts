@@ -77,6 +77,12 @@ export interface Order {
   razorpay_payment_id: string | null;
   order_status: OrderStatus;
   notes: string | null;
+  /** Promo code string at time of order (snapshot — survives code edits/deletes) */
+  promo_code_snapshot: string | null;
+  /** Discount type snapshot ('percentage' | 'flat') */
+  discount_type_snapshot: string | null;
+  /** Absolute rupee discount applied to this order */
+  discount_amount: number;
   created_at: string;
   updated_at: string;
 }
@@ -208,5 +214,64 @@ export interface BlogPostInput {
   category_id?: string | null;
   status: BlogPostStatus;
   author_name?: string;
+}
+
+
+// ============================================
+// PROMO CODE TYPES
+// ============================================
+
+export type DiscountType = 'percentage' | 'flat';
+export type AppliesTo = 'all' | 'category' | 'product';
+
+export interface PromoCode {
+  id: string;
+  code: string;
+  discount_type: DiscountType;
+  discount_value: number;
+  max_discount_cap: number | null;
+  min_order_value: number | null;
+  usage_limit_total: number | null;
+  usage_limit_per_user: number | null;
+  times_used: number;
+  applies_to: AppliesTo;
+  applies_to_id: string | null;
+  starts_at: string | null;
+  expires_at: string | null;
+  is_active: boolean;
+  show_in_banner: boolean;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Minimal shape returned by the banner API (safe subset) */
+export interface PromoBannerCode {
+  code: string;
+  description: string | null;
+  discount_type: DiscountType;
+  discount_value: number;
+  max_discount_cap: number | null;
+}
+
+/** Returned by /api/promo/validate */
+export type PromoValidationResult =
+  | {
+      valid: true;
+      code: string;
+      discount_type: DiscountType;
+      discount_amount: number;
+      final_total: number;
+    }
+  | {
+      valid: false;
+      reason: string;
+    };
+
+/** Applied promo state stored in CartContext */
+export interface AppliedPromo {
+  code: string;
+  discount_type: DiscountType;
+  discount_amount: number;
 }
 

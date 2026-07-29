@@ -101,6 +101,9 @@ export interface Database {
           razorpay_payment_id: string | null;
           order_status: "new" | "processing" | "shipped" | "delivered" | "cancelled";
           notes: string | null;
+          promo_code_snapshot: string | null;
+          discount_type_snapshot: string | null;
+          discount_amount: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -124,6 +127,9 @@ export interface Database {
           razorpay_payment_id?: string | null;
           order_status?: "new" | "processing" | "shipped" | "delivered" | "cancelled";
           notes?: string | null;
+          promo_code_snapshot?: string | null;
+          discount_type_snapshot?: string | null;
+          discount_amount?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -210,10 +216,41 @@ export interface Database {
         ];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      promo_banner_view: {
+        Row: {
+          code: string;
+          description: string | null;
+          discount_type: "percentage" | "flat";
+          discount_value: number;
+          max_discount_cap: number | null;
+        };
+      };
+    };
     Functions: Record<string, never>;
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
 }
 
+// ── Promo code table types (separate for convenience) ──────────
+export interface PromoCodeRow {
+  id: string;
+  code: string;
+  discount_type: "percentage" | "flat";
+  discount_value: number;
+  max_discount_cap: number | null;
+  min_order_value: number | null;
+  usage_limit_total: number | null;
+  usage_limit_per_user: number | null;
+  times_used: number;
+  applies_to: "all" | "category" | "product";
+  applies_to_id: string | null;
+  starts_at: string | null;
+  expires_at: string | null;
+  is_active: boolean;
+  show_in_banner: boolean;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}

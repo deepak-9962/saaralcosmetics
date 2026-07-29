@@ -15,7 +15,7 @@ import { INDIAN_STATES } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
 export default function CheckoutPage() {
-  const { items, total, clearCart, removeItem } = useCart();
+  const { items, total, clearCart, removeItem, appliedPromo, removePromo, discountedTotal } = useCart();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -185,6 +185,32 @@ export default function CheckoutPage() {
         return;
       }
 
+      // 0.5 Re-validate promo code server-side before creating the order
+      if (appliedPromo) {
+        const promoRes = await fetch("/api/promo/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: appliedPromo.code,
+            cartItems: items,
+            subtotal: total,
+          }),
+        });
+        const promoResult = await promoRes.json();
+        if (!promoResult.valid) {
+          removePromo();
+          toast.error(
+            `Promo code ${appliedPromo.code} is no longer valid: ${promoResult.reason ?? "Code removed."}`,
+            { duration: 5000 }
+          );
+          setSubmitError(
+            `Your promo code (${appliedPromo.code}) is no longer valid: ${promoResult.reason ?? ""} Please review your order and try again.`
+          );
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       // 1. Create Supabase order first
       const order = await createOrder({
         customer_name: formData.name.trim(),
@@ -199,6 +225,11 @@ export default function CheckoutPage() {
         subtotal: total,
         shipping_charge: shippingCharge,
         total: grandTotal,
+        // Promo snapshot — written server-side by /api/promo/redeem after payment,
+        // but we pre-fill here as well so the order is complete from the start.
+        promo_code_snapshot: appliedPromo?.code ?? null,
+        discount_type_snapshot: appliedPromo?.discount_type ?? null,
+        discount_amount: appliedPromo?.discount_amount ?? null,
       });
 
       // 2. Dynamically load the Razorpay checkout script
@@ -258,6 +289,21 @@ export default function CheckoutPage() {
             }
 
             clearCart();
+
+            // Fire-and-forget promo redemption — don't block navigation
+            if (appliedPromo) {
+              fetch("/api/promo/redeem", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  orderId: order.id,
+                  code: appliedPromo.code,
+                  cartItems: items,
+                  subtotal: total,
+                }),
+              }).catch((err) => console.warn("[checkout] promo/redeem failed:", err));
+            }
+
             toast.success("Payment completed successfully!");
             router.push(`/order-confirmation/${order.id}`);
           } catch (verifyError) {
@@ -290,8 +336,8 @@ export default function CheckoutPage() {
     }
   };
 
-  const shippingCharge = total >= 999 ? 0 : 50;
-  const grandTotal = total + shippingCharge;
+  const shippingCharge = discountedTotal >= 999 ? 0 : 50;
+  const grandTotal = discountedTotal + shippingCharge;
 
   // Tri-state checkout gating UI
   if (checkoutMode === "disabled") {
@@ -572,6 +618,15 @@ export default function CheckoutPage() {
                   <span>Subtotal</span>
                   <span className="text-on-surface">{formatPrice(total)}</span>
                 </div>
+                {appliedPromo && (
+                  <div className="flex justify-between font-body text-[14px] leading-[1.6] text-emerald-700">
+                    <span className="flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[15px]">local_offer</span>
+                      {appliedPromo.code}
+                    </span>
+                    <span>−{formatPrice(appliedPromo.discount_amount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-body text-[16px] leading-[1.6] text-on-surface-variant">
                   <span>Shipping</span>
                   <span className="text-on-surface">

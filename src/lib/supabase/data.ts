@@ -104,6 +104,9 @@ function normalizeOrder(row: OrderRow): Order {
     razorpay_payment_id: row.razorpay_payment_id,
     order_status: row.order_status,
     notes: row.notes,
+    promo_code_snapshot: (row as any).promo_code_snapshot ?? null,
+    discount_type_snapshot: (row as any).discount_type_snapshot ?? null,
+    discount_amount: (row as any).discount_amount ?? 0,
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
@@ -444,6 +447,10 @@ interface CreateOrderInput {
   subtotal: number;
   shipping_charge: number;
   total: number;
+  // Promo / discount fields (all optional — null when no code applied)
+  promo_code_snapshot?: string | null;
+  discount_type_snapshot?: string | null;
+  discount_amount?: number | null;
 }
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
@@ -473,6 +480,9 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
     total: input.total,
     payment_status: "pending",
     order_status: "new",
+    promo_code_snapshot: input.promo_code_snapshot ?? null,
+    discount_type_snapshot: input.discount_type_snapshot ?? null,
+    discount_amount: input.discount_amount ?? null,
   };
 
   const { data, error } = await supabase

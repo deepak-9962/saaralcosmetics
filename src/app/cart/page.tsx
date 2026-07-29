@@ -166,54 +166,76 @@ function EmptyCart() {
   );
 }
 
-/** Mobile coupon section */
+/** Mobile coupon section — wired to CartContext */
 function CouponSection() {
+  const { appliedPromo, applyPromo, removePromo, isValidatingPromo, promoError } = useCart();
   const [code, setCode] = useState("");
-  const [applied, setApplied] = useState(false);
 
-  const handleApply = () => {
-    if (code.trim().length === 0) return;
-    setApplied(true);
-    toast.success("Coupon applied!");
+  const handleApply = async () => {
+    if (!code.trim()) return;
+    await applyPromo(code.trim());
+    setCode("");
   };
 
   return (
     <div className="bg-white rounded-[20px] border border-[#ebebeb] p-4">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 flex-1 bg-[#f7f7f7] border border-[#e8e8e8] rounded-[12px] px-3.5 py-2.5">
-          <Tag size={15} strokeWidth={1.8} className="text-[#aaa] shrink-0" />
-          <input
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="Enter Coupon Code"
-            className="flex-1 bg-transparent font-body text-[13px] text-on-surface placeholder:text-[#bbb] outline-none font-medium tracking-wide"
-          />
-          {code.length > 0 && !applied && (
-            <button onClick={() => setCode("")} className="text-[#ccc] hover:text-[#999] transition-colors" aria-label="Clear">
-              <X size={14} />
-            </button>
-          )}
+      {appliedPromo ? (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+              <Tag size={14} strokeWidth={2} className="text-emerald-600" />
+            </div>
+            <div>
+              <p className="font-body text-[13px] font-semibold text-emerald-700">{appliedPromo.code}</p>
+              <p className="font-body text-[11px] text-emerald-600">
+                −{formatPrice(appliedPromo.discount_amount)} discount applied
+              </p>
+            </div>
+          </div>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={removePromo}
+            className="w-7 h-7 rounded-full flex items-center justify-center bg-[#f5f5f5] hover:bg-red-50 text-[#bbb] hover:text-red-400 transition-colors"
+            aria-label="Remove promo code"
+          >
+            <X size={13} strokeWidth={2} />
+          </motion.button>
         </div>
-        <motion.button
-          whileTap={{ scale: 0.94 }}
-          onClick={handleApply}
-          className={`px-4 py-2.5 rounded-[12px] font-body text-[13px] font-semibold transition-all duration-200 whitespace-nowrap ${
-            applied
-              ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
-              : "bg-[#1a1a1a] text-white hover:bg-[#333]"
-          }`}
-        >
-          {applied ? "Applied" : "Apply"}
-        </motion.button>
-      </div>
-      <div className="my-3 border-t border-dashed border-[#e8e8e8]" />
-      <div className="flex items-center justify-between">
-        <span className="font-body text-[12px] text-on-surface-variant/70">3 coupons available</span>
-        <button className="flex items-center gap-1 font-body text-[12px] font-semibold text-on-surface hover:text-[#555] transition-colors">
-          View Coupons
-          <ChevronRight size={13} strokeWidth={2.5} />
-        </button>
-      </div>
+      ) : (
+        <>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-1 bg-[#f7f7f7] border border-[#e8e8e8] rounded-[12px] px-3.5 py-2.5">
+              <Tag size={15} strokeWidth={1.8} className="text-[#aaa] shrink-0" />
+              <input
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                onKeyDown={(e) => e.key === "Enter" && handleApply()}
+                placeholder="Enter Coupon Code"
+                className="flex-1 bg-transparent font-body text-[13px] text-on-surface placeholder:text-[#bbb] outline-none font-medium tracking-wide"
+              />
+              {code.length > 0 && (
+                <button onClick={() => setCode("")} className="text-[#ccc] hover:text-[#999] transition-colors" aria-label="Clear">
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.94 }}
+              onClick={handleApply}
+              disabled={isValidatingPromo || !code.trim()}
+              className="px-4 py-2.5 rounded-[12px] font-body text-[13px] font-semibold transition-all duration-200 whitespace-nowrap bg-[#1a1a1a] text-white hover:bg-[#333] disabled:opacity-50"
+            >
+              {isValidatingPromo ? "Checking…" : "Apply"}
+            </motion.button>
+          </div>
+          {promoError && (
+            <p className="mt-2 font-body text-[11px] text-red-500 flex items-center gap-1.5">
+              <X size={11} strokeWidth={2.5} />
+              {promoError}
+            </p>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -293,15 +315,15 @@ function TrustBadges() {
 // MAIN PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 export default function CartPage() {
-  const { items, total, updateQuantity, removeItem, addItem } = useCart();
+  const { items, total, updateQuantity, removeItem, addItem, appliedPromo, discountedTotal } = useCart();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const validatedRef = useRef(false);
   const isCheckoutDisabled = process.env.NEXT_PUBLIC_CHECKOUT_MODE === "disabled";
 
-  const shippingCharge = total >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_CHARGE;
-  const amountNeeded = Math.max(0, FREE_SHIPPING_THRESHOLD - total);
-  const freeShippingProgress = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100);
-  const grandTotal = total + shippingCharge;
+  const shippingCharge = discountedTotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_CHARGE;
+  const amountNeeded = Math.max(0, FREE_SHIPPING_THRESHOLD - discountedTotal);
+  const freeShippingProgress = Math.min(100, (discountedTotal / FREE_SHIPPING_THRESHOLD) * 100);
+  const grandTotal = discountedTotal + shippingCharge;
 
   // Load all active products on mount to generate recommendations
   useEffect(() => {
@@ -697,6 +719,15 @@ export default function CartPage() {
                     <span>Subtotal</span>
                     <span className="text-on-surface">{formatPrice(total)}</span>
                   </div>
+                  {appliedPromo && (
+                    <div className="flex justify-between text-emerald-700">
+                      <span className="flex items-center gap-1.5">
+                        <Tag size={13} strokeWidth={1.8} />
+                        {appliedPromo.code}
+                      </span>
+                      <span className="font-medium">−{formatPrice(appliedPromo.discount_amount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span>Shipping</span>
                     <span className={shippingCharge === 0 ? "text-emerald-600 font-medium" : "text-on-surface"}>

@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { motion, AnimatePresence } from "framer-motion";
+import PromoBanner from "@/components/layout/PromoBanner";
 
 const navItems = [
   { label: "Shop", href: "/products" },
@@ -80,14 +81,7 @@ export default function TopNavBar() {
         boxShadow: "0 1px 12px rgba(42,26,20,0.06)",
       }}
     >
-      {showPromoBar && (
-          /* Single unified promo bar — same style on mobile & desktop */
-          <div className="flex min-h-7 bg-primary text-on-primary px-3 py-1 md:py-1.5 items-center justify-center">
-            <p className="font-body text-[9px] md:text-[10px] tracking-[0.08em] uppercase text-center whitespace-nowrap">
-              Product of the month: use code <strong>HURRY20</strong> for 20% off
-            </p>
-          </div>
-      )}
+      {showPromoBar && <PromoBanner />}
 
       <div className="relative flex justify-between items-center h-[56px] md:h-[68px] px-4 md:px-16 max-w-[1280px] mx-auto">
         {/* LEFT — Hamburger (mobile) / Logo+hamburger (desktop) */}
