@@ -10,6 +10,12 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getProductById } from "@/lib/supabase/data";
 import type { Product, ProductImage } from "@/lib/types";
 
+const MIME_TO_EXT: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
+
 type ImageItem = ProductImage & { localKey: string };
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -181,26 +187,74 @@ export default function ProductImagesPage() {
     setUploadPreviews((prev) => prev.filter((_, idx) => idx !== i));
   };
 
-  // ── Upload to server ──────────────────────────────────────────────────────
+  // ── Upload directly to Supabase Storage from the browser ─────────────────
+  // This bypasses the Next.js 4 MB body-size limit entirely — the binary data
+  // goes straight from the browser to Supabase Storage over HTTPS.
   const handleUpload = async () => {
     if (uploadFiles.length === 0) return;
     setIsUploading(true);
     setUploadError(null);
-    try {
-      const fd = new FormData();
-      fd.append("product_id", productId);
-      uploadFiles.forEach((f, i) => fd.append(`file_${i}`, f));
 
-      const res = await fetch("/api/products/upload", { method: "POST", body: fd });
+    const supabase = getSupabaseBrowserClient();
+
+    // Determine starting display_order (append after existing images)
+    let startOrder = images.length;
+
+    const uploadedImages: { storagePath: string; publicUrl: string }[] = [];
+
+    try {
+      for (let i = 0; i < uploadFiles.length; i++) {
+        const file = uploadFiles[i];
+        const ext = MIME_TO_EXT[file.type] ?? "jpg";
+        const displayOrder = startOrder + i;
+        const storagePath = `${productId}/${displayOrder}-${crypto.randomUUID()}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("product-images")
+          .upload(storagePath, file, { contentType: file.type, upsert: false });
+
+        if (uploadError) {
+          // Roll back any already-uploaded files
+          if (uploadedImages.length > 0) {
+            await supabase.storage
+              .from("product-images")
+              .remove(uploadedImages.map((u) => u.storagePath));
+          }
+          throw new Error(`Image ${i + 1} upload failed: ${uploadError.message}`);
+        }
+
+        const { data: urlData } = supabase.storage
+          .from("product-images")
+          .getPublicUrl(storagePath);
+
+        uploadedImages.push({ storagePath, publicUrl: urlData.publicUrl });
+      }
+
+      // Register all uploaded images in the DB via our API
+      const res = await fetch(`/api/products/${productId}/images/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          images: uploadedImages.map((u, i) => ({
+            storagePath: u.storagePath,
+            publicUrl: u.publicUrl,
+            displayOrder: startOrder + i,
+          })),
+        }),
+      });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Upload failed.");
+      if (!res.ok) {
+        // Roll back storage on DB failure
+        await supabase.storage
+          .from("product-images")
+          .remove(uploadedImages.map((u) => u.storagePath));
+        throw new Error(json.error ?? "Failed to register images in database.");
+      }
 
       toast.success(`${uploadFiles.length} image${uploadFiles.length > 1 ? "s" : ""} added!`);
-      // Revoke previews
       uploadPreviews.forEach((url) => URL.revokeObjectURL(url));
       setUploadFiles([]);
       setUploadPreviews([]);
-      // Reload the images list
       await loadData();
     } catch (e) {
       setUploadError(e instanceof Error ? e.message : "Upload failed.");

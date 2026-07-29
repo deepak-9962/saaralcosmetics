@@ -27,6 +27,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { generateSlug } from "@/lib/utils";
 
+
 /** Allowed MIME types (mirrors the bucket's allowed_mime_types setting) */
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 /** Max file size in bytes — must match the bucket's file_size_limit (5 MB) */
