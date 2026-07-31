@@ -15,10 +15,11 @@ import { INDIAN_STATES } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
 export default function CheckoutPage() {
-  const { items, total, clearCart, removeItem, appliedPromo, removePromo, discountedTotal } = useCart();
+  const { items, total, clearCart, removeItem, appliedPromo, removePromo, applyPromo, isValidatingPromo, discountedTotal } = useCart();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [promoInput, setPromoInput] = useState("");
   const validatedRef = useRef(false);
 
   const checkoutMode = process.env.NEXT_PUBLIC_CHECKOUT_MODE || "live";
@@ -614,6 +615,51 @@ export default function CheckoutPage() {
               </div>
 
               <div className="border-t border-outline-variant/30 pt-4 space-y-2">
+
+                {/* ── Promo Code Input ── */}
+                {!appliedPromo ? (
+                  <div className="flex gap-2 pb-2">
+                    <input
+                      type="text"
+                      value={promoInput}
+                      onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (promoInput.trim()) applyPromo(promoInput.trim());
+                        }
+                      }}
+                      placeholder="Promo code"
+                      className="flex-1 h-10 px-3 rounded-lg border border-outline-variant/60 bg-surface font-body text-[13px] text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary transition-colors uppercase tracking-wider"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { if (promoInput.trim()) applyPromo(promoInput.trim()); }}
+                      disabled={isValidatingPromo || !promoInput.trim()}
+                      className="h-10 px-4 rounded-lg bg-primary text-on-primary font-body text-[12px] font-medium hover:bg-[#9d4d6e] active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1 flex-shrink-0"
+                    >
+                      {isValidatingPromo ? (
+                        <span className="material-symbols-outlined animate-spin text-[15px]">progress_activity</span>
+                      ) : "Apply"}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mb-2">
+                    <span className="flex items-center gap-1.5 font-body text-[13px] font-medium text-emerald-700">
+                      <span className="material-symbols-outlined text-[15px]">local_offer</span>
+                      {appliedPromo.code} applied!
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => { removePromo(); setPromoInput(""); }}
+                      className="text-emerald-600 hover:text-error transition-colors"
+                      title="Remove promo"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">close</span>
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex justify-between font-body text-[16px] leading-[1.6] text-on-surface-variant">
                   <span>Subtotal</span>
                   <span className="text-on-surface">{formatPrice(total)}</span>
