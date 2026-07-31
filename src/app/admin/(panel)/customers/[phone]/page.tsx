@@ -163,7 +163,7 @@ export default function CustomerDetailPage() {
               <p className="p-5 font-body text-[14px] text-on-surface-variant">No products yet.</p>
             )}
             {productsBought.map((product, index) => (
-              <div key={product.id} className="flex items-center justify-between gap-4 p-4">
+              <div key={product.id || `bought-${index}`} className="flex items-center justify-between gap-4 p-4">
                 <div className="flex items-center gap-3">
                   <span className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant font-body text-[12px] font-medium">
                     {index + 1}

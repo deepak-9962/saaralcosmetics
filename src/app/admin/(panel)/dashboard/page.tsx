@@ -329,7 +329,7 @@ export default function AdminDashboardPage() {
                 <tr><td className="p-4 text-on-surface-variant" colSpan={4}>No order data yet.</td></tr>
               )}
               {bestSellingProducts.map((product, index) => (
-                <tr key={product.productId} className="hover:bg-surface-container-low/50 transition-colors">
+                <tr key={product.productId || `bestseller-${index}`} className="hover:bg-surface-container-low/50 transition-colors">
                   <td className="p-4 text-on-surface-variant">#{index + 1}</td>
                   <td className="p-4 font-medium">{product.name}</td>
                   <td className="p-4">{product.unitsSold}</td>

@@ -543,9 +543,9 @@ function TestimonialModal({
               Products Used
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
-              {item.products.map((prod) => (
+              {item.products.map((prod, pIdx) => (
                 <Link
-                  key={prod}
+                  key={`${item.id}-${prod}-${pIdx}`}
                   href={getProductLink(prod)}
                   onClick={() => {
                     sessionStorage.setItem("saaral_scroll_pos", window.scrollY.toString());

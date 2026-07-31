@@ -97,7 +97,7 @@ export default function ProductPicker({ onSelect }: ProductPickerProps) {
             No products found matching &quot;{searchTerm}&quot;
           </div>
         ) : (
-          products.map((p) => {
+          products.map((p, idx) => {
             const thumbUrl =
               p.product_images?.find((img) => img.display_order === 0)?.image_url ||
               p.product_images?.[0]?.image_url ||
@@ -108,7 +108,7 @@ export default function ProductPicker({ onSelect }: ProductPickerProps) {
 
             return (
               <button
-                key={p.id}
+                key={p.id || `picker-${idx}`}
                 type="button"
                 onClick={() =>
                   onSelect({
