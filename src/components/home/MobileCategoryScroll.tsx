@@ -17,14 +17,14 @@ const categories = [
   {
     name: "Soap",
     href: "/products?category=soap",
-    image: "/images/head2.avif",
+    image: "/images/head3.avif",
     blobColor: "#DDD0EA",
     blobColor2: "#C8B8DC",
   },
   {
     name: "Creams",
     href: "/products?category=face-cream",
-    image: "/images/head3.avif",
+    image: "/images/head2.avif",
     blobColor: "#F2D5C0",
     blobColor2: "#EEC4A8",
   },
