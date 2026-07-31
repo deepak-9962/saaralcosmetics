@@ -51,9 +51,9 @@ export default function PromoBanner() {
   const current = codes[activeIndex];
 
   return (
-    <div className="flex min-h-7 bg-primary text-on-primary px-3 py-1 md:py-1.5 items-center justify-center overflow-hidden">
+    <div className="flex min-h-9 bg-primary text-on-primary px-4 py-2 items-center justify-center overflow-hidden">
       <p
-        className="font-body text-[9px] md:text-[10px] tracking-[0.08em] uppercase text-center whitespace-nowrap transition-opacity duration-300"
+        className="font-body text-[13px] md:text-[15px] font-bold tracking-[0.08em] uppercase text-center whitespace-nowrap transition-opacity duration-300"
         style={{ opacity: visible ? 1 : 0 }}
       >
         {formatBannerText(current)}
