@@ -12,8 +12,7 @@ const navItems = [
   { label: "Shop", href: "/products" },
   { label: "Collections", href: "/products?category=face-cream" },
   { label: "Blog", href: "/blog" },
-  { label: "Heritage", href: "/contact?section=heritage" },
-  { label: "Rituals", href: "/contact?section=rituals" },
+  { label: "About Us", href: "/about" },
 ];
 
 export default function TopNavBar() {
@@ -347,10 +346,10 @@ export default function TopNavBar() {
 
             {/* Quick Contacts / Social Shortcuts */}
             <div className="mt-8 pt-6 border-t border-outline-variant/20 flex flex-col gap-3 pl-4">
-              <span className="font-body text-[11px] uppercase tracking-[0.12em] text-[#C9A74D]">Rituals & Contact</span>
+              <span className="font-body text-[11px] uppercase tracking-[0.12em] text-[#C9A74D]">About & Support</span>
               <div className="flex gap-4 items-center">
                 <a
-                  href="https://wa.me/91XXXXXXXXXX"
+                  href="https://wa.me/918428251423?text=Hi%2C%20I%20have%20a%20question%20about%20Saaral%20Cosmetics"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-body text-[14px] text-on-surface-variant hover:text-[#B06080] flex items-center gap-1.5"
@@ -360,11 +359,11 @@ export default function TopNavBar() {
                 </a>
                 <span className="text-[#D4B8A8]/30">|</span>
                 <Link
-                  href="/contact"
+                  href="/about"
                   onClick={() => setMobileMenuOpen(false)}
                   className="font-body text-[14px] text-on-surface-variant hover:text-[#B06080]"
                 >
-                  Visit Botanical Lab
+                  About Us
                 </Link>
               </div>
             </div>

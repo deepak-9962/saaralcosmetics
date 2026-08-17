@@ -10,7 +10,7 @@ import Link from "next/link";
 const SLIDES = [
   {
     id: "butterfly-pea",
-    img: "/images/banner-head1.avif",
+    img: "/images/NewHeader/head1.avif",
     imgAlt: "Saaral Butterfly Pea Collection — luxury botanical skincare",
     href: "/products?collection=butterfly-pea",
     dot: "#6B4FA1",

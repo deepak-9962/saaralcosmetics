@@ -23,6 +23,48 @@ export default function ProductCatalogPanel({ products }: ProductCatalogPanelPro
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const mobileActiveRef = useRef<HTMLButtonElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+
+  const collectionParam = searchParams.get("collection");
+  const searchParam = searchParams.get("search") || searchParams.get("q");
+
+  // Auto-scroll directly to the product catalog when navigating with categories/collections/search
+  useEffect(() => {
+    const hasFilter =
+      searchParams.has("category") ||
+      searchParams.has("collection") ||
+      searchParams.has("search") ||
+      searchParams.has("q") ||
+      (typeof window !== "undefined" && window.location.hash === "#catalog");
+
+    if (hasFilter) {
+      const scrollToCatalog = () => {
+        const el = panelRef.current || document.getElementById("catalog");
+        if (el) {
+          const navEl = document.querySelector("header") || document.querySelector("nav");
+          const navHeight = navEl
+            ? navEl.getBoundingClientRect().height
+            : window.innerWidth >= 768
+            ? 100
+            : 88;
+          const targetY = el.getBoundingClientRect().top + window.scrollY - navHeight + 2;
+
+          window.scrollTo({
+            top: Math.max(0, targetY),
+            behavior: "smooth",
+          });
+        }
+      };
+
+      const timer1 = setTimeout(scrollToCatalog, 60);
+      const timer2 = setTimeout(scrollToCatalog, 260);
+
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
+    }
+  }, [searchParams]);
 
   // Smooth-scroll active category chip into center view
   useEffect(() => {
@@ -54,7 +96,10 @@ export default function ProductCatalogPanel({ products }: ProductCatalogPanelPro
 
   // Derived counts
   const activeFilterCount =
-    (activeCategory !== "all" ? 1 : 0) + (priceFilter !== "all-prices" ? 1 : 0);
+    (activeCategory !== "all" ? 1 : 0) +
+    (priceFilter !== "all-prices" ? 1 : 0) +
+    (collectionParam ? 1 : 0) +
+    (searchParam ? 1 : 0);
 
   // Filter and sort products
   const visibleProducts = useMemo(() => {
@@ -62,6 +107,33 @@ export default function ProductCatalogPanel({ products }: ProductCatalogPanelPro
 
     if (activeCategory !== "all") {
       next = next.filter((p) => p.category === activeCategory);
+    }
+
+    if (collectionParam) {
+      if (
+        collectionParam.toLowerCase() !== "bestsellers" &&
+        collectionParam.toLowerCase() !== "best-sellers"
+      ) {
+        const col = collectionParam.toLowerCase().replace(/-/g, " ");
+        const colSlug = collectionParam.toLowerCase();
+        next = next.filter(
+          (p) =>
+            p.name.toLowerCase().includes(col) ||
+            p.slug.toLowerCase().includes(colSlug) ||
+            (p.description && p.description.toLowerCase().includes(col))
+        );
+      }
+    }
+
+    if (searchParam) {
+      const s = searchParam.toLowerCase();
+      next = next.filter(
+        (p) =>
+          p.name.toLowerCase().includes(s) ||
+          p.slug.toLowerCase().includes(s) ||
+          p.category.toLowerCase().includes(s) ||
+          (p.description && p.description.toLowerCase().includes(s))
+      );
     }
 
     next = next.filter((product) => {
@@ -76,12 +148,29 @@ export default function ProductCatalogPanel({ products }: ProductCatalogPanelPro
     if (sortMode === "name-a-z") return [...next].sort((a, b) => a.name.localeCompare(b.name));
 
     return next;
-  }, [products, activeCategory, priceFilter, sortMode]);
+  }, [products, activeCategory, collectionParam, searchParam, priceFilter, sortMode]);
 
-  const activeCategoryLabel =
-    activeCategory === "all"
-      ? "All Products"
-      : CATEGORIES.find((c) => c.slug === activeCategory)?.label ?? "Products";
+  const activeCategoryLabel = useMemo(() => {
+    if (collectionParam) {
+      if (
+        collectionParam.toLowerCase() === "bestsellers" ||
+        collectionParam.toLowerCase() === "best-sellers"
+      ) {
+        return "Best Selling Products";
+      }
+      return (
+        collectionParam
+          .split("-")
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(" ") + " Collection"
+      );
+    }
+    if (searchParam) {
+      return `Results for "${searchParam}"`;
+    }
+    if (activeCategory === "all") return "All Products";
+    return CATEGORIES.find((c) => c.slug === activeCategory)?.label ?? "Products";
+  }, [collectionParam, searchParam, activeCategory]);
 
   const containerVariants = {
     hidden: {},
@@ -93,7 +182,7 @@ export default function ProductCatalogPanel({ products }: ProductCatalogPanelPro
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.7, ease: [0.22, 1, 0.36,1] as [number, number, number, number] },
+      transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
     },
   };
 
@@ -107,9 +196,9 @@ export default function ProductCatalogPanel({ products }: ProductCatalogPanelPro
       : "Name A–Z";
 
   return (
-    <>
+    <div ref={panelRef}>
       {/* ── STICKY FILTER BAR (DermaCo style) ── */}
-      <div className="sticky top-[64px] z-30 w-full">
+      <div className="sticky top-[84px] md:top-[98px] z-30 w-full">
         <div
           style={{
             background: "rgba(253,246,240,0.97)",
@@ -467,6 +556,6 @@ export default function ProductCatalogPanel({ products }: ProductCatalogPanelPro
           )}
         </AnimatePresence>
       </div>
-    </>
+    </div>
   );
 }

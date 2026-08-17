@@ -2,35 +2,17 @@ import Image from "next/image";
 import Link from "next/link";
 
 /* ─────────────────────────────────────────────
-   8-category data — desktop strip
+   10-category data — desktop strip
    Uses transparent-bg product head images for the
    "floating product over pastel blob" aesthetic
    matching MobileCategoryScroll.
 ───────────────────────────────────────────── */
 const CATEGORIES = [
   {
-    id: "butterfly-pea",
-    label: "Butterfly Pea",
-    img: "/images/head1.avif",
-    imgAlt: "Butterfly Pea Collection — Saaral Cosmetics",
-    blobColor: "#DDD5F0",
-    blobColor2: "#C8BEE8",
-    href: "/products?collection=butterfly-pea",
-  },
-  {
-    id: "red-wine",
-    label: "Red Wine",
-    img: "/images/head2.avif",          // Deep-toned product
-    imgAlt: "Red Wine Anti-Aging Collection — Saaral Cosmetics",
-    blobColor: "#E8CACF",
-    blobColor2: "#D8B0B8",
-    href: "/products?collection=red-wine",
-  },
-  {
     id: "face-wash",
     label: "Face Wash",
-    img: "/images/head1.avif",
-    imgAlt: "Face Wash — Saaral Cosmetics",
+    img: "/images/head-facewash-duo.avif",
+    imgAlt: "Face Wash Collection — Saaral Cosmetics",
     blobColor: "#C8DFF0",
     blobColor2: "#B0CEEA",
     href: "/products?category=face-wash",
@@ -65,11 +47,29 @@ const CATEGORIES = [
   {
     id: "vetpalai",
     label: "Vetpalai",
-    img: "/images/head4.avif",
+    img: "/images/head-vetpalai.avif",
     imgAlt: "Vetpalai Soap Collection — Saaral Cosmetics",
-    blobColor: "#E8E0C0",
-    blobColor2: "#DDD0A8",
+    blobColor: "#D8EAD2",
+    blobColor2: "#BFDCB4",
     href: "/products?collection=vetpalai",
+  },
+  {
+    id: "oil",
+    label: "Oil",
+    img: "/images/head-oil.avif",
+    imgAlt: "Herbal Hair & Body Oil — Saaral Cosmetics",
+    blobColor: "#F4E3B2",
+    blobColor2: "#E8CD8A",
+    href: "/products?search=oil",
+  },
+  {
+    id: "balm",
+    label: "Balm",
+    img: "/images/head-balm.avif",
+    imgAlt: "Herbal Repair Balm — Saaral Cosmetics",
+    blobColor: "#E2ECD8",
+    blobColor2: "#C5DCB2",
+    href: "/products?search=balm",
   },
   {
     id: "bestsellers",
@@ -78,15 +78,14 @@ const CATEGORIES = [
     imgAlt: "Best Selling Products — Saaral Cosmetics",
     blobColor: "#F5E0C0",
     blobColor2: "#EDD0A8",
-    href: "/products",
+    href: "/products?collection=bestsellers",
   },
 ] as const;
 
 /* ─────────────────────────────────────────────
    Server Component — pure CSS hover via Tailwind
    "Floating product over pastel blob" pattern —
-   same architecture as MobileCategoryScroll but
-   scaled up for desktop (120px blob, 140px wrapper).
+   scaled for desktop with 8-item responsive grid.
 ───────────────────────────────────────────── */
 export default function DesktopCategoryStrip() {
   return (
@@ -99,11 +98,11 @@ export default function DesktopCategoryStrip() {
       }}
     >
       <div
-        className="max-w-[1400px] mx-auto"
-        style={{ padding: "12px 48px 40px" }}
+        className="max-w-[1440px] mx-auto"
+        style={{ padding: "12px 32px 36px" }}
       >
         {/* ── Eyebrow label ── */}
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-5">
           <div className="h-px w-6 shrink-0" style={{ background: "#C9A74D" }} />
           <span
             className="font-body text-[10px] tracking-[0.22em] uppercase font-semibold"
@@ -114,24 +113,23 @@ export default function DesktopCategoryStrip() {
         </div>
 
         {/* ── 8-column category grid ── */}
-        <div className="grid grid-cols-8 gap-2 xl:gap-4">
+        <div className="grid grid-cols-4 lg:grid-cols-8 gap-x-2 gap-y-6 lg:gap-y-0 justify-items-center">
           {CATEGORIES.map((cat, index) => (
             <Link
               key={cat.id}
               href={cat.href}
               aria-label={`Browse ${cat.label}`}
-              className="group flex flex-col items-center gap-3 cursor-pointer"
+              className="group flex flex-col items-center gap-2.5 cursor-pointer w-full"
             >
               {/*
                 Outer wrapper — overflow: visible so the tall product image
                 naturally floats above the blob circle, matching mobile style.
-                Wrapper is taller than the blob to accommodate the overflow.
               */}
               <div
                 className="relative flex items-end justify-center group-hover:-translate-y-[6px] transition-transform duration-[380ms]"
                 style={{
-                  width: "140px",
-                  height: "158px",
+                  width: "126px",
+                  height: "148px",
                   transitionTimingFunction: "cubic-bezier(0.34,1.56,0.64,1)",
                 }}
               >
@@ -140,8 +138,8 @@ export default function DesktopCategoryStrip() {
                   aria-hidden="true"
                   className="absolute bottom-0 left-1/2 -translate-x-1/2 group-hover:shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
                   style={{
-                    width: "124px",
-                    height: "124px",
+                    width: "112px",
+                    height: "112px",
                     borderRadius: "50%",
                     background: `radial-gradient(circle at 42% 52%, ${cat.blobColor} 0%, ${cat.blobColor2} 60%, rgba(255,255,255,0.45) 100%)`,
                     boxShadow:
@@ -165,8 +163,8 @@ export default function DesktopCategoryStrip() {
                 <Image
                   src={cat.img}
                   alt={cat.imgAlt}
-                  width={110}
-                  height={136}
+                  width={104}
+                  height={130}
                   {...(index === 0
                     ? { priority: true, fetchPriority: "high" as const }
                     : { loading: "lazy" as const })}
@@ -174,7 +172,7 @@ export default function DesktopCategoryStrip() {
                   style={{
                     objectFit: "contain",
                     objectPosition: "bottom",
-                    maxHeight: "136px",
+                    maxHeight: "130px",
                     width: "auto",
                     filter: "drop-shadow(0 7px 16px rgba(0,0,0,0.13))",
                     transitionTimingFunction: "cubic-bezier(0.34,1.56,0.64,1)",
@@ -182,15 +180,15 @@ export default function DesktopCategoryStrip() {
                 />
               </div>
 
-              {/* Pill label — white bg, dusty-rose border, arrow — matches mobile */}
+              {/* Pill label — white bg, dusty-rose border, arrow */}
               <div
-                className="flex items-center gap-1 px-4 py-[6px] transition-all duration-300 group-hover:border-[#D4A0B0]"
+                className="flex items-center gap-1 px-3 py-[5px] transition-all duration-300 group-hover:border-[#D4A0B0]"
                 style={{
                   background: "#FFFFFF",
                   border: "1px solid #D4A0B0",
                   borderRadius: "100px",
                   boxShadow: "0 1px 4px rgba(180,100,130,0.08)",
-                  minWidth: "96px",
+                  minWidth: "86px",
                   justifyContent: "center",
                 }}
               >
@@ -207,8 +205,8 @@ export default function DesktopCategoryStrip() {
                   {cat.label}
                 </span>
                 <svg
-                  width="8"
-                  height="8"
+                  width="7"
+                  height="7"
                   viewBox="0 0 10 10"
                   fill="none"
                   aria-hidden="true"

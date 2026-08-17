@@ -73,13 +73,13 @@ export default function Footer() {
 
         {/* Customer Care */}
         <div className="flex flex-col gap-3">
-          <span className="label-caps text-white/60 mb-1">Customer Care</span>
+          <span className="label-caps text-white/60 mb-1">Company & Care</span>
           {[
+            { label: "About Us", href: "/about" },
+            { label: "Contact & Concierge", href: "/contact" },
             { label: "Shipping Policy", href: "#" },
             { label: "Returns & Exchanges", href: "#" },
             { label: "Privacy Policy", href: "#" },
-            { label: "Terms of Service", href: "#" },
-            { label: "Contact Us", href: "/contact" },
           ].map((l) => (
             <Link key={l.label} href={l.href} className="font-body text-[15px] text-white/45 hover:text-[#B06080] transition-colors">{l.label}</Link>
           ))}
