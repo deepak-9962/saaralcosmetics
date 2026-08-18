@@ -80,9 +80,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="light" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
-        <meta name="color-scheme" content="only light" />
+        <meta key="meta-color-scheme" name="color-scheme" content="only light" />
         {/* Schema.org JSON-LD Structured Data for Google SERP Rich Results & Sitelinks */}
         <script
+          key="script-json-ld"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
@@ -133,6 +134,7 @@ export default function RootLayout({
         {/* Mobile hero (below 768px) */}
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
+          key="preload-hero-mobile-avif"
           rel="preload"
           as="image"
           href="/images/hero-mobile.avif"
@@ -140,6 +142,7 @@ export default function RootLayout({
           media="(max-width: 767px)"
         />
         <link
+          key="preload-hero-mobile-webp"
           rel="preload"
           as="image"
           href="/images/hero-mobile.webp"
@@ -148,6 +151,7 @@ export default function RootLayout({
         />
         {/* Desktop hero carousel slide 1 (768px and above) */}
         <link
+          key="preload-slide1-avif"
           rel="preload"
           as="image"
           href="/images/slide1.avif"
@@ -156,6 +160,7 @@ export default function RootLayout({
         />
         {/* Mobile LCP element — category image (first in scroll) */}
         <link
+          key="preload-cat-face-cream"
           rel="preload"
           as="image"
           href="/images/cat-face-cream.avif"
@@ -163,9 +168,10 @@ export default function RootLayout({
           media="(max-width: 767px)"
         />
         {/* Google Fonts preconnect — eliminates DNS/TCP latency */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link key="preconnect-fonts" rel="preconnect" href="https://fonts.googleapis.com" />
+        <link key="preconnect-gstatic" rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
+          key="link-material-symbols"
           id="material-symbols"
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
@@ -173,6 +179,7 @@ export default function RootLayout({
           suppressHydrationWarning
         />
         <script
+          key="script-material-symbols"
           dangerouslySetInnerHTML={{
             __html: `
               try {
@@ -186,7 +193,7 @@ export default function RootLayout({
           }}
         />
         {/* noscript fallback — icons visible even without JS */}
-        <noscript>
+        <noscript key="noscript-material-symbols">
           {/* eslint-disable-next-line @next/next/no-page-custom-font */}
           <link
             rel="stylesheet"

@@ -8,9 +8,15 @@ import { useWishlist } from "@/lib/wishlist";
 import { motion, AnimatePresence } from "framer-motion";
 import PromoBanner from "@/components/layout/PromoBanner";
 
-const navItems = [
+interface NavItem {
+  label: string;
+  href: string;
+  badge?: string;
+}
+
+const navItems: NavItem[] = [
   { label: "Shop", href: "/products" },
-  { label: "Collections", href: "/products?category=face-cream" },
+  { label: "Collections", href: "/products?category=face-cream", badge: "NEW" },
   { label: "Blog", href: "/blog" },
   { label: "About Us", href: "/about" },
 ];
@@ -116,21 +122,30 @@ export default function TopNavBar() {
         </Link>
 
         {/* CENTER — Nav links (desktop only, absolute) */}
-        <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
-          {navItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={`nav-link-underline font-body transition-colors ${
-                isActive(item.href)
-                  ? "text-primary after:w-full"
-                  : "text-on-surface-variant hover:text-on-surface"
-              }`}
-              style={{ fontSize: "14px", fontWeight: 500, letterSpacing: "0.04em" }}
-            >
-              {item.label}
-            </Link>
-          ))}
+        <div className="hidden md:flex items-center gap-2 lg:gap-3 absolute left-1/2 -translate-x-1/2">
+          {navItems.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`relative px-3.5 py-1.5 rounded-full text-[14px] font-medium transition-all duration-200 ${
+                  active
+                    ? "text-[#B06080] font-semibold bg-[#B06080]/[0.08]"
+                    : "text-[#2A1A14]/75 hover:text-[#2A1A14] hover:bg-[#2A1A14]/[0.05]"
+                }`}
+              >
+                <span>{item.label}</span>
+                {active && (
+                  <motion.span
+                    layoutId="activeNavIndicator"
+                    className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#B06080]"
+                    transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                  />
+                )}
+              </Link>
+            );
+          })}
         </div>
 
         <div className="flex items-center gap-1 md:gap-3">
@@ -316,11 +331,16 @@ export default function TopNavBar() {
                   <Link
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`font-display text-[32px] block transition-colors ${
+                    className={`font-display text-[32px] inline-flex items-center gap-3 transition-colors ${
                       isActive(item.href) ? "text-[#B06080] italic font-semibold" : "text-on-surface hover:text-[#B06080]"
                     }`}
                   >
-                    {item.label}
+                    <span>{item.label}</span>
+                    {item.badge && (
+                      <span className="font-body text-[10px] font-bold tracking-[0.1em] uppercase px-2 py-0.5 rounded-full bg-[#C9A74D]/20 text-[#8A6A00] border border-[#C9A74D]/40 not-italic">
+                        {item.badge}
+                      </span>
+                    )}
                   </Link>
                 </motion.div>
               ))}
