@@ -60,7 +60,7 @@ const CATEGORIES = [
     imgAlt: "Herbal Hair & Body Oil — Saaral Cosmetics",
     blobColor: "#F4E3B2",
     blobColor2: "#E8CD8A",
-    href: "/products?search=oil",
+    href: "/products?category=oil",
   },
   {
     id: "balm",
@@ -69,7 +69,7 @@ const CATEGORIES = [
     imgAlt: "Herbal Repair Balm — Saaral Cosmetics",
     blobColor: "#E2ECD8",
     blobColor2: "#C5DCB2",
-    href: "/products?search=balm",
+    href: "/products?category=balm",
   },
   {
     id: "bestsellers",

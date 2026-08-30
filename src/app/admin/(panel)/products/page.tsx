@@ -99,6 +99,8 @@ export default function AdminProductsPage() {
     { value: "face-wash", label: "Face Wash" },
     { value: "soap", label: "Soap" },
     { value: "nalangu-maavu", label: "Nalangu Maavu" },
+    { value: "oil", label: "Oil" },
+    { value: "balm", label: "Balm" },
   ];
 
   return (

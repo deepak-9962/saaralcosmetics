@@ -26,6 +26,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { generateSlug } from "@/lib/utils";
+import type { Product } from "@/lib/types";
 
 
 /** Allowed MIME types (mirrors the bucket's allowed_mime_types setting) */
@@ -140,7 +141,7 @@ export async function POST(request: NextRequest) {
         .insert({
           name,
           slug,
-          category: category as "face-cream" | "face-wash" | "soap" | "nalangu-maavu",
+          category: category as Product["category"],
           variant_name: variantName,
           price,
           compare_price: comparePriceNum && Number.isFinite(comparePriceNum) ? comparePriceNum : null,

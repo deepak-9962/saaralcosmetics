@@ -44,14 +44,14 @@ const categories = [
   },
   {
     name: "Oil",
-    href: "/products?search=oil",
+    href: "/products?category=oil",
     image: "/images/head-oil.avif",
     blobColor: "#F4E3B2",
     blobColor2: "#E8CD8A",
   },
   {
     name: "Balm",
-    href: "/products?search=balm",
+    href: "/products?category=balm",
     image: "/images/head-balm.avif",
     blobColor: "#E2ECD8",
     blobColor2: "#C5DCB2",

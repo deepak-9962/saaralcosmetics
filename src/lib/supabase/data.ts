@@ -33,6 +33,8 @@ const CATEGORY_FALLBACK_IMAGE: Record<Product["category"], string> = {
   "face-wash": "/images/cat-face-wash.webp",
   soap: "/images/cat-soap.webp",
   "nalangu-maavu": "/images/cat-nalangu-maavu.webp",
+  oil: "/images/head-oil.webp",
+  balm: "/images/head-balm.webp",
 };
 
 const DISALLOWED_PLACEHOLDER_HOSTS = new Set([
@@ -61,19 +63,40 @@ function normalizeProductImages(images: string[] | null | undefined, category: P
   return [CATEGORY_FALLBACK_IMAGE[category]];
 }
 
+function normalizeProductCategory(row: ProductRow): Product["category"] {
+  if (row.category === "balm" || row.category === "oil") {
+    return row.category;
+  }
+  if (
+    row.slug === "advanced-foot-repair-balm" ||
+    row.slug === "advanced-vetpalai-itching-balm" ||
+    row.name.toLowerCase().includes("balm")
+  ) {
+    return "balm";
+  }
+  if (
+    row.name.toLowerCase().includes(" oil") ||
+    row.name.toLowerCase().endsWith("oil")
+  ) {
+    return "oil";
+  }
+  return row.category;
+}
+
 function normalizeProduct(row: ProductRow): Product {
+  const category = normalizeProductCategory(row);
   return {
     id: row.id,
     name: row.name,
     slug: row.slug,
-    category: row.category,
+    category,
     variant_name: row.variant_name,
     price: row.price,
     compare_price: row.compare_price,
     description: row.description,
     ingredients: row.ingredients,
     how_to_use: row.how_to_use,
-    images: normalizeProductImages(row.images, row.category),
+    images: normalizeProductImages(row.images, category),
     // image_path stores the Supabase Storage bucket-relative path (used for deletion)
     image_path: (row as typeof row & { image_path?: string | null }).image_path ?? null,
     stock: row.stock,
@@ -159,15 +182,11 @@ function parseOrderItems(items: Json): OrderItem[] {
 
 export async function listProducts(category: CategoryFilter = "all"): Promise<Product[]> {
   const supabase = getSupabaseBrowserClient() as any;
-  let query = supabase
+  const query = supabase
     .from("products")
     .select("*")
     .eq("is_active", true)
     .order("price", { ascending: true });
-
-  if (category !== "all") {
-    query = query.eq("category", category);
-  }
 
   const { data, error } = await query;
   if (error) throw new Error(error.message);
@@ -176,6 +195,9 @@ export async function listProducts(category: CategoryFilter = "all"): Promise<Pr
   const seenNames = new Set<string>();
   (data ?? []).forEach((row: any) => {
     const normalized = normalizeProduct(row);
+    if (category !== "all" && normalized.category !== category) {
+      return;
+    }
     if (!seenNames.has(normalized.name)) {
       seenNames.add(normalized.name);
       uniqueProducts.push(normalized);

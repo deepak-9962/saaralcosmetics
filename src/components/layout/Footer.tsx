@@ -66,6 +66,8 @@ export default function Footer() {
             { label: "Face Wash", href: "/products?category=face-wash" },
             { label: "Soap", href: "/products?category=soap" },
             { label: "Nalangu Maavu", href: "/products?category=nalangu-maavu" },
+            { label: "Oil", href: "/products?category=oil" },
+            { label: "Balm", href: "/products?category=balm" },
           ].map((l) => (
             <Link key={l.label} href={l.href} className="font-body text-[15px] text-white/45 hover:text-[#B06080] transition-colors">{l.label}</Link>
           ))}

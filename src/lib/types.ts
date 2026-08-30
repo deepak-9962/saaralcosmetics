@@ -6,7 +6,7 @@ export interface Product {
   id: string;
   name: string;
   slug: string;
-  category: "face-cream" | "face-wash" | "soap" | "nalangu-maavu";
+  category: "face-cream" | "face-wash" | "soap" | "nalangu-maavu" | "oil" | "balm";
   variant_name: string | null;
   price: number;
   compare_price: number | null;
@@ -121,7 +121,9 @@ export type CategoryFilter =
   | "face-cream"
   | "face-wash"
   | "soap"
-  | "nalangu-maavu";
+  | "nalangu-maavu"
+  | "oil"
+  | "balm";
 
 export interface CategoryInfo {
   slug: CategoryFilter;
@@ -135,6 +137,8 @@ export const CATEGORIES: CategoryInfo[] = [
   { slug: "face-wash", label: "Face Wash", icon: "water_drop" },
   { slug: "soap", label: "Soap", icon: "clean_hands" },
   { slug: "nalangu-maavu", label: "Nalangu Maavu", icon: "potted_plant" },
+  { slug: "oil", label: "Oil", icon: "opacity" },
+  { slug: "balm", label: "Balm", icon: "healing" },
 ];
 
 export const INDIAN_STATES = [

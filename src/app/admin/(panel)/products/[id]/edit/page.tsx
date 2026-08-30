@@ -199,6 +199,8 @@ export default function AdminEditProductPage() {
                 <option value="face-wash">Face Wash</option>
                 <option value="soap">Soap</option>
                 <option value="nalangu-maavu">Nalangu Maavu</option>
+                <option value="oil">Oil</option>
+                <option value="balm">Balm</option>
               </select>
             </div>
             <div className="space-y-2">

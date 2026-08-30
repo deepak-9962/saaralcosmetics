@@ -14,7 +14,7 @@ export type Database = {
           id: string;
           name: string;
           slug: string;
-          category: "face-cream" | "face-wash" | "soap" | "nalangu-maavu";
+          category: "face-cream" | "face-wash" | "soap" | "nalangu-maavu" | "oil" | "balm";
           variant_name: string | null;
           price: number;
           compare_price: number | null;
@@ -33,7 +33,7 @@ export type Database = {
           id?: string;
           name: string;
           slug: string;
-          category: "face-cream" | "face-wash" | "soap" | "nalangu-maavu";
+          category: "face-cream" | "face-wash" | "soap" | "nalangu-maavu" | "oil" | "balm";
           variant_name?: string | null;
           price: number;
           compare_price?: number | null;

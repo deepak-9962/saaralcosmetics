@@ -16,6 +16,8 @@ const CATEGORY_OPTIONS = [
   { value: "face-wash", label: "Face Wash" },
   { value: "soap", label: "Soap" },
   { value: "nalangu-maavu", label: "Nalangu Maavu" },
+  { value: "oil", label: "Oil" },
+  { value: "balm", label: "Balm" },
 ];
 
 function toDateInputValue(iso: string | null | undefined): string {

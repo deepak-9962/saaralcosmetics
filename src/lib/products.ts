@@ -229,7 +229,7 @@ export const MOCK_PRODUCTS: Product[] = [
     updated_at: new Date().toISOString(),
   },
 
-  // ── FACE CREAM / BALM ───────────────────────────────────────
+  // ── FACE CREAM ──────────────────────────────────────────────
   {
     id: "prod-fc-001",
     name: "Saaral Anti Aging & Pigmentation Cream",
@@ -310,11 +310,13 @@ export const MOCK_PRODUCTS: Product[] = [
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
+
+  // ── BALM ────────────────────────────────────────────────────
   {
     id: "prod-fc-005",
     name: "Advanced Foot Repair Balm",
     slug: "advanced-foot-repair-balm",
-    category: "face-cream",
+    category: "balm",
     variant_name: "100g",
     price: 350,
     compare_price: null,
@@ -334,7 +336,7 @@ export const MOCK_PRODUCTS: Product[] = [
     id: "prod-fc-006",
     name: "Advanced Vetpalai Itching Balm",
     slug: "advanced-vetpalai-itching-balm",
-    category: "face-cream",
+    category: "balm",
     variant_name: "100g",
     price: 350,
     compare_price: null,
