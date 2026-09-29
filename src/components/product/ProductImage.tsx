@@ -25,6 +25,14 @@ interface ProductImageProps {
   priority?: boolean;
   /** Inline style overrides (e.g. transform for hover-scale from the parent). */
   imageStyle?: React.CSSProperties;
+  /** Whether to show the skeleton shimmer while loading. Defaults to true. */
+  showSkeleton?: boolean;
+  /** Fallback image URL when src is invalid or errors. Defaults to /images/placeholder-product.webp. Pass null to disable fallback. */
+  fallbackSrc?: string | null;
+  /** Optional callback fired when the image successfully loads. */
+  onLoad?: () => void;
+  /** Optional callback fired when the image fails to load. */
+  onError?: () => void;
 }
 
 /** The local fallback shown when src is null or the remote image fails to load. */
@@ -37,19 +45,26 @@ export default function ProductImage({
   sizes = "(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw",
   priority = false,
   imageStyle,
+  showSkeleton = true,
+  fallbackSrc = PLACEHOLDER_SRC,
+  onLoad,
+  onError,
 }: ProductImageProps) {
   // Show skeleton until the image fires its onLoad event
   const [isLoaded, setIsLoaded] = useState(false);
   // Switch to placeholder if the remote image errors (e.g. deleted from Storage)
   const [hasError, setHasError] = useState(false);
 
-  const resolvedSrc =
-    !src || hasError ? PLACEHOLDER_SRC : src;
+  const resolvedSrc = !src || hasError ? (fallbackSrc ?? null) : src;
+
+  if (!resolvedSrc) {
+    return null;
+  }
 
   return (
     <div className={`relative w-full h-full overflow-hidden ${className}`}>
       {/* ── Skeleton shimmer (visible while image loads) ── */}
-      {!isLoaded && (
+      {!isLoaded && showSkeleton && (
         <div
           aria-hidden="true"
           className="absolute inset-0 z-[1]"
@@ -75,21 +90,27 @@ export default function ProductImage({
           transition: "opacity 0.35s ease",
           ...imageStyle,
         }}
-        onLoad={() => setIsLoaded(true)}
+        onLoad={() => {
+          setIsLoaded(true);
+          onLoad?.();
+        }}
         onError={() => {
           // If the Supabase URL fails (e.g. file deleted), fall back gracefully
           setHasError(true);
           setIsLoaded(true); // hide skeleton even on error
+          onError?.();
         }}
       />
 
       {/* ── Shimmer keyframes injected inline so no global CSS needed ── */}
-      <style>{`
-        @keyframes product-image-shimmer {
-          0%   { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-      `}</style>
+      {showSkeleton && (
+        <style>{`
+          @keyframes product-image-shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+          }
+        `}</style>
+      )}
     </div>
   );
 }

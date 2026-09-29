@@ -33,6 +33,15 @@ export default function ProductCard({
   const isWishlisted = isInWishlist(product.id);
   const isSoldOut = product.stock === 0;
 
+  const primaryImage = product.images?.[0];
+  const secondaryImage = product.images?.[1];
+  const hasSecondaryImage = Boolean(
+    secondaryImage &&
+      typeof secondaryImage === "string" &&
+      secondaryImage.trim().length > 0 &&
+      secondaryImage !== primaryImage
+  );
+
   const addProduct = () => {
     if (isSoldOut) return;
     addItem({
@@ -91,14 +100,31 @@ export default function ProductCard({
         >
           {/* Product Image — uses ProductImage for skeleton + fallback */}
           <ProductImage
-            src={product.images[0]}
+            src={primaryImage}
             alt={product.name}
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            imageStyle={{
-              transform: isHovered && !isSoldOut ? "scale(1.06)" : "scale(1)",
-              transition: "transform 0.65s cubic-bezier(0.22,1,0.36,1)",
-            }}
           />
+
+          {/* Secondary Product Image on hover (instant swap, no zoom/animation) */}
+          {hasSecondaryImage && (
+            <div
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              style={{
+                opacity: isHovered ? 1 : 0,
+                transition: "none",
+              }}
+              aria-hidden="true"
+            >
+              <ProductImage
+                src={secondaryImage}
+                alt=""
+                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                showSkeleton={false}
+                fallbackSrc={null}
+                imageStyle={{ transition: "none" }}
+              />
+            </div>
+          )}
 
           {/* Bottom vignette */}
           <div
