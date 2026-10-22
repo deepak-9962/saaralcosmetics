@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/lib/cart";
+import { useAuth } from "@/lib/auth";
 
 const navItemsLeft = [
   { label: "Home", href: "/", icon: "home" },
@@ -23,11 +24,20 @@ function isActive(pathname: string, href: string) {
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const { itemCount } = useCart();
+  const { user, profile } = useAuth();
+
+  const accountHref = user ? "/account/dashboard" : "/account/login";
+  const accountLabel = user ? (profile?.full_name?.split(" ")[0] ?? "Account") : "Sign In";
+  const accountInitial = user ? (profile?.full_name || user.email || "?")[0].toUpperCase() : null;
 
   if (
     pathname.startsWith("/admin") ||
     pathname.startsWith("/checkout") ||
-    pathname.startsWith("/order-confirmation")
+    pathname.startsWith("/order-confirmation") ||
+    pathname.startsWith("/account/login") ||
+    pathname.startsWith("/account/register") ||
+    pathname.startsWith("/account/forgot-password") ||
+    pathname.startsWith("/account/reset-password")
   ) {
     return null;
   }
@@ -90,22 +100,25 @@ export default function MobileBottomNav() {
             );
           })}
 
-          {/* Elevated central raised button with leaf icon */}
+          {/* Elevated central raised button — Account */}
           <div className="flex justify-center row-start-1 col-start-3">
             <Link
-              href="/products"
+              href={accountHref}
               className="-translate-y-4 bg-gradient-to-br from-[#B06080] to-[#8B3A5E] text-white rounded-full h-13 w-13 shadow-[0_8px_20px_rgba(139,58,94,0.38)] border-[3px] border-[#FDF6F0] flex items-center justify-center transition-all duration-200 active:scale-90 shrink-0"
-              aria-label="Products category view"
+              aria-label={accountLabel}
             >
-              <span
-                className="material-symbols-outlined text-white"
-                style={{
-                  fontSize: "24px",
-                  fontVariationSettings: "'FILL' 1",
-                }}
-              >
-                spa
-              </span>
+              {accountInitial ? (
+                <span className="font-display text-white text-[18px] font-bold">
+                  {accountInitial}
+                </span>
+              ) : (
+                <span
+                  className="material-symbols-outlined text-white"
+                  style={{ fontSize: "22px", fontVariationSettings: "'FILL' 1" }}
+                >
+                  person
+                </span>
+              )}
             </Link>
           </div>
 

@@ -36,7 +36,7 @@ interface ProductImageProps {
 }
 
 /** The local fallback shown when src is null or the remote image fails to load. */
-const PLACEHOLDER_SRC = "/images/placeholder-product.webp";
+const PLACEHOLDER_SRC = "/images/card1.webp";
 
 export default function ProductImage({
   src,

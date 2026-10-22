@@ -93,7 +93,8 @@ export async function POST(request: NextRequest) {
     const name = (formData.get("name") as string | null)?.trim() ?? "";
     const description = (formData.get("description") as string | null)?.trim() ?? null;
     const priceRaw = formData.get("price") as string | null;
-    const category = (formData.get("category") as string | null) ?? "face-cream";
+    const categoryRaw = (formData.get("category") as string | null)?.trim() || "";
+    const categoryIdRaw = (formData.get("category_id") as string | null)?.trim() || null;
     const variantName = (formData.get("variant_name") as string | null)?.trim() || null;
     const comparePrice = formData.get("compare_price") as string | null;
     const ingredients = (formData.get("ingredients") as string | null)?.trim() || null;
@@ -136,12 +137,24 @@ export async function POST(request: NextRequest) {
       const comparePriceNum = comparePrice ? Number(comparePrice) : null;
       const slug = generateSlug(name, variantName ?? undefined);
 
+      let resolvedCategorySlug = categoryRaw;
+      let resolvedCategoryId = categoryIdRaw;
+
+      if (resolvedCategoryId && !resolvedCategorySlug) {
+        const { data: cat } = await supabase.from("categories").select("slug").eq("id", resolvedCategoryId).maybeSingle();
+        if (cat) resolvedCategorySlug = cat.slug;
+      } else if (!resolvedCategoryId && resolvedCategorySlug) {
+        const { data: cat } = await supabase.from("categories").select("id").eq("slug", resolvedCategorySlug).maybeSingle();
+        if (cat) resolvedCategoryId = cat.id;
+      }
+
       const { data: newProduct, error: insertError } = await supabase
         .from("products")
         .insert({
           name,
           slug,
-          category: category as Product["category"],
+          category: resolvedCategorySlug || "face-cream",
+          category_id: resolvedCategoryId,
           variant_name: variantName,
           price,
           compare_price: comparePriceNum && Number.isFinite(comparePriceNum) ? comparePriceNum : null,

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
+import { useAuth } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import PromoBanner from "@/components/layout/PromoBanner";
 
@@ -16,7 +17,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Shop", href: "/products" },
-  { label: "Collections", href: "/products?category=face-cream", badge: "NEW" },
+  { label: "Collections", href: "/products", badge: "NEW" },
   { label: "Blog", href: "/blog" },
   { label: "About Us", href: "/about" },
 ];
@@ -24,9 +25,12 @@ const navItems: NavItem[] = [
 export default function TopNavBar() {
   const { itemCount } = useCart();
   const { itemCount: wishlistCount } = useWishlist();
+  const { user, profile, signOut, isLoading: authLoading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchVal, setSearchVal] = useState("");
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
@@ -38,6 +42,24 @@ export default function TopNavBar() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Close account dropdown when clicking outside
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    }
+    if (accountMenuOpen) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [accountMenuOpen]);
+
+  const handleSignOut = async () => {
+    setAccountMenuOpen(false);
+    await signOut();
+    router.push("/");
+    router.refresh();
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -215,16 +237,74 @@ export default function TopNavBar() {
             )}
           </Link>
 
-          <Link
-            href="/admin"
-            className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-outline-variant text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50 transition-all duration-200 active:scale-95"
-            aria-label="Admin login"
-          >
-            <span className="material-symbols-outlined text-[20px]">
-              admin_panel_settings
-            </span>
-            <span className="font-body text-[13px] tracking-[0.04em]">Admin</span>
-          </Link>
+          {/* ── Account button (desktop) ── */}
+          {!authLoading && (
+            isMounted && user ? (
+              // Logged in — avatar dropdown
+              <div ref={accountMenuRef} className="relative hidden md:block">
+                <button
+                  onClick={() => setAccountMenuOpen((o) => !o)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-outline-variant/50 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 active:scale-95 cursor-pointer"
+                  aria-label="Account menu"
+                  aria-expanded={accountMenuOpen}
+                >
+                  <span className="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center font-display text-primary text-[12px] font-bold">
+                    {(profile?.full_name || user.email || "?")[0].toUpperCase()}
+                  </span>
+                  <span className="font-body text-[13px] text-on-surface max-w-[100px] truncate">
+                    {profile?.full_name?.split(" ")[0] || "Account"}
+                  </span>
+                  <span className="material-symbols-outlined text-on-surface-variant text-[16px]">
+                    {accountMenuOpen ? "expand_less" : "expand_more"}
+                  </span>
+                </button>
+
+                <AnimatePresence>
+                  {accountMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                      transition={{ duration: 0.18 }}
+                      className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-outline-variant/30 bg-surface-container-lowest shadow-lg overflow-hidden z-50"
+                    >
+                      <Link href="/account/dashboard" onClick={() => setAccountMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-3 font-body text-[13px] text-on-surface hover:bg-primary/5 transition-colors">
+                        <span className="material-symbols-outlined text-[18px] text-primary">dashboard</span>
+                        Dashboard
+                      </Link>
+                      <Link href="/account/orders" onClick={() => setAccountMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-3 font-body text-[13px] text-on-surface hover:bg-primary/5 transition-colors">
+                        <span className="material-symbols-outlined text-[18px] text-primary">receipt_long</span>
+                        My Orders
+                      </Link>
+                      <Link href="/account/profile" onClick={() => setAccountMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-3 font-body text-[13px] text-on-surface hover:bg-primary/5 transition-colors">
+                        <span className="material-symbols-outlined text-[18px] text-primary">person</span>
+                        Profile
+                      </Link>
+                      <div className="h-px bg-outline-variant/20 mx-3" />
+                      <button onClick={handleSignOut}
+                        className="w-full flex items-center gap-2.5 px-4 py-3 font-body text-[13px] text-error hover:bg-error/5 transition-colors cursor-pointer">
+                        <span className="material-symbols-outlined text-[18px]">logout</span>
+                        Sign Out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              // Logged out — Login button
+              <Link
+                href="/account/login"
+                className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-outline-variant text-on-surface-variant hover:text-primary hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 active:scale-95"
+                aria-label="Sign in to your account"
+              >
+                <span className="material-symbols-outlined text-[20px]">person</span>
+                <span className="font-body text-[13px] tracking-[0.04em]">Sign In</span>
+              </Link>
+            )
+          )}
         </div>
       </div>
 
@@ -360,6 +440,23 @@ export default function TopNavBar() {
                 >
                   <span className="material-symbols-outlined text-[24px]">favorite</span>
                   Wishlist
+                </Link>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: (navItems.length + 1) * 0.07, duration: 0.45 }}
+              >
+                <Link
+                  href={user ? "/account/dashboard" : "/account/login"}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`font-display text-[26px] block transition-colors flex items-center gap-2 ${
+                    pathname.startsWith("/account") ? "text-[#B06080] italic font-semibold" : "text-on-surface hover:text-[#B06080]"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[24px]">person</span>
+                  {user ? (profile?.full_name?.split(" ")[0] ? `Hi, ${profile.full_name.split(" ")[0]}` : "My Account") : "Sign In / Register"}
                 </Link>
               </motion.div>
             </div>

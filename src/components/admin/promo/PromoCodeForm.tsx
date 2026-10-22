@@ -5,20 +5,12 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import type { PromoCode } from "@/lib/types";
+import CategorySelector from "@/components/admin/CategorySelector";
 
 interface PromoCodeFormProps {
   /** If provided, we are editing an existing code */
   initialData?: PromoCode;
 }
-
-const CATEGORY_OPTIONS = [
-  { value: "face-cream", label: "Face Cream" },
-  { value: "face-wash", label: "Face Wash" },
-  { value: "soap", label: "Soap" },
-  { value: "nalangu-maavu", label: "Nalangu Maavu" },
-  { value: "oil", label: "Oil" },
-  { value: "balm", label: "Balm" },
-];
 
 function toDateInputValue(iso: string | null | undefined): string {
   if (!iso) return "";
@@ -287,19 +279,14 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
 
           {appliesTo === "category" && (
             <div className="mt-3">
-              <label className={labelClass}>Category</label>
-              <select
+              <label className={labelClass}>Target Category</label>
+              <CategorySelector
                 value={appliesToId}
-                onChange={(e) => setAppliesToId(e.target.value)}
-                className={`${inputClass} appearance-none`}
-              >
-                <option value="">Select category…</option>
-                {CATEGORY_OPTIONS.map((cat) => (
-                  <option key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </option>
-                ))}
-              </select>
+                valueMode="slug"
+                onChange={(_cat, slug) => setAppliesToId(slug)}
+                placeholder="Select category…"
+                required
+              />
             </div>
           )}
 

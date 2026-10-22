@@ -4,16 +4,17 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence, LayoutGroup, animate } from "framer-motion";
 import ProductCard from "@/components/product/ProductCard";
-import { CATEGORIES, type CategoryFilter, type Product } from "@/lib/types";
+import { CATEGORIES, type Category, type CategoryFilter, type Product } from "@/lib/types";
 
 type SortMode = "featured" | "price-low-high" | "price-high-low" | "name-a-z";
 type PriceFilter = "all-prices" | "under-500" | "500-999" | "1000-plus";
 
 interface ProductCatalogPanelProps {
   products: Product[];
+  categories?: Category[];
 }
 
-export default function ProductCatalogPanel({ products }: ProductCatalogPanelProps) {
+export default function ProductCatalogPanel({ products, categories = [] }: ProductCatalogPanelProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const activeCategory = (searchParams.get("category") as CategoryFilter) || "all";
@@ -101,12 +102,42 @@ export default function ProductCatalogPanel({ products }: ProductCatalogPanelPro
     (collectionParam ? 1 : 0) +
     (searchParam ? 1 : 0);
 
+  // Dynamic category tabs derived from DB categories with fallback
+  const allCategoryChips = useMemo(() => {
+    const list = [{ slug: "all", label: "All", icon: "apps" }];
+    if (categories && categories.length > 0) {
+      const iconMap: Record<string, string> = {
+        "face-cream": "spa",
+        "face-wash": "water_drop",
+        soap: "clean_hands",
+        "nalangu-maavu": "potted_plant",
+        oil: "opacity",
+        balm: "healing",
+        combos: "auto_awesome_motion",
+      };
+      categories.forEach((cat) => {
+        list.push({
+          slug: cat.slug,
+          label: cat.name,
+          icon: iconMap[cat.slug] || "category",
+        });
+      });
+    } else {
+      CATEGORIES.forEach((cat) => {
+        if (cat.slug !== "all") list.push(cat);
+      });
+    }
+    return list;
+  }, [categories]);
+
   // Filter and sort products
   const visibleProducts = useMemo(() => {
     let next = products.filter((p) => p.is_active !== false);
 
     if (activeCategory !== "all") {
-      next = next.filter((p) => p.category === activeCategory);
+      next = next.filter(
+        (p) => p.category === activeCategory || p.category_id === activeCategory
+      );
     }
 
     if (collectionParam) {
@@ -169,8 +200,9 @@ export default function ProductCatalogPanel({ products }: ProductCatalogPanelPro
       return `Results for "${searchParam}"`;
     }
     if (activeCategory === "all") return "All Products";
-    return CATEGORIES.find((c) => c.slug === activeCategory)?.label ?? "Products";
-  }, [collectionParam, searchParam, activeCategory]);
+    const found = allCategoryChips.find((c) => c.slug === activeCategory);
+    return found?.label ?? (activeCategory.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" "));
+  }, [collectionParam, searchParam, activeCategory, allCategoryChips]);
 
   const containerVariants = {
     hidden: {},
@@ -324,7 +356,7 @@ export default function ProductCatalogPanel({ products }: ProductCatalogPanelPro
             >
               <LayoutGroup id="cat-chips">
                 <div className="flex items-center gap-2 pt-2">
-                  {CATEGORIES.map((cat) => {
+                  {allCategoryChips.map((cat) => {
                     const isActive = activeCategory === cat.slug;
                     return (
                       <button
@@ -337,7 +369,7 @@ export default function ProductCatalogPanel({ products }: ProductCatalogPanelPro
                             cat.slug === "all" ? "/products" : `/products?category=${cat.slug}`;
                           router.push(nextUrl, { scroll: false });
                         }}
-                        className="relative shrink-0 flex items-center gap-1.5 h-8 px-3.5 rounded-full font-body text-[11px] tracking-[0.04em] transition-all duration-200 focus-visible:outline-none active:scale-95 cursor-pointer"
+                        className="relative shrink-0 flex items-center gap-1.5 h-8 px-3.5 rounded-full font-body text-[12px] tracking-[0.02em] transition-all duration-200 focus-visible:outline-none active:scale-95 cursor-pointer hover:text-[#8B3A5E]"
                         style={{
                           background: isActive
                             ? "linear-gradient(135deg, rgba(139,58,94,0.12) 0%, rgba(201,167,77,0.08) 100%)"
@@ -345,8 +377,8 @@ export default function ProductCatalogPanel({ products }: ProductCatalogPanelPro
                           border: isActive
                             ? "1.5px solid rgba(139,58,94,0.30)"
                             : "1.5px solid transparent",
-                          color: isActive ? "#8B3A5E" : "rgba(58,32,24,0.60)",
-                          fontWeight: isActive ? 600 : 400,
+                          color: isActive ? "#8B3A5E" : "#3A2018",
+                          fontWeight: isActive ? 600 : 500,
                         }}
                       >
                         {isActive && (
@@ -449,8 +481,8 @@ export default function ProductCatalogPanel({ products }: ProductCatalogPanelPro
                             background: isActive
                               ? "rgba(139,58,94,0.08)"
                               : "rgba(255,252,247,0.6)",
-                            color: isActive ? "#8B3A5E" : "rgba(58,32,24,0.60)",
-                            fontWeight: isActive ? 600 : 400,
+                            color: isActive ? "#8B3A5E" : "#3A2018",
+                            fontWeight: isActive ? 600 : 500,
                           }}
                         >
                           {opt.label}

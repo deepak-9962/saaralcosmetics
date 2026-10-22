@@ -1,93 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { HomepageCategory } from "@/lib/types";
 
-/* ─────────────────────────────────────────────
-   10-category data — desktop strip
-   Uses transparent-bg product head images for the
-   "floating product over pastel blob" aesthetic
-   matching MobileCategoryScroll.
-───────────────────────────────────────────── */
-const CATEGORIES = [
-  {
-    id: "face-wash",
-    label: "Face Wash",
-    img: "/images/head-facewash-duo.avif",
-    imgAlt: "Face Wash Collection — Saaral Cosmetics",
-    blobColor: "#C8DFF0",
-    blobColor2: "#B0CEEA",
-    href: "/products?category=face-wash",
-  },
-  {
-    id: "soaps",
-    label: "Soaps",
-    img: "/images/head3.avif",
-    imgAlt: "Botanical Soap — Saaral Cosmetics",
-    blobColor: "#F2D5C0",
-    blobColor2: "#EEC4A8",
-    href: "/products?category=soap",
-  },
-  {
-    id: "herbal-care",
-    label: "Herbal Care",
-    img: "/images/head4_v2.avif",
-    imgAlt: "Nalangu Maavu — Traditional Herbal Care, Saaral Cosmetics",
-    blobColor: "#F0E0A8",
-    blobColor2: "#E8D090",
-    href: "/products?category=nalangu-maavu",
-  },
-  {
-    id: "creams",
-    label: "Creams",
-    img: "/images/head2.avif",
-    imgAlt: "Premium Face Cream — Saaral Cosmetics",
-    blobColor: "#D0E8C8",
-    blobColor2: "#BCDCB0",
-    href: "/products?category=face-cream",
-  },
-  {
-    id: "vetpalai",
-    label: "Vetpalai",
-    img: "/images/head-vetpalai.avif",
-    imgAlt: "Vetpalai Soap Collection — Saaral Cosmetics",
-    blobColor: "#D8EAD2",
-    blobColor2: "#BFDCB4",
-    href: "/products?collection=vetpalai",
-  },
-  {
-    id: "oil",
-    label: "Oil",
-    img: "/images/head-oil.avif",
-    imgAlt: "Herbal Hair & Body Oil — Saaral Cosmetics",
-    blobColor: "#F4E3B2",
-    blobColor2: "#E8CD8A",
-    href: "/products?category=oil",
-  },
-  {
-    id: "balm",
-    label: "Balm",
-    img: "/images/head-balm.avif",
-    imgAlt: "Herbal Repair Balm — Saaral Cosmetics",
-    blobColor: "#E2ECD8",
-    blobColor2: "#C5DCB2",
-    href: "/products?category=balm",
-  },
-  {
-    id: "bestsellers",
-    label: "Best Sellers",
-    img: "/images/head3.avif",
-    imgAlt: "Best Selling Products — Saaral Cosmetics",
-    blobColor: "#F5E0C0",
-    blobColor2: "#EDD0A8",
-    href: "/products?collection=bestsellers",
-  },
-] as const;
+interface DesktopCategoryStripProps {
+  categories?: HomepageCategory[];
+}
 
-/* ─────────────────────────────────────────────
-   Server Component — pure CSS hover via Tailwind
-   "Floating product over pastel blob" pattern —
-   scaled for desktop with 8-item responsive grid.
-───────────────────────────────────────────── */
-export default function DesktopCategoryStrip() {
+export default function DesktopCategoryStrip({ categories = [] }: DesktopCategoryStripProps) {
+  if (!categories || categories.length === 0) {
+    return null;
+  }
+
   return (
     <section
       aria-label="Shop by Category"
@@ -112,40 +35,37 @@ export default function DesktopCategoryStrip() {
           </span>
         </div>
 
-        {/* ── 8-column category grid ── */}
+        {/* ── Category grid: calm, static, lightweight ── */}
         <div className="grid grid-cols-4 lg:grid-cols-8 gap-x-2 gap-y-6 lg:gap-y-0 justify-items-center">
-          {CATEGORIES.map((cat, index) => (
+          {categories.map((cat, index) => (
             <Link
               key={cat.id}
-              href={cat.href}
-              aria-label={`Browse ${cat.label}`}
+              href={cat.link_url || "/products"}
+              aria-label={`Browse ${cat.title}`}
               className="group flex flex-col items-center gap-2.5 cursor-pointer w-full"
             >
               {/*
-                Outer wrapper — overflow: visible so the tall product image
-                naturally floats above the blob circle, matching mobile style.
+                Outer wrapper: calm, steady presentation.
+                Subtle 2px hover elevation without bounce, oscillation, or excessive scaling.
               */}
               <div
-                className="relative flex items-end justify-center group-hover:-translate-y-[6px] transition-transform duration-[380ms]"
+                className="relative flex items-end justify-center transition-transform duration-200 ease-out group-hover:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none"
                 style={{
                   width: "126px",
                   height: "148px",
-                  transitionTimingFunction: "cubic-bezier(0.34,1.56,0.64,1)",
                 }}
               >
                 {/* Pastel blob circle — sits at bottom of wrapper */}
                 <div
                   aria-hidden="true"
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 group-hover:shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
+                  className="absolute bottom-0 left-1/2 -translate-x-1/2 transition-shadow duration-200 motion-reduce:transition-none group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]"
                   style={{
                     width: "112px",
                     height: "112px",
                     borderRadius: "50%",
-                    background: `radial-gradient(circle at 42% 52%, ${cat.blobColor} 0%, ${cat.blobColor2} 60%, rgba(255,255,255,0.45) 100%)`,
-                    boxShadow:
-                      "0 7px 22px rgba(0,0,0,0.07), 0 1px 0 rgba(255,255,255,0.9) inset",
+                    background: `radial-gradient(circle at 42% 52%, ${cat.blob_color || "#F2D5C0"} 0%, ${cat.blob_color2 || "#EEC4A8"} 60%, rgba(255,255,255,0.45) 100%)`,
+                    boxShadow: "0 4px 14px rgba(0,0,0,0.05), 0 1px 0 rgba(255,255,255,0.9) inset",
                     border: "1.5px solid rgba(255,255,255,0.80)",
-                    transition: "box-shadow 0.38s ease",
                   }}
                 >
                   {/* Inner highlight */}
@@ -159,30 +79,29 @@ export default function DesktopCategoryStrip() {
                   />
                 </div>
 
-                {/* Product image — transparent-bg PNG/AVIF, floats above blob */}
+                {/* Product image — static, calm, no bounce or aggressive zoom */}
                 <Image
-                  src={cat.img}
-                  alt={cat.imgAlt}
+                  src={cat.image_url}
+                  alt={cat.title}
                   width={104}
                   height={130}
                   {...(index === 0
                     ? { priority: true, fetchPriority: "high" as const }
                     : { loading: "lazy" as const })}
-                  className="relative z-10 group-hover:scale-[1.06] transition-transform duration-[380ms]"
+                  className="relative z-10"
                   style={{
                     objectFit: "contain",
                     objectPosition: "bottom",
                     maxHeight: "130px",
                     width: "auto",
-                    filter: "drop-shadow(0 7px 16px rgba(0,0,0,0.13))",
-                    transitionTimingFunction: "cubic-bezier(0.34,1.56,0.64,1)",
+                    filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.09))",
                   }}
                 />
               </div>
 
-              {/* Pill label — white bg, dusty-rose border, arrow */}
+              {/* Pill label — white bg, dusty-rose border, arrow with gentle color transition */}
               <div
-                className="flex items-center gap-1 px-3 py-[5px] transition-all duration-300 group-hover:border-[#D4A0B0]"
+                className="flex items-center gap-1 px-3 py-[5px] transition-all duration-200 group-hover:border-[#B06080] group-hover:bg-[#FFF9F7] motion-reduce:transition-none"
                 style={{
                   background: "#FFFFFF",
                   border: "1px solid #D4A0B0",
@@ -202,7 +121,7 @@ export default function DesktopCategoryStrip() {
                     lineHeight: 1,
                   }}
                 >
-                  {cat.label}
+                  {cat.title}
                 </span>
                 <svg
                   width="7"

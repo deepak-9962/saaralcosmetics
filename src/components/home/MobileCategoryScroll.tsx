@@ -1,96 +1,30 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { HomepageCategory } from "@/lib/types";
 
-/* ─────────────────────────────────────────────
-   Categories — circular blob backdrop + floating product image
-   Reference: product stands tall, overflows circle, no clip
-   head1 = Face Wash | head2 = Soap | head3 = Creams | head4 = Nalangu Maavu
-───────────────────────────────────────────── */
-const categories = [
-  {
-    name: "Face Wash",
-    href: "/products?category=face-wash",
-    image: "/images/head-facewash-duo.avif",
-    blobColor: "#C8DFF0",
-    blobColor2: "#B0CEEA",
-  },
-  {
-    name: "Soap",
-    href: "/products?category=soap",
-    image: "/images/head3.avif",
-    blobColor: "#F2D5C0",
-    blobColor2: "#EEC4A8",
-  },
-  {
-    name: "Herbal Care",
-    href: "/products?category=nalangu-maavu",
-    image: "/images/head4_v2.avif",
-    blobColor: "#F0E0A8",
-    blobColor2: "#E8D090",
-  },
-  {
-    name: "Creams",
-    href: "/products?category=face-cream",
-    image: "/images/head2.avif",
-    blobColor: "#D0E8C8",
-    blobColor2: "#BCDCB0",
-  },
-  {
-    name: "Vetpalai",
-    href: "/products?collection=vetpalai",
-    image: "/images/head-vetpalai.avif",
-    blobColor: "#D8EAD2",
-    blobColor2: "#BFDCB4",
-  },
-  {
-    name: "Oil",
-    href: "/products?category=oil",
-    image: "/images/head-oil.avif",
-    blobColor: "#F4E3B2",
-    blobColor2: "#E8CD8A",
-  },
-  {
-    name: "Balm",
-    href: "/products?category=balm",
-    image: "/images/head-balm.avif",
-    blobColor: "#E2ECD8",
-    blobColor2: "#C5DCB2",
-  },
-  {
-    name: "Best Sellers",
-    href: "/products?collection=bestsellers",
-    image: "/images/head3.avif",
-    blobColor: "#F5E0C0",
-    blobColor2: "#EDD0A8",
-  },
-];
+interface MobileCategoryScrollProps {
+  categories?: HomepageCategory[];
+}
 
-/* ─────────────────────────────────────────────
-   Individual Category Card
-   Layout: circle blob backdrop → product image floats freely above centre
-           → pill label below
-   The outer wrapper has overflow:visible so the tall product PNG
-   naturally overflows the circle top/sides, matching the reference.
-───────────────────────────────────────────── */
 function CategoryCard({
   cat,
   index,
 }: {
-  cat: (typeof categories)[number];
+  cat: HomepageCategory;
   index: number;
 }) {
   return (
     <Link
-      href={cat.href}
-      className="shrink-0 snap-center flex flex-col items-center active:scale-95 transition-transform duration-200"
+      href={cat.link_url || "/products"}
+      className="shrink-0 snap-center flex flex-col items-center active:scale-98 transition-transform duration-150 motion-reduce:transform-none"
       style={{ width: "90px" }}
     >
-      {/* Outer wrapper — overflow visible so product can float above circle */}
+      {/* Outer wrapper — steady, calm presentation */}
       <div
         className="relative flex items-end justify-center"
         style={{
           width: "82px",
-          height: "88px", /* tall enough for the overflowing product */
+          height: "88px",
           marginBottom: "4px",
         }}
       >
@@ -105,8 +39,8 @@ function CategoryCard({
             width: "72px",
             height: "72px",
             borderRadius: "50%",
-            background: `radial-gradient(circle at 42% 52%, ${cat.blobColor} 0%, ${cat.blobColor2} 60%, rgba(255,255,255,0.45) 100%)`,
-            boxShadow: "0 6px 20px rgba(0,0,0,0.07), 0 1px 0 rgba(255,255,255,0.9) inset",
+            background: `radial-gradient(circle at 42% 52%, ${cat.blob_color || "#F2D5C0"} 0%, ${cat.blob_color2 || "#EEC4A8"} 60%, rgba(255,255,255,0.45) 100%)`,
+            boxShadow: "0 4px 14px rgba(0,0,0,0.06), 0 1px 0 rgba(255,255,255,0.9) inset",
             border: "1.5px solid rgba(255,255,255,0.80)",
           }}
         >
@@ -123,10 +57,10 @@ function CategoryCard({
           />
         </div>
 
-        {/* Product image — no-background PNG, floats freely */}
+        {/* Product image — calm, clean */}
         <Image
-          src={cat.image}
-          alt={cat.name}
+          src={cat.image_url}
+          alt={cat.title}
           width={68}
           height={84}
           {...(index === 0
@@ -139,7 +73,7 @@ function CategoryCard({
             objectPosition: "bottom",
             maxHeight: "84px",
             width: "auto",
-            filter: "drop-shadow(0 6px 10px rgba(0,0,0,0.12))",
+            filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.10))",
           }}
         />
       </div>
@@ -167,7 +101,7 @@ function CategoryCard({
             lineHeight: 1,
           }}
         >
-          {cat.name}
+          {cat.title}
         </span>
         <svg
           width="8"
@@ -190,22 +124,22 @@ function CategoryCard({
   );
 }
 
-/* ─────────────────────────────────────────────
-   Main export — mobile only, horizontal scroll
-───────────────────────────────────────────── */
-export default function MobileCategoryScroll() {
+export default function MobileCategoryScroll({ categories = [] }: MobileCategoryScrollProps) {
+  if (!categories || categories.length === 0) {
+    return null;
+  }
+
   return (
     <div
       className="block md:hidden w-full"
       style={{ background: "#FDF6F0", paddingTop: "2px", paddingBottom: "0px" }}
     >
-      {/* Horizontal scroll — extra vertical padding for overflow */}
       <div
         className="overflow-x-auto no-scrollbar snap-x snap-mandatory flex gap-3 px-5"
         style={{ scrollPaddingLeft: "20px", paddingTop: "2px", paddingBottom: "10px" }}
       >
         {categories.map((cat, index) => (
-          <CategoryCard key={cat.name} cat={cat} index={index} />
+          <CategoryCard key={cat.id} cat={cat} index={index} />
         ))}
       </div>
     </div>

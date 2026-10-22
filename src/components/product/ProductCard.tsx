@@ -9,6 +9,7 @@ import { useWishlist } from "@/lib/wishlist";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 import ProductImage from "./ProductImage";
+import { useProductRatings } from "@/lib/useProductRatings";
 
 interface ProductCardProps {
   product: Product;
@@ -17,6 +18,7 @@ interface ProductCardProps {
   /** Extra badge shown stacked below showBadge (e.g. "HERBAL") */
   showSubBadge?: string;
   imageAspectClassName?: string;
+  rating?: { total_reviews: number; average_rating: number } | null;
 }
 
 export default function ProductCard({
@@ -25,7 +27,10 @@ export default function ProductCard({
   showBadge,
   showSubBadge,
   imageAspectClassName = "aspect-square",
+  rating: explicitRating,
 }: ProductCardProps) {
+  const { getRating } = useProductRatings();
+  const ratingData = explicitRating !== undefined ? explicitRating : getRating(product.id);
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
   const [quickViewOpen, setQuickViewOpen] = useState(false);
@@ -261,7 +266,7 @@ export default function ProductCard({
 
             {/* Product name */}
             <h3
-              className="font-display leading-tight mb-2 transition-colors duration-300"
+              className="font-display leading-tight mb-1.5 transition-colors duration-300"
               style={{
                 fontSize: "clamp(17px, 1.7vw, 22px)",
                 fontWeight: 600,
@@ -271,6 +276,35 @@ export default function ProductCard({
             >
               {product.name}
             </h3>
+
+            {/* Authoritative product rating & review count */}
+            {ratingData && ratingData.total_reviews > 0 && (
+              <div
+                className="flex items-center gap-1.5 mb-2"
+                aria-label={`${ratingData.average_rating} out of 5 stars based on ${ratingData.total_reviews} reviews`}
+              >
+                <div className="flex items-center text-[#D48B28] text-[12px] tracking-tight">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span
+                      key={i}
+                      className="material-symbols-outlined text-[13px]"
+                      style={{
+                        fontVariationSettings: `'FILL' ${i < Math.round(ratingData.average_rating) ? 1 : 0}`,
+                        color: i < Math.round(ratingData.average_rating) ? "#D48B28" : "rgba(212,184,168,0.6)",
+                      }}
+                    >
+                      star
+                    </span>
+                  ))}
+                </div>
+                <span className="font-body text-[11px] font-semibold text-on-surface">
+                  {ratingData.average_rating.toFixed(1)}
+                </span>
+                <span className="font-body text-[10.5px] text-on-surface-variant/75">
+                  ({ratingData.total_reviews})
+                </span>
+              </div>
+            )}
 
             {/* Spacer */}
             <div className="flex-grow" />

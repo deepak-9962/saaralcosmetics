@@ -15,7 +15,7 @@ const rituals = [
     href: "/products?category=face-cream",
     accent: "#B06080",
     accentLight: "rgba(176,96,128,0.15)",
-    tag: "Bestseller",
+    tag: "Signature Ritual",
     icon: "spa",
   },
   {
@@ -58,10 +58,30 @@ const rituals = [
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
+import type { HomepageCategory } from "@/lib/types";
+
+interface CuratedRitualsProps {
+  categories?: HomepageCategory[];
+}
+
 /* ─────────────────────────────────────────────
    MAIN SECTION
 ───────────────────────────────────────────── */
-export default function CuratedRituals() {
+export default function CuratedRituals({ categories = [] }: CuratedRitualsProps) {
+  const displayRituals = categories && categories.length > 0
+    ? categories.slice(0, 4).map((c, i) => ({
+        id: c.id,
+        name: c.title,
+        ritual: c.subtitle || "Ayurvedic Ritual",
+        story: `Handcrafted natural botanical formula for ${c.title.toLowerCase()}. Pure, traditional, and revitalizing.`,
+        image: c.image_url,
+        href: c.link_url || "/products",
+        accent: c.blob_color || (i === 0 ? "#B06080" : i === 1 ? "#7E6B9A" : i === 2 ? "#4A7C59" : "#C9A74D"),
+        accentLight: `${c.blob_color || "#B06080"}26`,
+        tag: i === 0 ? "Signature Ritual" : i === 1 ? "Daily Essential" : i === 2 ? "Handcrafted" : "Heritage Formula",
+        icon: ["spa", "water_drop", "local_florist", "auto_awesome"][i % 4],
+      }))
+    : rituals;
   return (
     <section
       className="relative w-full overflow-hidden"
@@ -127,14 +147,14 @@ export default function CuratedRituals() {
 
         {/* ── Desktop Grid: asymmetric 2-2 layout ── */}
         <div className="hidden md:grid md:grid-cols-4 gap-5">
-          {rituals.map((ritual, i) => (
+          {displayRituals.map((ritual, i) => (
             <RitualCard key={ritual.id} ritual={ritual} index={i} />
           ))}
         </div>
 
         {/* ── Mobile: horizontal scroll snap ── */}
         <div className="md:hidden -mx-5 px-5 overflow-x-auto no-scrollbar snap-x snap-mandatory flex gap-4 pb-2">
-          {rituals.map((ritual, i) => (
+          {displayRituals.map((ritual, i) => (
             <div
               key={ritual.id}
               className="snap-center shrink-0"

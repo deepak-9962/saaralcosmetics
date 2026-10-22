@@ -5,7 +5,6 @@ import Footer from "@/components/layout/Footer";
 import SupportChatFAB from "@/components/layout/SupportChatFAB";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import GradientBackground from "@/components/layout/GradientBackground";
-import ProductCard from "@/components/product/ProductCard";
 import CuratedRituals from "@/components/home/CuratedRituals";
 import GoldCurveDivider from "@/components/home/GoldCurveDivider";
 import LuxuryRibbon from "@/components/home/LuxuryRibbon";
@@ -16,17 +15,17 @@ import MobileTrustBar from "@/components/home/MobileTrustBar";
 import FadeIn from "@/components/layout/FadeIn";
 import dynamicImport from "next/dynamic";
 import DesktopCategoryStrip from "@/components/home/DesktopCategoryStrip";
+import ComboSection from "@/components/home/ComboSection";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const BestsellersCarousel = dynamicImport(() => import("@/components/home/BestsellersCarousel"));
 const TestimonialShowcase = dynamicImport(() => import("@/components/home/TestimonialShowcase"));
 const CustomerTransformations = dynamicImport(() => import("@/components/home/CustomerTransformations"));
 
 const DesktopBannerSlider = dynamicImport(() => import("@/components/home/DesktopBannerSlider"));
-import { listProducts } from "@/lib/supabase/data";
-import { Product } from "@/lib/types";
+import { listHeroSlides, listHomepageCategories, listCombos } from "@/lib/supabase/data";
+import type { HeroSlide, HomepageCategory, ComboWithProducts } from "@/lib/types";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -42,12 +41,6 @@ const trustSignals = [
   "Handcrafted in India", "No Harmful Chemicals", "Ancient Ayurvedic Wisdom",
 ];
 
-const categories = [
-  { name: "Face Cream", sub: "Nourish & Restore", image: "/images/cat-face-cream.webp", href: "/products?category=face-cream" },
-  { name: "Face Wash", sub: "Cleanse & Refresh", image: "/images/cat-face-wash.webp", href: "/products?category=face-wash" },
-  { name: "Soap", sub: "Purify & Soften", image: "/images/cat-soap.webp", href: "/products?category=soap" },
-  { name: "Nalangu Maavu", sub: "Heritage Ritual", image: "/images/cat-nalangu-maavu.webp", href: "/products?category=nalangu-maavu" },
-];
 
 const quickPromoTiles = [
   { title: "Products Under ₹499", subtitle: "Value Picks", href: "/products", tone: "from-[#E7F0E4] to-[#F4F9F2]" },
@@ -57,24 +50,6 @@ const quickPromoTiles = [
 ];
 
 
-
-const featuredBadges = ["Bestseller", "New Ritual", "Botanical Formula"];
-
-/* Sweeping organic arch SVG — responsive asymmetrical curve */
-function ScallopArch() {
-  const mobileD = "M0,55 C130,55 270,10 400,45";
-  const mobileFill = "M0,55 C130,55 270,10 400,45 L400,60 L0,60 Z";
-  
-  return (
-    <div className="block md:hidden w-full overflow-hidden pointer-events-none" style={{ marginTop: "-45px", height: "45px" }} aria-hidden="true">
-      <svg viewBox="0 0 400 60" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: "45px" }}>
-        <path d={mobileFill} fill="#FAF0EE" />
-        <path d={mobileD} fill="none" stroke="#C9A74D" strokeWidth="2.5" opacity="0.9" strokeLinecap="round" />
-        <path d={mobileD} fill="none" stroke="#FFFFFF" strokeWidth="1.0" opacity="0.95" strokeLinecap="round" />
-      </svg>
-    </div>
-  );
-}
 
 function ValuePicksSVG() {
   return (
@@ -135,13 +110,21 @@ function GenZFavouritesSVG() {
    MAIN HOMEPAGE (Server-Side rendered)
 ───────────────────────────────────────────── */
 export default async function HomePage() {
-  let bestsellingProducts: Product[] = [];
-  let productsError = null;
+  let heroSlides: HeroSlide[] = [];
+  let homepageCategories: HomepageCategory[] = [];
+  let combos: ComboWithProducts[] = [];
 
   try {
-    bestsellingProducts = await listProducts();
+    const [slidesRes, catsRes, combosRes] = await Promise.all([
+      listHeroSlides(true),
+      listHomepageCategories(true),
+      listCombos(true),
+    ]);
+    heroSlides = slidesRes;
+    homepageCategories = catsRes;
+    combos = combosRes;
   } catch (e) {
-    productsError = e instanceof Error ? e.message : "Failed to load products.";
+    console.error("Failed to load homepage data:", e);
   }
 
   return (
@@ -151,79 +134,37 @@ export default async function HomePage() {
 
       <main className="w-full flex-grow overflow-x-hidden">
 
-
         {/* ── MOBILE-ONLY: 1. Category Discovery Scroll — FIRST below nav ── */}
-        <MobileCategoryScroll />
+        <MobileCategoryScroll categories={homepageCategories} />
 
         {/* ── MOBILE-ONLY: 2. Hero Banner Slider — card style ── */}
-        <MobileHeroBanner />
+        <MobileHeroBanner slides={heroSlides} />
 
         {/* ── MOBILE-ONLY: 3. Social Proof Bar — stars + customers + India ── */}
         <MobileTrustBar />
-
-
 
         {/* ── MOBILE-ONLY: 5. Promotional Collection Grid — gradient cards ── */}
         <MobilePromoGrid />
 
         {/* ── DESKTOP ONLY: Category Showcase Strip ── */}
-        <DesktopCategoryStrip />
+        <DesktopCategoryStrip categories={homepageCategories} />
 
         {/* ── DESKTOP ONLY: Large Banner Slider ── */}
-        <DesktopBannerSlider />
-
-
+        <DesktopBannerSlider slides={heroSlides} />
 
         {/* ── LUXURY RIBBON ── */}
         <LuxuryRibbon />
 
         {/* ── CURATED RITUALS — desktop only (mobile has MobileCategoryScroll above) ── */}
         <div className="hidden md:block">
-          <CuratedRituals />
+          <CuratedRituals categories={homepageCategories} />
         </div>
 
         {/* ── GOLD CURVE DIVIDER ── */}
         <GoldCurveDivider />
 
-        {/* ── FEATURED PRODUCTS ── */}
-        <section className="relative w-full" style={{ background: "#FAF0EE" }}>
-          <ScallopArch />
-          <div className="max-w-[1280px] mx-auto px-5 md:px-[72px] pt-12 pb-4 md:pt-16 md:pb-6">
-            <FadeIn className="flex flex-col md:flex-row md:items-end justify-between mb-10 md:mb-14 gap-4" {...fadeUp(0)}>
-              <div>
-                <span className="label-caps text-[#C9A74D] block mb-3">The Ritual</span>
-                <h2 className="font-display text-[#2A1A14]" style={{ fontSize: "clamp(32px, 4vw, 52px)", lineHeight: 1.15, letterSpacing: "-0.01em" }}>
-                  Bestselling<br />Formulations
-                </h2>
-              </div>
-              <Link href="/products" className="label-caps text-[#B06080] inline-flex items-center gap-2 hover:gap-3 transition-all duration-300 group">
-                View All <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
-              </Link>
-            </FadeIn>
-            {productsError ? (
-              <p className="font-body text-error text-center">{productsError}</p>
-            ) : (
-              <BestsellersCarousel>
-                {bestsellingProducts.slice(0, 4).map((product, index) => {
-                  const badge = featuredBadges[index] ?? undefined;
-                  return (
-                    <div
-                      key={product.id}
-                      className="snap-center shrink-0 w-[260px] md:snap-align-none md:shrink md:w-auto h-full"
-                    >
-                      <ProductCard
-                        product={product}
-                        index={index}
-                        showBadge={badge}
-                        imageAspectClassName="aspect-[4/5]"
-                      />
-                    </div>
-                  );
-                })}
-              </BestsellersCarousel>
-            )}
-          </div>
-        </section>
+        {/* ── SIGNATURE COMBOS (Admin-Managed — Replaces Hardcoded/Bestsellers) ── */}
+        <ComboSection combos={combos} />
 
         {/* ── BANNER — desktop only ── */}
         <section
@@ -236,7 +177,7 @@ export default async function HomePage() {
               <source srcSet="/images/radiant-beauty.avif" type="image/avif" />
               <source srcSet="/images/radiant-beauty.webp" type="image/webp" />
               <img
-                src="/images/radiant-beauty.png"
+                src="/images/radiant-beauty.webp"
                 alt="Your New Ritual For Radiant Beauty — Saaral Cosmetics"
                 className="w-full h-auto block"
               />

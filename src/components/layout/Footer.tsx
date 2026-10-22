@@ -1,8 +1,20 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { listCategories } from "@/lib/supabase/data";
+import type { Category } from "@/lib/types";
 
 export default function Footer() {
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    listCategories(true)
+      .then((data) => {
+        if (data && data.length > 0) setCategories(data);
+      })
+      .catch(() => {});
+  }, []);
   return (
     <footer className="relative overflow-hidden pb-24 md:pb-0" style={{ background: "linear-gradient(160deg, #140808 0%, #1E0D10 50%, #120815 100%)" }}>
 
@@ -60,17 +72,35 @@ export default function Footer() {
         {/* Explore */}
         <div className="flex flex-col gap-3">
           <span className="label-caps text-white/60 mb-1">Explore</span>
-          {[
-            { label: "Shop All", href: "/products" },
-            { label: "Face Cream", href: "/products?category=face-cream" },
-            { label: "Face Wash", href: "/products?category=face-wash" },
-            { label: "Soap", href: "/products?category=soap" },
-            { label: "Nalangu Maavu", href: "/products?category=nalangu-maavu" },
-            { label: "Oil", href: "/products?category=oil" },
-            { label: "Balm", href: "/products?category=balm" },
-          ].map((l) => (
-            <Link key={l.label} href={l.href} className="font-body text-[15px] text-white/45 hover:text-[#B06080] transition-colors">{l.label}</Link>
-          ))}
+          <Link href="/products" className="font-body text-[15px] text-white/45 hover:text-[#B06080] transition-colors">
+            Shop All
+          </Link>
+          {categories.length > 0
+            ? categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/products?category=${cat.slug}`}
+                  className="font-body text-[15px] text-white/45 hover:text-[#B06080] transition-colors"
+                >
+                  {cat.name}
+                </Link>
+              ))
+            : [
+                { label: "Face Cream", href: "/products?category=face-cream" },
+                { label: "Face Wash", href: "/products?category=face-wash" },
+                { label: "Soap", href: "/products?category=soap" },
+                { label: "Nalangu Maavu", href: "/products?category=nalangu-maavu" },
+                { label: "Oil", href: "/products?category=oil" },
+                { label: "Balm", href: "/products?category=balm" },
+              ].map((l) => (
+                <Link
+                  key={l.label}
+                  href={l.href}
+                  className="font-body text-[15px] text-white/45 hover:text-[#B06080] transition-colors"
+                >
+                  {l.label}
+                </Link>
+              ))}
         </div>
 
         {/* Customer Care */}

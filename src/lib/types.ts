@@ -2,11 +2,31 @@
 // DATABASE TYPES
 // ============================================
 
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CategoryInput {
+  name: string;
+  slug?: string;
+  description?: string | null;
+  display_order?: number;
+  is_active?: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
   slug: string;
-  category: "face-cream" | "face-wash" | "soap" | "nalangu-maavu" | "oil" | "balm";
+  category: string;
+  category_id?: string | null;
   variant_name: string | null;
   price: number;
   compare_price: number | null;
@@ -59,6 +79,7 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
+  user_id?: string | null;
   order_number: string;
   customer_name: string;
   customer_phone: string;
@@ -99,6 +120,7 @@ export interface CartItem {
   quantity: number;
   image: string;
   slug: string;
+  is_combo?: boolean;
 }
 
 export interface CartState {
@@ -116,14 +138,7 @@ export interface WishlistState {
 // UI TYPES
 // ============================================
 
-export type CategoryFilter =
-  | "all"
-  | "face-cream"
-  | "face-wash"
-  | "soap"
-  | "nalangu-maavu"
-  | "oil"
-  | "balm";
+export type CategoryFilter = string;
 
 export interface CategoryInfo {
   slug: CategoryFilter;
@@ -139,6 +154,7 @@ export const CATEGORIES: CategoryInfo[] = [
   { slug: "nalangu-maavu", label: "Nalangu Maavu", icon: "potted_plant" },
   { slug: "oil", label: "Oil", icon: "opacity" },
   { slug: "balm", label: "Balm", icon: "healing" },
+  { slug: "combos", label: "Combos", icon: "auto_awesome_motion" },
 ];
 
 export const INDIAN_STATES = [
@@ -279,3 +295,195 @@ export interface AppliedPromo {
   discount_amount: number;
 }
 
+// ============================================
+// HOMEPAGE HERO SLIDES
+// ============================================
+
+export type DestinationType = "category" | "product" | "custom";
+
+export interface HeroSlide {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  description: string | null;
+  image_url: string;
+  mobile_image_url: string | null;
+  button_text: string | null;
+  button_link: string;
+  destination_type?: DestinationType;
+  destination_id?: string | null;
+  product_id?: string | null;
+  destination_category_id?: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HeroSlideInput {
+  title: string;
+  subtitle?: string | null;
+  description?: string | null;
+  image_url: string;
+  mobile_image_url?: string | null;
+  button_text?: string | null;
+  button_link?: string;
+  destination_type?: DestinationType;
+  destination_id?: string | null;
+  product_id?: string | null;
+  destination_category_id?: string | null;
+  display_order?: number;
+  is_active?: boolean;
+}
+
+// ============================================
+// HOMEPAGE CATEGORIES ("Shop by Category")
+// ============================================
+
+export interface HomepageCategory {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  image_url: string;
+  link_url: string;
+  category_slug: string | null;
+  category_id?: string | null;
+  destination_type?: DestinationType;
+  destination_id?: string | null;
+  product_id?: string | null;
+  blob_color: string | null;
+  blob_color2: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HomepageCategoryInput {
+  title: string;
+  subtitle?: string | null;
+  image_url: string;
+  link_url?: string;
+  category_slug?: string | null;
+  category_id?: string | null;
+  destination_type?: DestinationType;
+  destination_id?: string | null;
+  product_id?: string | null;
+  blob_color?: string | null;
+  blob_color2?: string | null;
+  display_order?: number;
+  is_active?: boolean;
+}
+
+// ============================================
+// COMBOS & COMBO ITEMS
+// ============================================
+
+export interface Combo {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  image_url: string;
+  price: number;
+  compare_price: number | null;
+  badge: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ComboItem {
+  id: string;
+  combo_id: string;
+  product_id: string;
+  quantity: number;
+  display_order: number;
+  created_at: string;
+}
+
+export interface ComboItemWithProduct extends ComboItem {
+  product: Product | null;
+}
+
+export interface ComboWithProducts extends Combo {
+  items: ComboItemWithProduct[];
+  isAvailable: boolean; // true if all included products are active and in stock
+}
+
+export interface ComboInput {
+  name: string;
+  slug?: string;
+  description?: string | null;
+  image_url: string;
+  price: number;
+  compare_price?: number | null;
+  badge?: string | null;
+  display_order?: number;
+  is_active?: boolean;
+  product_ids: { product_id: string; quantity?: number }[];
+}
+
+// ============================================
+// PRODUCT REVIEW TYPES
+// ============================================
+
+export type ReviewStatus = "pending" | "approved" | "rejected" | "hidden";
+
+export interface ProductReview {
+  id: string;
+  product_id: string;
+  customer_name: string;
+  customer_email: string | null;
+  customer_phone: string | null;
+  rating: number; // 1 to 5
+  title: string;
+  comment: string;
+  status: ReviewStatus;
+  verified_purchase: boolean;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductReviewWithProduct extends ProductReview {
+  product?: {
+    id: string;
+    name: string;
+    slug: string;
+    category: string;
+    images: string[];
+    price: number;
+  } | null;
+}
+
+export interface ProductReviewSummary {
+  product_id: string;
+  total_reviews: number;
+  average_rating: number;
+  five_star: number;
+  four_star: number;
+  three_star: number;
+  two_star: number;
+  one_star: number;
+}
+
+export interface ProductRatingSnapshot {
+  product_id: string;
+  total_reviews: number;
+  average_rating: number;
+}
+
+export interface ReviewInput {
+  product_id: string;
+  customer_name: string;
+  customer_email?: string | null;
+  customer_phone?: string | null;
+  rating: number;
+  title: string;
+  comment: string;
+  status?: ReviewStatus;
+  verified_purchase?: boolean;
+  admin_notes?: string | null;
+}

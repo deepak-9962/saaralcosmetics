@@ -10,12 +10,14 @@ import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import GradientBackground from "@/components/layout/GradientBackground";
 import { useCart } from "@/lib/cart";
+import { useAuth } from "@/lib/auth";
 import { createOrder, getActiveProductIds } from "@/lib/supabase/data";
 import { INDIAN_STATES } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
 export default function CheckoutPage() {
   const { items, total, clearCart, removeItem, appliedPromo, removePromo, applyPromo, isValidatingPromo, discountedTotal } = useCart();
+  const { user, profile } = useAuth();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -82,6 +84,18 @@ export default function CheckoutPage() {
     pincode: "",
   });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  // Prefill authenticated customer details if available
+  useEffect(() => {
+    if (user || profile) {
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || profile?.full_name || "",
+        phone: prev.phone || profile?.phone || "",
+        email: prev.email || user?.email || "",
+      }));
+    }
+  }, [user, profile]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -214,6 +228,7 @@ export default function CheckoutPage() {
 
       // 1. Create Supabase order first
       const order = await createOrder({
+        user_id: user?.id ?? null,
         customer_name: formData.name.trim(),
         customer_phone: formData.phone.trim(),
         customer_email: formData.email.trim() || null,
@@ -603,8 +618,13 @@ export default function CheckoutPage() {
                       <p className="font-body text-[16px] leading-[1.6] text-on-surface font-medium">
                         {item.name}
                       </p>
+                      {item.variant_name && (
+                        <p className="font-body text-[13px] leading-[1.4] text-on-surface-variant/70">
+                          {item.variant_name}
+                        </p>
+                      )}
                       <p className="font-body text-[14px] leading-[1.6] text-on-surface-variant">
-                        Qty: {item.quantity}
+                        {item.is_combo || item.variant_name === "Combo Pack" ? "Combo Packs" : "Qty"}: {item.quantity}
                       </p>
                     </div>
                     <p className="font-body text-[16px] leading-[1.6] text-on-surface">

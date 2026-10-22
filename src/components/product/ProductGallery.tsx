@@ -11,9 +11,10 @@ export type { GalleryImage };
 
 interface ProductGalleryProps {
   images: GalleryImage[];
+  badges?: string[];
 }
 
-export default function ProductGallery({ images }: ProductGalleryProps) {
+export default function ProductGallery({ images, badges }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -99,12 +100,27 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
             alt={currentImage.alt}
             fill
             priority={safeIndex === 0}
+            fetchPriority={safeIndex === 0 ? "high" : "auto"}
             className={[
               "object-cover transition-opacity duration-200 pointer-events-none",
               isTransitioning ? "opacity-0" : "opacity-100",
             ].join(" ")}
             sizes="(max-width: 768px) 100vw, 50vw"
           />
+
+          {/* ── TOP-LEFT BADGES (e.g. 100% Herbal, Cold-Pressed) ── */}
+          {badges && badges.length > 0 && (
+            <div className="absolute top-3.5 left-3.5 z-20 flex flex-wrap gap-1.5 pointer-events-none">
+              {badges.map((b, i) => (
+                <span
+                  key={i}
+                  className="px-2.5 sm:px-3 py-1 rounded-full bg-white/95 backdrop-blur-md border border-[#E8DEC8] font-body text-[10.5px] sm:text-[11px] font-semibold text-[#4A3326] shadow-xs tracking-tight"
+                >
+                  {b}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* ── INVISIBLE SPLIT-CLICK ZONES (LEFT 50% & RIGHT 50%) ─────────── */}
           {images.length > 1 && (

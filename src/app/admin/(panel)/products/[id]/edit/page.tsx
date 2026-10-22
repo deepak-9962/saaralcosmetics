@@ -7,10 +7,12 @@ import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import { getProductById, updateProduct } from "@/lib/supabase/data";
 import type { Product } from "@/lib/types";
+import CategorySelector from "@/components/admin/CategorySelector";
 
 type ProductFormState = {
   name: string;
-  category: Product["category"];
+  category: string;
+  category_id?: string | null;
   variant_name: string;
   price: string;
   compare_price: string;
@@ -46,6 +48,7 @@ export default function AdminEditProductPage() {
         setForm({
           name: product.name,
           category: product.category,
+          category_id: product.category_id ?? null,
           variant_name: product.variant_name ?? "",
           price: product.price.toString(),
           compare_price: product.compare_price?.toString() ?? "",
@@ -97,6 +100,7 @@ export default function AdminEditProductPage() {
       await updateProduct(productId, {
         name: form.name.trim(),
         category: form.category,
+        category_id: form.category_id || null,
         variant_name: form.variant_name.trim() || null,
         price: parsedPrice,
         compare_price: parsedComparePrice,
@@ -194,14 +198,21 @@ export default function AdminEditProductPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="font-body text-[11px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant uppercase">Category</label>
-              <select name="category" value={form.category} onChange={handleChange} className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body text-[15px] text-on-surface focus:outline-none focus:border-tertiary-container">
-                <option value="face-cream">Face Cream</option>
-                <option value="face-wash">Face Wash</option>
-                <option value="soap">Soap</option>
-                <option value="nalangu-maavu">Nalangu Maavu</option>
-                <option value="oil">Oil</option>
-                <option value="balm">Balm</option>
-              </select>
+              <CategorySelector
+                value={form.category_id || form.category}
+                onChange={(cat, val) => {
+                  setForm((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          category: cat?.slug || val,
+                          category_id: cat?.id || "",
+                        }
+                      : null
+                  );
+                }}
+                required
+              />
             </div>
             <div className="space-y-2">
               <label className="font-body text-[11px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant uppercase">Variant (e.g. 50g)</label>

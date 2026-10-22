@@ -25,9 +25,10 @@ import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import GradientBackground from "@/components/layout/GradientBackground";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/utils";
-import { getActiveProductIds, listProducts } from "@/lib/supabase/data";
+import { getActiveProductIds, listProducts, getCombosByIds } from "@/lib/supabase/data";
 import { MOCK_PRODUCTS } from "@/lib/products";
-import type { Product } from "@/lib/types";
+import type { Product, ComboWithProducts } from "@/lib/types";
+import ComboIncludedItems from "@/components/cart/ComboIncludedItems";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const FREE_SHIPPING_THRESHOLD = 999;
@@ -317,13 +318,63 @@ function TrustBadges() {
 export default function CartPage() {
   const { items, total, updateQuantity, removeItem, addItem, appliedPromo, discountedTotal } = useCart();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [combosMap, setCombosMap] = useState<Map<string, ComboWithProducts>>(new Map());
+  const [loadingCombos, setLoadingCombos] = useState(false);
+  const [expandedComboIds, setExpandedComboIds] = useState<Set<string>>(new Set());
   const validatedRef = useRef(false);
   const isCheckoutDisabled = process.env.NEXT_PUBLIC_CHECKOUT_MODE === "disabled";
+
+  const toggleComboExpanded = (comboId: string) => {
+    setExpandedComboIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(comboId)) {
+        next.delete(comboId);
+      } else {
+        next.add(comboId);
+      }
+      return next;
+    });
+  };
 
   const shippingCharge = discountedTotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_CHARGE;
   const amountNeeded = Math.max(0, FREE_SHIPPING_THRESHOLD - discountedTotal);
   const freeShippingProgress = Math.min(100, (discountedTotal / FREE_SHIPPING_THRESHOLD) * 100);
   const grandTotal = discountedTotal + shippingCharge;
+
+  // Load combo details for any combo items in cart
+  const itemIdsKey = items.map((i) => i.product_id).sort().join(",");
+  useEffect(() => {
+    if (items.length === 0) {
+      setCombosMap(new Map());
+      return;
+    }
+
+    const candidateIds = items
+      .filter((i) => i.is_combo || i.variant_name === "Combo Pack" || i.slug?.includes("combo"))
+      .map((i) => i.product_id);
+
+    // If no explicit candidate flag, check all item IDs just in case
+    const idsToQuery = candidateIds.length > 0 ? candidateIds : items.map((i) => i.product_id);
+
+    let active = true;
+    setLoadingCombos(true);
+
+    getCombosByIds(idsToQuery)
+      .then((map) => {
+        if (!active) return;
+        setCombosMap(map);
+      })
+      .catch((err) => {
+        console.error("Failed to load combo details:", err);
+      })
+      .finally(() => {
+        if (active) setLoadingCombos(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [itemIdsKey]);
 
   // Load all active products on mount to generate recommendations
   useEffect(() => {
@@ -451,6 +502,10 @@ export default function CartPage() {
                   <AnimatePresence>
                     {items.map((item, i) => {
                       const itemTotal = item.price * item.quantity;
+                      const combo = combosMap.get(item.product_id);
+                      const isCombo = item.is_combo || item.variant_name === "Combo Pack" || !!combo;
+                      const isExpanded = expandedComboIds.has(item.product_id);
+
                       return (
                         <motion.div
                           key={item.product_id}
@@ -458,48 +513,69 @@ export default function CartPage() {
                           variants={cardVariants}
                           layout
                           exit="exit"
-                          className="bg-white rounded-[20px] border border-[#ebebeb] p-3.5 flex gap-3"
+                          className="bg-white rounded-[20px] border border-[#ebebeb] p-3.5 flex flex-col gap-3"
                         >
-                          {/* Image */}
-                          <div className="relative w-[84px] h-[100px] rounded-[14px] bg-[#f5f5f5] overflow-hidden shrink-0">
-                            <Image src={item.image} alt={item.name} fill className="object-cover" sizes="84px" />
+                          <div className="flex gap-3">
+                            {/* Image */}
+                            <div className="relative w-[84px] h-[100px] rounded-[14px] bg-[#f5f5f5] overflow-hidden shrink-0">
+                              <Image src={item.image} alt={item.name} fill className="object-cover" sizes="84px" />
+                            </div>
+                            {/* Info */}
+                            <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+                              <p className="font-display text-[14px] font-semibold text-on-surface leading-snug line-clamp-2 tracking-tight">
+                                {item.name}
+                              </p>
+                              {item.variant_name && (
+                                <span className="font-body inline-block self-start px-2.5 py-0.5 rounded-full bg-[#f5f5f5] border border-[#e8e8e8] text-[10px] text-[#777] font-medium">
+                                  {item.variant_name}
+                                </span>
+                              )}
+                              <div className="mt-auto">
+                                {isCombo && (
+                                  <span className="block font-body text-[10px] text-on-surface-variant/70 mb-1 font-medium">
+                                    Combo quantity:
+                                  </span>
+                                )}
+                                <QuantityPill
+                                  value={item.quantity}
+                                  onDecrement={() => updateQuantity(item.product_id, item.quantity - 1)}
+                                  // eslint-disable-next-line react-hooks/exhaustive-deps
+                                  onIncrement={() => updateQuantity(item.product_id, item.quantity + 1)}
+                                />
+                              </div>
+                            </div>
+                            {/* Price + delete */}
+                            <div className="flex flex-col items-end justify-between shrink-0">
+                              <motion.button
+                                whileTap={{ scale: 0.8 }}
+                                onClick={() => removeItem(item.product_id)}
+                                className="w-7 h-7 rounded-full flex items-center justify-center bg-[#f5f5f5] hover:bg-red-50 text-[#bbb] hover:text-red-400 transition-colors duration-200"
+                                aria-label="Remove item"
+                              >
+                                <Trash2 size={13} strokeWidth={2} />
+                              </motion.button>
+                              <div className="text-right">
+                                <p className="font-body text-[16px] font-bold text-on-surface leading-tight">{formatPrice(itemTotal)}</p>
+                                {item.quantity > 1 && (
+                                  <p className="font-body text-[10px] text-on-surface-variant/50 mt-0.5">{formatPrice(item.price)} each</p>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          {/* Info */}
-                          <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-                            <p className="font-display text-[14px] font-semibold text-on-surface leading-snug line-clamp-2 tracking-tight">
-                              {item.name}
-                            </p>
-                            {item.variant_name && (
-                              <span className="font-body inline-block self-start px-2.5 py-0.5 rounded-full bg-[#f5f5f5] border border-[#e8e8e8] text-[10px] text-[#777] font-medium">
-                                {item.variant_name}
-                              </span>
-                            )}
-                            <div className="mt-auto">
-                              <QuantityPill
-                                value={item.quantity}
-                                onDecrement={() => updateQuantity(item.product_id, item.quantity - 1)}
-                                // eslint-disable-next-line react-hooks/exhaustive-deps
-                                onIncrement={() => updateQuantity(item.product_id, item.quantity + 1)}
+
+                          {/* Expandable Combo Included Items */}
+                          {isCombo && (
+                            <div className="border-t border-[#f0f0f0] pt-2.5">
+                              <ComboIncludedItems
+                                comboId={item.product_id}
+                                combo={combo}
+                                isLoading={loadingCombos && !combo}
+                                isExpanded={isExpanded}
+                                onToggle={() => toggleComboExpanded(item.product_id)}
+                                isMobile
                               />
                             </div>
-                          </div>
-                          {/* Price + delete */}
-                          <div className="flex flex-col items-end justify-between shrink-0">
-                            <motion.button
-                              whileTap={{ scale: 0.8 }}
-                              onClick={() => removeItem(item.product_id)}
-                              className="w-7 h-7 rounded-full flex items-center justify-center bg-[#f5f5f5] hover:bg-red-50 text-[#bbb] hover:text-red-400 transition-colors duration-200"
-                              aria-label="Remove item"
-                            >
-                              <Trash2 size={13} strokeWidth={2} />
-                            </motion.button>
-                            <div className="text-right">
-                              <p className="font-body text-[16px] font-bold text-on-surface leading-tight">{formatPrice(itemTotal)}</p>
-                              {item.quantity > 1 && (
-                                <p className="font-body text-[10px] text-on-surface-variant/50 mt-0.5">{formatPrice(item.price)} each</p>
-                              )}
-                            </div>
-                          </div>
+                          )}
                         </motion.div>
                       );
                     })}
@@ -648,58 +724,88 @@ export default function CartPage() {
                 </div>
 
                 <AnimatePresence>
-                  {items.map((item) => (
-                    <motion.div
-                      key={item.product_id}
-                      layout
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      className="py-3 border-b border-outline-variant/30"
-                    >
-                      {/* Desktop row */}
-                      <div className="grid grid-cols-12 gap-[var(--spacing-gutter)] items-center">
-                        {/* Product info */}
-                        <div className="col-span-6 flex gap-[var(--spacing-gutter)] items-center">
-                          <div className="w-24 h-32 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden relative">
-                            <Image
-                              src={item.image}
-                              alt={item.name}
-                              fill
-                              className="object-cover"
-                              sizes="96px"
+                  {items.map((item) => {
+                    const itemTotal = item.price * item.quantity;
+                    const combo = combosMap.get(item.product_id);
+                    const isCombo = item.is_combo || item.variant_name === "Combo Pack" || !!combo;
+                    const isExpanded = expandedComboIds.has(item.product_id);
+
+                    return (
+                      <motion.div
+                        key={item.product_id}
+                        layout
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="py-4 border-b border-outline-variant/30 flex flex-col gap-3"
+                      >
+                        {/* Desktop row */}
+                        <div className="grid grid-cols-12 gap-[var(--spacing-gutter)] items-start">
+                          {/* Product info */}
+                          <div className="col-span-6 flex gap-[var(--spacing-gutter)] items-start">
+                            <div className="w-24 h-32 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden relative">
+                              <Image
+                                src={item.image}
+                                alt={item.name}
+                                fill
+                                className="object-cover"
+                                sizes="96px"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-1 min-w-0 flex-1">
+                              <h3 className="font-display text-[22px] leading-[1.3] text-on-surface">{item.name}</h3>
+                              {item.variant_name && (
+                                <p className="font-body text-[14px] leading-[1.5] text-on-surface-variant">{item.variant_name}</p>
+                              )}
+                              {isCombo && (
+                                <div className="mt-1.5">
+                                  <ComboIncludedItems
+                                    comboId={item.product_id}
+                                    combo={combo}
+                                    isLoading={loadingCombos && !combo}
+                                    isExpanded={isExpanded}
+                                    onToggle={() => toggleComboExpanded(item.product_id)}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          {/* Qty */}
+                          <div className="col-span-3 flex flex-col items-center justify-center pt-2">
+                            {isCombo && (
+                              <span className="font-body text-[11px] text-on-surface-variant/70 mb-1.5 font-medium tracking-tight">
+                                Combo quantity
+                              </span>
+                            )}
+                            <QuantityBox
+                              value={item.quantity}
+                              onDecrement={() => updateQuantity(item.product_id, item.quantity - 1)}
+                              onIncrement={() => updateQuantity(item.product_id, item.quantity + 1)}
                             />
                           </div>
-                          <div className="flex flex-col gap-1">
-                            <h3 className="font-display text-[24px] leading-[1.4] text-on-surface">{item.name}</h3>
-                            <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant">{item.variant_name}</p>
+                          {/* Total */}
+                          <div className="col-span-2 text-right pt-2 font-body text-[18px] leading-[1.6] text-on-surface">
+                            {formatPrice(itemTotal)}
+                            {item.quantity > 1 && (
+                              <p className="font-body text-[11px] text-on-surface-variant/50">
+                                {formatPrice(item.price)} each
+                              </p>
+                            )}
+                          </div>
+                          {/* Remove */}
+                          <div className="col-span-1 flex justify-center pt-2">
+                            <button
+                              onClick={() => removeItem(item.product_id)}
+                              className="text-outline hover:text-error active:scale-75 transition-all duration-150 p-2"
+                              aria-label="Remove item"
+                            >
+                              <span className="material-symbols-outlined">close</span>
+                            </button>
                           </div>
                         </div>
-                        {/* Qty */}
-                        <div className="col-span-3 flex items-center justify-center">
-                          <QuantityBox
-                            value={item.quantity}
-                            onDecrement={() => updateQuantity(item.product_id, item.quantity - 1)}
-                            onIncrement={() => updateQuantity(item.product_id, item.quantity + 1)}
-                          />
-                        </div>
-                        {/* Total */}
-                        <div className="col-span-2 text-right font-body text-[18px] leading-[1.6] text-on-surface">
-                          {formatPrice(item.price * item.quantity)}
-                        </div>
-                        {/* Remove */}
-                        <div className="col-span-1 flex justify-center">
-                          <button
-                            onClick={() => removeItem(item.product_id)}
-                            className="text-outline hover:text-error active:scale-75 transition-all duration-150 p-2"
-                            aria-label="Remove item"
-                          >
-                            <span className="material-symbols-outlined">close</span>
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
                 </AnimatePresence>
 
                 {/* Dynamic similar products recommendation on desktop */}

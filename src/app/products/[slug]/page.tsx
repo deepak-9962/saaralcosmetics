@@ -7,8 +7,15 @@ import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import GradientBackground from "@/components/layout/GradientBackground";
 import ProductCard from "@/components/product/ProductCard";
 import ProductInteractivePanel from "@/components/product/ProductInteractivePanel";
-import { getProductBySlug, getProductVariants, listRelatedProducts } from "@/lib/supabase/data";
-import { Product } from "@/lib/types";
+import ProductReviewsSection from "@/components/product/ProductReviewsSection";
+import {
+  getProductBySlug,
+  getProductVariants,
+  listRelatedProducts,
+  getProductReviewSummary,
+  listProductReviews,
+} from "@/lib/supabase/data";
+import { Product, ProductReview, ProductReviewSummary } from "@/lib/types";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -58,15 +65,25 @@ export default async function ProductDetailPage({ params }: Props) {
   let product: Product | null = null;
   let variants: Product[] = [];
   let relatedProducts: Product[] = [];
+  let initialReviewSummary: ProductReviewSummary | null = null;
+  let initialReviews: ProductReview[] = [];
   let error = null;
 
   try {
     product = await getProductBySlug(slug);
 
     if (product) {
-      // Fetch siblings under the same core product name for variant sizes
-      variants = await getProductVariants(product.name);
-      relatedProducts = await listRelatedProducts(slug, product.category);
+      // Fetch variants, related products, and reviews in parallel
+      const [vars, related, reviewSum, reviewList] = await Promise.all([
+        getProductVariants(product.name),
+        listRelatedProducts(slug, product.category),
+        getProductReviewSummary(product.id).catch(() => null),
+        listProductReviews(product.id, { limit: 6, sort: "recent" }).catch(() => ({ reviews: [], total: 0 })),
+      ]);
+      variants = vars;
+      relatedProducts = related;
+      initialReviewSummary = reviewSum;
+      initialReviews = reviewList.reviews;
     } else {
       error = "Product not found.";
     }
@@ -108,6 +125,17 @@ export default async function ProductDetailPage({ params }: Props) {
           "@type": "Brand",
           "name": "Saaral Cosmetics"
         },
+        ...(initialReviewSummary && initialReviewSummary.total_reviews > 0
+          ? {
+              "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": initialReviewSummary.average_rating,
+                "reviewCount": initialReviewSummary.total_reviews,
+                "bestRating": "5",
+                "worstRating": "1"
+              }
+            }
+          : {}),
         "offers": {
           "@type": "Offer",
           "url": `${baseUrl}/products/${product.slug}`,
@@ -155,22 +183,41 @@ export default async function ProductDetailPage({ params }: Props) {
       <GradientBackground />
       <TopNavBar />
 
-      <main className="max-w-[var(--spacing-container-max)] mx-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-10 md:py-[var(--spacing-stack-lg)] pb-24 md:pb-[var(--spacing-stack-lg)] flex-grow">
-        {/* Breadcrumbs */}
-        <div className="mb-[var(--spacing-stack-md)] flex flex-wrap items-center gap-2 font-body text-[11px] md:text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
+      <main className="max-w-[var(--spacing-container-max)] mx-auto px-3.5 sm:px-5 md:px-[var(--spacing-margin-desktop)] py-4 sm:py-6 md:py-8 pb-24 md:pb-16 flex-grow">
+        {/* Breadcrumbs — sitting elegantly above the unified white card */}
+        <nav
+          aria-label="Breadcrumb"
+          className="mb-3.5 sm:mb-5 flex flex-wrap items-center gap-1.5 sm:gap-2 font-body text-[11px] sm:text-[12px] leading-[1.0] tracking-[0.06em] font-medium text-on-surface-variant/80"
+        >
           <Link href="/" className="hover:text-primary transition-colors">
             Home
           </Link>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+          <span className="material-symbols-outlined text-[13px] opacity-50 select-none">chevron_right</span>
           <Link href="/products" className="hover:text-primary transition-colors">
             Shop
           </Link>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-          <span className="text-on-surface truncate max-w-[180px] md:max-w-none">{product.name}</span>
-        </div>
+          <span className="material-symbols-outlined text-[13px] opacity-50 select-none">chevron_right</span>
+          <Link
+            href={`/products?category=${product.category}`}
+            className="hover:text-primary capitalize transition-colors"
+          >
+            {product.category.replace(/-/g, " ")}
+          </Link>
+          <span className="material-symbols-outlined text-[13px] opacity-50 select-none">chevron_right</span>
+          <span className="text-on-surface font-semibold truncate max-w-[150px] sm:max-w-xs md:max-w-none">
+            {product.name}
+          </span>
+        </nav>
 
         {/* Interactive Gallery & Details Section (Hydrated Client Leaf component) */}
         <ProductInteractivePanel initialProduct={product} variants={variants} />
+
+        {/* Customer Reviews & Ratings Section */}
+        <ProductReviewsSection
+          product={product}
+          initialSummary={initialReviewSummary}
+          initialReviews={initialReviews}
+        />
 
         {/* Related Products Grid (Server-side rendered) */}
         {relatedProducts.length > 0 && (

@@ -7,12 +7,14 @@ import Image from "next/image";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import type { Product } from "@/lib/types";
+import CategorySelector from "@/components/admin/CategorySelector";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type ProductFormState = {
   name: string;
-  category: Product["category"];
+  category: string;
+  category_id: string;
   variant_name: string;
   price: string;
   compare_price: string;
@@ -34,6 +36,7 @@ type ImageItem = {
 const initialState: ProductFormState = {
   name: "",
   category: "face-cream",
+  category_id: "",
   variant_name: "",
   price: "",
   compare_price: "",
@@ -182,6 +185,9 @@ export default function AdminAddProductPage() {
       imageItems.forEach((item, i) => fd.append(`file_${i}`, item.file));
       fd.append("name", form.name.trim());
       fd.append("category", form.category);
+      if (form.category_id) {
+        fd.append("category_id", form.category_id);
+      }
       fd.append("variant_name", form.variant_name.trim());
       fd.append("price", String(parsedPrice));
       fd.append("compare_price", form.compare_price || "");
@@ -289,19 +295,17 @@ export default function AdminAddProductPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className={labelClass}>Category</label>
-                <select
-                  name="category"
-                  value={form.category}
-                  onChange={handleChange}
-                  className={inputClass}
-                >
-                  <option value="face-cream">Face Cream</option>
-                  <option value="face-wash">Face Wash</option>
-                  <option value="soap">Soap</option>
-                  <option value="nalangu-maavu">Nalangu Maavu</option>
-                  <option value="oil">Oil</option>
-                  <option value="balm">Balm</option>
-                </select>
+                <CategorySelector
+                  value={form.category_id || form.category}
+                  onChange={(cat, val) => {
+                    setForm((prev) => ({
+                      ...prev,
+                      category: cat?.slug || val,
+                      category_id: cat?.id || "",
+                    }));
+                  }}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <label className={labelClass}>Variant</label>

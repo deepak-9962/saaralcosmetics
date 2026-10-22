@@ -13,6 +13,7 @@ import { deleteProductImages } from "@/lib/supabase/deleteProductImages";
 import { formatPrice } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 import ProductImage from "@/components/product/ProductImage";
+import CategorySelector from "@/components/admin/CategorySelector";
 
 function StockBadge({ stock }: { stock: number }) {
   if (stock === 0) return <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[11px] font-medium font-body">Out of Stock</span>;
@@ -53,7 +54,9 @@ export default function AdminProductsPage() {
   const filteredProducts = useMemo(() => {
     let result = [...products];
     if (categoryFilter !== "all") {
-      result = result.filter((p) => p.category === categoryFilter);
+      result = result.filter(
+        (p) => p.category === categoryFilter || p.category_id === categoryFilter
+      );
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -93,16 +96,6 @@ export default function AdminProductsPage() {
     }
   };
 
-  const categories = [
-    { value: "all", label: "All Categories" },
-    { value: "face-cream", label: "Face Cream" },
-    { value: "face-wash", label: "Face Wash" },
-    { value: "soap", label: "Soap" },
-    { value: "nalangu-maavu", label: "Nalangu Maavu" },
-    { value: "oil", label: "Oil" },
-    { value: "balm", label: "Balm" },
-  ];
-
   return (
     <div className="p-[var(--spacing-margin-mobile)] md:p-[var(--spacing-margin-desktop)] max-w-[var(--spacing-container-max)] mx-auto w-full flex-grow flex flex-col gap-[var(--spacing-stack-md)]">
       {/* Header */}
@@ -134,15 +127,15 @@ export default function AdminProductsPage() {
             className="w-full h-11 pl-11 pr-4 bg-surface-container-lowest border border-outline-variant rounded-xl font-body text-[14px] text-on-surface focus:outline-none focus:border-tertiary-container transition-all"
           />
         </div>
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="h-11 px-4 bg-surface-container-lowest border border-outline-variant rounded-xl font-body text-[14px] text-on-surface focus:outline-none focus:border-tertiary-container"
-        >
-          {categories.map((c) => (
-            <option key={c.value} value={c.value}>{c.label}</option>
-          ))}
-        </select>
+        <div className="w-full sm:w-56 shrink-0">
+          <CategorySelector
+            includeAllOption
+            allLabel="All Categories"
+            value={categoryFilter}
+            onChange={(_cat, val) => setCategoryFilter(val)}
+            className="!h-11 !py-2.5 !text-[14px]"
+          />
+        </div>
       </div>
 
       {error && <p className="font-body text-[14px] leading-[1.6] text-error border border-red-200 bg-red-50 rounded-lg p-3">{error}</p>}

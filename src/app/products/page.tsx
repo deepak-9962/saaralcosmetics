@@ -7,8 +7,8 @@ import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import GradientBackground from "@/components/layout/GradientBackground";
 import ProductCatalogPanel from "@/components/product/ProductCatalogPanel";
-import { listProducts } from "@/lib/supabase/data";
-import { Product } from "@/lib/types";
+import { listProducts, listCategories } from "@/lib/supabase/data";
+import { Product, Category } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -59,10 +59,16 @@ function CatalogSkeleton() {
 
 export default async function ProductsPage() {
   let products: Product[] = [];
+  let categories: Category[] = [];
   try {
-    products = await listProducts();
+    const [prodsData, catsData] = await Promise.all([
+      listProducts(),
+      listCategories(true),
+    ]);
+    products = prodsData;
+    categories = catsData;
   } catch (err) {
-    console.error("Failed to load products on server:", err);
+    console.error("Failed to load products/categories on server:", err);
   }
 
   return (
@@ -141,7 +147,7 @@ export default async function ProductsPage() {
               <source srcSet="/images/hero1.avif" type="image/avif" />
               <source srcSet="/images/hero1.webp" type="image/webp" />
               <img
-                src="/images/hero1.png"
+                src="/images/hero1.webp"
                 alt=""
                 className="h-full w-auto object-contain object-right-bottom"
               />
@@ -257,7 +263,7 @@ export default async function ProductsPage() {
         {/* ── INTERACTIVE CATALOG PANEL ── */}
         <div id="catalog">
           <Suspense fallback={<CatalogSkeleton />}>
-            <ProductCatalogPanel products={products} />
+            <ProductCatalogPanel products={products} categories={categories} />
           </Suspense>
         </div>
       </main>

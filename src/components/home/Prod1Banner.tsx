@@ -93,7 +93,7 @@ export default function Prod1Banner() {
         <source srcSet="/images/prod1.avif" type="image/avif" />
         <source srcSet="/images/prod1.webp" type="image/webp" />
         <img
-          src="/images/prod1.png"
+          src="/images/prod1.webp"
           alt="Saaral Skincare Ritual Products"
           className="h-full w-auto object-contain"
         />
