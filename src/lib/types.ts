@@ -487,3 +487,74 @@ export interface ReviewInput {
   verified_purchase?: boolean;
   admin_notes?: string | null;
 }
+
+// ============================================
+// CUSTOMER TRANSFORMATION & HOMEPAGE TESTIMONIAL TYPES
+// ============================================
+
+export interface CustomerTransformation {
+  id: string;
+  customer: string;
+  location: string | null;
+  duration: string;
+  product: string;
+  product_href: string;
+  product1_label: string;
+  product_href2: string | null;
+  product2_label: string | null;
+  concerns: string[];
+  result: string;
+  before_src: string | null;
+  after_src: string | null;
+  accent_color: string | null;
+  tag_label: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomerTransformationInput {
+  customer: string;
+  location?: string | null;
+  duration?: string;
+  product: string;
+  product_href?: string;
+  product1_label: string;
+  product_href2?: string | null;
+  product2_label?: string | null;
+  concerns?: string[];
+  result: string;
+  before_src?: string | null;
+  after_src?: string | null;
+  accent_color?: string | null;
+  tag_label?: string | null;
+  display_order?: number;
+  is_active?: boolean;
+}
+
+export interface HomepageTestimonial {
+  id: string;
+  name: string;
+  location: string | null;
+  rating: number;
+  avatar: string | null;
+  quote: string;
+  products: string[];
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HomepageTestimonialInput {
+  name: string;
+  location?: string | null;
+  rating?: number;
+  avatar?: string | null;
+  quote: string;
+  products?: string[];
+  display_order?: number;
+  is_active?: boolean;
+}
+

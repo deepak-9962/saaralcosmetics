@@ -24,8 +24,20 @@ const TestimonialShowcase = dynamicImport(() => import("@/components/home/Testim
 const CustomerTransformations = dynamicImport(() => import("@/components/home/CustomerTransformations"));
 
 const DesktopBannerSlider = dynamicImport(() => import("@/components/home/DesktopBannerSlider"));
-import { listHeroSlides, listHomepageCategories, listCombos } from "@/lib/supabase/data";
-import type { HeroSlide, HomepageCategory, ComboWithProducts } from "@/lib/types";
+import {
+  listHeroSlides,
+  listHomepageCategories,
+  listCombos,
+  listTransformations,
+  listHomepageTestimonials,
+} from "@/lib/supabase/data";
+import type {
+  HeroSlide,
+  HomepageCategory,
+  ComboWithProducts,
+  CustomerTransformation,
+  HomepageTestimonial,
+} from "@/lib/types";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -113,16 +125,22 @@ export default async function HomePage() {
   let heroSlides: HeroSlide[] = [];
   let homepageCategories: HomepageCategory[] = [];
   let combos: ComboWithProducts[] = [];
+  let transformations: CustomerTransformation[] = [];
+  let testimonials: HomepageTestimonial[] = [];
 
   try {
-    const [slidesRes, catsRes, combosRes] = await Promise.all([
+    const [slidesRes, catsRes, combosRes, transRes, testmRes] = await Promise.all([
       listHeroSlides(true),
       listHomepageCategories(true),
       listCombos(true),
+      listTransformations(true),
+      listHomepageTestimonials(true),
     ]);
     heroSlides = slidesRes;
     homepageCategories = catsRes;
     combos = combosRes;
+    transformations = transRes;
+    testimonials = testmRes;
   } catch (e) {
     console.error("Failed to load homepage data:", e);
   }
@@ -327,10 +345,10 @@ export default async function HomePage() {
 
 
         {/* ── CUSTOMER TRANSFORMATIONS — Before/After Results ── */}
-        <CustomerTransformations />
+        <CustomerTransformations items={transformations} />
 
         {/* ── TESTIMONIAL SHOWCASE ── */}
-        <TestimonialShowcase />
+        <TestimonialShowcase items={testimonials} />
 
         {/* ── PHILOSOPHY STRIP ── */}
         <section className="py-12 md:py-16 border-y" style={{ borderColor: "rgba(176,96,128,0.15)", background: "rgba(255,245,240,0.5)" }}>

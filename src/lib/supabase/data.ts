@@ -24,6 +24,10 @@ import type {
   ProductRatingSnapshot,
   ReviewInput,
   ReviewStatus,
+  CustomerTransformation,
+  CustomerTransformationInput,
+  HomepageTestimonial,
+  HomepageTestimonialInput,
 } from "@/lib/types";
 import { getSupabaseBrowserClient } from "./client";
 import type { Database, Json } from "./database.types";
@@ -2166,3 +2170,204 @@ export function subscribeToProductReviews(
     supabase.removeChannel(channel);
   };
 }
+
+// ============================================================
+// CUSTOMER TRANSFORMATIONS
+// ============================================================
+
+function normalizeCustomerTransformation(row: any): CustomerTransformation {
+  return {
+    id: row.id,
+    customer: row.customer || "",
+    location: row.location || null,
+    duration: row.duration || "6 weeks",
+    product: row.product || "",
+    product_href: row.product_href || "/products",
+    product1_label: row.product1_label || "View Product",
+    product_href2: row.product_href2 || null,
+    product2_label: row.product2_label || null,
+    concerns: Array.isArray(row.concerns) ? row.concerns : [],
+    result: row.result || "",
+    before_src: row.before_src || null,
+    after_src: row.after_src || null,
+    accent_color: row.accent_color || "#7A2040",
+    tag_label: row.tag_label || "Transformation",
+    display_order: row.display_order ?? 0,
+    is_active: row.is_active ?? true,
+    created_at: row.created_at || new Date().toISOString(),
+    updated_at: row.updated_at || new Date().toISOString(),
+  };
+}
+
+export async function listTransformations(onlyActive = true): Promise<CustomerTransformation[]> {
+  const supabase = getSupabaseBrowserClient() as any;
+  let query = supabase
+    .from("customer_transformations")
+    .select("*")
+    .order("display_order", { ascending: true });
+
+  if (onlyActive) {
+    query = query.eq("is_active", true);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error("Error listing customer transformations:", error);
+    return [];
+  }
+  return (data ?? []).map(normalizeCustomerTransformation);
+}
+
+export async function createTransformation(input: CustomerTransformationInput): Promise<CustomerTransformation> {
+  const supabase = getSupabaseBrowserClient() as any;
+  const { data, error } = await supabase
+    .from("customer_transformations")
+    .insert({
+      customer: input.customer,
+      location: input.location || null,
+      duration: input.duration || "6 weeks",
+      product: input.product,
+      product_href: input.product_href || "/products",
+      product1_label: input.product1_label,
+      product_href2: input.product_href2 || null,
+      product2_label: input.product2_label || null,
+      concerns: input.concerns || [],
+      result: input.result,
+      before_src: input.before_src || null,
+      after_src: input.after_src || null,
+      accent_color: input.accent_color || "#7A2040",
+      tag_label: input.tag_label || "Transformation",
+      display_order: input.display_order ?? 0,
+      is_active: input.is_active ?? true,
+    })
+    .select("*")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return normalizeCustomerTransformation(data);
+}
+
+export async function updateTransformation(id: string, input: Partial<CustomerTransformationInput>): Promise<CustomerTransformation> {
+  const supabase = getSupabaseBrowserClient() as any;
+  const payload: any = { ...input };
+  delete payload.id;
+  delete payload.created_at;
+  delete payload.updated_at;
+
+  const { data, error } = await supabase
+    .from("customer_transformations")
+    .update(payload)
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return normalizeCustomerTransformation(data);
+}
+
+export async function deleteTransformation(id: string): Promise<void> {
+  const supabase = getSupabaseBrowserClient() as any;
+  const { error } = await supabase.from("customer_transformations").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function reorderTransformations(ids: string[]): Promise<void> {
+  const supabase = getSupabaseBrowserClient() as any;
+  const updates = ids.map((id, index) =>
+    supabase.from("customer_transformations").update({ display_order: index }).eq("id", id)
+  );
+  await Promise.all(updates);
+}
+
+// ============================================================
+// HOMEPAGE TESTIMONIALS
+// ============================================================
+
+function normalizeHomepageTestimonial(row: any): HomepageTestimonial {
+  return {
+    id: row.id,
+    name: row.name || "",
+    location: row.location || null,
+    rating: row.rating ?? 5,
+    avatar: row.avatar || null,
+    quote: row.quote || "",
+    products: Array.isArray(row.products) ? row.products : [],
+    display_order: row.display_order ?? 0,
+    is_active: row.is_active ?? true,
+    created_at: row.created_at || new Date().toISOString(),
+    updated_at: row.updated_at || new Date().toISOString(),
+  };
+}
+
+export async function listHomepageTestimonials(onlyActive = true): Promise<HomepageTestimonial[]> {
+  const supabase = getSupabaseBrowserClient() as any;
+  let query = supabase
+    .from("homepage_testimonials")
+    .select("*")
+    .order("display_order", { ascending: true });
+
+  if (onlyActive) {
+    query = query.eq("is_active", true);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error("Error listing homepage testimonials:", error);
+    return [];
+  }
+  return (data ?? []).map(normalizeHomepageTestimonial);
+}
+
+export async function createHomepageTestimonial(input: HomepageTestimonialInput): Promise<HomepageTestimonial> {
+  const supabase = getSupabaseBrowserClient() as any;
+  const { data, error } = await supabase
+    .from("homepage_testimonials")
+    .insert({
+      name: input.name,
+      location: input.location || null,
+      rating: input.rating ?? 5,
+      avatar: input.avatar || null,
+      quote: input.quote,
+      products: input.products || [],
+      display_order: input.display_order ?? 0,
+      is_active: input.is_active ?? true,
+    })
+    .select("*")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return normalizeHomepageTestimonial(data);
+}
+
+export async function updateHomepageTestimonial(id: string, input: Partial<HomepageTestimonialInput>): Promise<HomepageTestimonial> {
+  const supabase = getSupabaseBrowserClient() as any;
+  const payload: any = { ...input };
+  delete payload.id;
+  delete payload.created_at;
+  delete payload.updated_at;
+
+  const { data, error } = await supabase
+    .from("homepage_testimonials")
+    .update(payload)
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return normalizeHomepageTestimonial(data);
+}
+
+export async function deleteHomepageTestimonial(id: string): Promise<void> {
+  const supabase = getSupabaseBrowserClient() as any;
+  const { error } = await supabase.from("homepage_testimonials").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function reorderHomepageTestimonials(ids: string[]): Promise<void> {
+  const supabase = getSupabaseBrowserClient() as any;
+  const updates = ids.map((id, index) =>
+    supabase.from("homepage_testimonials").update({ display_order: index }).eq("id", id)
+  );
+  await Promise.all(updates);
+}
+

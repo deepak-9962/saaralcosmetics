@@ -49,12 +49,30 @@ export const metadata: Metadata = {
     siteName: "Saaral Cosmetics",
     type: "website",
     locale: "en_IN",
+    images: [
+      {
+        url: "https://saaralcosmetics.com/images/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Saaral Cosmetics — Handcrafted 100% Natural Herbal Skincare",
+        type: "image/jpeg",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Saaral Cosmetics | Natural Herbal Skincare & Beauty Products",
     description:
       "Handcrafted 100% natural herbal skincare products in India. Shop organic soaps, face wash & foot repair balm.",
+    images: ["https://saaralcosmetics.com/images/og-image.jpg"],
+  },
+  icons: {
+    icon: [
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
   robots: {
     index: true,
@@ -94,7 +112,14 @@ export default function RootLayout({
                   "@id": "https://saaralcosmetics.com/#organization",
                   "name": "Saaral Cosmetics",
                   "url": "https://saaralcosmetics.com",
-                  "logo": "https://saaralcosmetics.com/images/explore-best-sellers.avif",
+                  "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://saaralcosmetics.com/images/logo-square.png",
+                    "width": 512,
+                    "height": 512,
+                    "caption": "Saaral Cosmetics Official Logo"
+                  },
+                  "image": "https://saaralcosmetics.com/images/logo-square.png",
                   "description": "Handcrafted 100% natural herbal skincare products rooted in traditional apothecary heritage.",
                   "sameAs": [
                     "https://www.instagram.com/saaralcosmetics",

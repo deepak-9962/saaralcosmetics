@@ -88,11 +88,11 @@ export default async function ProductsPage() {
 
         {/* ── MOBILE ONLY: Heading + shop1 banner ── */}
         <div className="block md:hidden">
-          <div className="px-4 pt-5 pb-4">
+          <div className="px-4 pt-4 pb-2.5">
             <h1
               className="font-display"
               style={{
-                fontSize: "clamp(22px, 6vw, 32px)",
+                fontSize: "clamp(20px, 5.5vw, 26px)",
                 color: "#1A0E0A",
                 letterSpacing: "-0.02em",
                 lineHeight: 1.15,
@@ -102,15 +102,14 @@ export default async function ProductsPage() {
               Herbal Skincare Rituals
             </h1>
           </div>
-          <div className="px-4 mb-0">
-            <div className="relative w-full overflow-hidden" style={{ borderRadius: "14px" }}>
+          <div className="px-4 mb-2">
+            <div className="relative w-full max-h-[160px] sm:max-h-[200px] overflow-hidden rounded-[14px]">
               <Image
                 src="/images/shop1.avif"
                 alt="Saaral Herbal Skincare Collection"
                 width={800}
                 height={400}
-                className="w-full h-auto block"
-                style={{ display: "block" }}
+                className="w-full h-[140px] sm:h-[180px] object-cover object-center block"
                 sizes="100vw"
                 priority
               />
@@ -118,10 +117,10 @@ export default async function ProductsPage() {
           </div>
         </div>
 
-        {/* ── DESKTOP ONLY: Original tall hero section ── */}
+        {/* ── DESKTOP ONLY: Compact editorial hero banner ── */}
         <section
-          className="relative hidden md:block w-full overflow-hidden"
-          style={{ minHeight: "clamp(360px, 45vh, 460px)" }}
+          className="relative hidden md:flex items-center w-full overflow-hidden"
+          style={{ minHeight: "380px", height: "clamp(390px, 42vh, 425px)", maxHeight: "435px" }}
           aria-label="Products hero"
         >
           {/* Warm ivory radial glow */}
@@ -142,14 +141,14 @@ export default async function ProductsPage() {
           />
 
           {/* Hero Background Image */}
-          <div className="absolute inset-0 pointer-events-none" style={{ transform: "translateX(3.5%)" }}>
-            <picture className="absolute right-0 bottom-0 h-full w-auto block select-none">
+          <div className="absolute inset-y-0 right-0 h-full w-1/2 lg:w-[55%] pointer-events-none select-none flex items-center justify-end" style={{ transform: "translateX(2%)" }}>
+            <picture className="h-full w-auto max-h-[425px] block select-none">
               <source srcSet="/images/hero1.avif" type="image/avif" />
               <source srcSet="/images/hero1.webp" type="image/webp" />
               <img
                 src="/images/hero1.webp"
-                alt=""
-                className="h-full w-auto object-contain object-right-bottom"
+                alt="Saaral Herbal Skincare Collection"
+                className="h-full w-auto max-h-[425px] object-contain object-right"
               />
             </picture>
           </div>
@@ -160,32 +159,32 @@ export default async function ProductsPage() {
             style={{
               backgroundImage: `linear-gradient(to right,
                 #FDF6F0 0%,
-                #FDF6F0 45%,
-                rgba(253,246,240,0.9) 55%,
-                rgba(253,246,240,0.3) 68%,
-                transparent 80%
+                #FDF6F0 42%,
+                rgba(253,246,240,0.92) 52%,
+                rgba(253,246,240,0.25) 68%,
+                transparent 82%
               )`,
             }}
           />
 
           {/* Content */}
-          <div className="relative z-10 max-w-[1280px] mx-auto px-[72px] pt-32 pb-32">
+          <div className="relative z-10 w-full max-w-[1280px] mx-auto px-6 md:px-12 lg:px-[72px] py-6 md:py-8">
             {/* Eyebrow */}
-            <div className="flex items-center gap-2.5 mb-5" style={{ animationDelay: "100ms" }}>
-              <div className="w-8 h-px bg-[#C9A74D]" />
-              <span className="font-body text-[#C9A74D] text-[11px] tracking-[0.22em] uppercase font-medium">
+            <div className="flex items-center gap-2.5 mb-2.5" style={{ animationDelay: "100ms" }}>
+              <div className="w-7 h-px bg-[#C9A74D]" />
+              <span className="font-body text-[#C9A74D] text-[10.5px] tracking-[0.22em] uppercase font-medium">
                 Saaral Herbal Collections
               </span>
-              <div className="w-8 h-px bg-[#C9A74D]" />
+              <div className="w-7 h-px bg-[#C9A74D]" />
             </div>
 
-            <div className="max-w-[50%]">
+            <div className="max-w-[56%] lg:max-w-[50%]">
               {/* Heading */}
               <h1
-                className="font-display mb-4"
+                className="font-display mb-2.5"
                 style={{
-                  fontSize: "clamp(26px, 5vw, 64px)",
-                  lineHeight: 1.15,
+                  fontSize: "clamp(26px, 3.2vw, 42px)",
+                  lineHeight: 1.14,
                   letterSpacing: "-0.025em",
                 }}
               >
@@ -196,19 +195,19 @@ export default async function ProductsPage() {
 
               {/* Subtitle */}
               <p
-                className="font-body text-[14px] leading-relaxed mb-6"
-                style={{ color: "rgba(42,26,20,0.60)", maxWidth: "30ch" }}
+                className="font-body text-[13.5px] leading-relaxed mb-4 md:mb-5"
+                style={{ color: "rgba(42,26,20,0.65)", maxWidth: "34ch" }}
               >
                 Inspired by traditional ingredients
                 <br />and crafted for modern skin needs.
               </p>
 
               {/* Inline perks */}
-              <div className="flex items-start gap-5">
+              <div className="flex items-start gap-4 lg:gap-5">
                 {[
                   {
                     svg: (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M12 2C12 2 4 7 4 14a8 8 0 0 0 16 0C20 7 12 2 12 2Z" stroke="#4A7C59" strokeWidth="1.5" fill="rgba(74,124,89,0.12)" strokeLinejoin="round" />
                         <path d="M12 6v8" stroke="#4A7C59" strokeWidth="1.2" strokeLinecap="round" />
                       </svg>
@@ -217,7 +216,7 @@ export default async function ProductsPage() {
                   },
                   {
                     svg: (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M12 3C12 3 5 6 5 12c0 3.87 3.13 7 7 7s7-3.13 7-7c0-6-7-9-7-9Z" stroke="#C9A74D" strokeWidth="1.4" fill="rgba(201,167,77,0.10)" />
                         <path d="M9 12l2 2 4-4" stroke="#C9A74D" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
@@ -226,7 +225,7 @@ export default async function ProductsPage() {
                   },
                   {
                     svg: (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <ellipse cx="12" cy="12" rx="9" ry="10" stroke="#8B3A5E" strokeWidth="1.4" fill="rgba(139,58,94,0.08)" />
                         <path d="M9 12l2 2 4-4" stroke="#8B3A5E" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
@@ -236,13 +235,13 @@ export default async function ProductsPage() {
                 ].map((perk) => (
                   <div key={perk.label} className="flex flex-col items-center gap-1 text-center">
                     <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center"
-                      style={{ background: "rgba(255,252,247,0.7)", border: "1px solid rgba(201,167,77,0.18)" }}
+                      className="w-8 h-8 lg:w-9 lg:h-9 rounded-full flex items-center justify-center shadow-xs"
+                      style={{ background: "rgba(255,252,247,0.75)", border: "1px solid rgba(201,167,77,0.18)" }}
                     >
                       {perk.svg}
                     </div>
                     <span
-                      className="font-body text-[10px] font-medium leading-tight whitespace-pre-line"
+                      className="font-body text-[9.5px] lg:text-[10px] font-medium leading-tight whitespace-pre-line"
                       style={{ color: "rgba(42,26,20,0.65)" }}
                     >
                       {perk.label}
@@ -255,7 +254,7 @@ export default async function ProductsPage() {
 
           {/* Bottom fade */}
           <div
-            className="absolute bottom-0 left-0 right-0 h-10 pointer-events-none"
+            className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none"
             style={{ background: "linear-gradient(to bottom, transparent, rgba(253,246,240,0.8))" }}
           />
         </section>

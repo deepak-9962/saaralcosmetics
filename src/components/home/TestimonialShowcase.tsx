@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import type { HomepageTestimonial } from "@/lib/types";
 
 const getProductLink = (name: string) => {
   const cleanName = name.trim().toLowerCase();
@@ -236,13 +237,48 @@ const PALETTE_SEQ: number[] = [
   5, 2, 0, 6, 3, 1, 4, 5, 6, 2,
 ];
 
-const LOOP = [...BASE, ...BASE, ...BASE].map((t, i) => ({
-  ...t,
-  uid: `${t.id}-${i}`,
-  paletteIdx: PALETTE_SEQ[i % PALETTE_SEQ.length],
-}));
+export type LoopItem = {
+  id: string | number;
+  name: string;
+  location: string;
+  rating: number;
+  avatar: string;
+  quote: string;
+  products: string[];
+  uid: string;
+  paletteIdx: number;
+};
 
-type LoopItem = (typeof LOOP)[0];
+function mapDbTestimonial(t: HomepageTestimonial, idx: number) {
+  return {
+    id: t.id || idx + 1,
+    name: t.name,
+    location: t.location || "",
+    rating: t.rating || 5,
+    avatar:
+      t.avatar ||
+      `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(
+        t.name.toLowerCase().replace(/\s+/g, "")
+      )}&backgroundColor=ffd9b8`,
+    quote: t.quote,
+    products: t.products || [],
+  };
+}
+
+function buildLoopItems(baseItems: { id: string | number; name: string; location: string; rating: number; avatar: string; quote: string; products: string[] }[]): LoopItem[] {
+  const repeatCount = Math.max(2, Math.ceil(30 / Math.max(1, baseItems.length)));
+  const repeated: typeof baseItems = [];
+  for (let r = 0; r < repeatCount; r++) {
+    repeated.push(...baseItems);
+  }
+  return repeated.map((t, i) => ({
+    ...t,
+    uid: `${t.id}-${i}`,
+    paletteIdx: PALETTE_SEQ[i % PALETTE_SEQ.length],
+  }));
+}
+
+const DEFAULT_LOOP = buildLoopItems(BASE);
 
 /* ─────────────────────────────────────────────
    LAYOUT CONSTANTS
@@ -289,7 +325,7 @@ function AvatarImage({
   style,
   loading = "lazy",
 }: {
-  id: number;
+  id: string | number;
   name: string;
   dicebearUrl: string;
   width: number;
@@ -297,22 +333,30 @@ function AvatarImage({
   style?: React.CSSProperties;
   loading?: "lazy" | "eager";
 }) {
-  /* Cycle through 8 local avatars (1–8) using testimonial id */
-  const localNum = (id % 8) + 1; // 1 to 8
-  const localUrl = `/images/testimonials/avatar-${localNum}.avif`;
-  
-  const [imgSrc, setImgSrc] = useState(localUrl);
+  const numericId =
+    typeof id === "number"
+      ? id
+      : Math.abs(String(id).split("").reduce((acc, c) => acc + c.charCodeAt(0), 0));
+  const isCustomUploaded =
+    dicebearUrl &&
+    (dicebearUrl.includes("supabase.co") ||
+      (dicebearUrl.startsWith("/images/") && !dicebearUrl.includes("testimonials/avatar-")));
+  const localNum = (numericId % 8) + 1; // 1 to 8
+  const defaultLocalUrl = `/images/testimonials/avatar-${localNum}.avif`;
+  const initialSrc = isCustomUploaded ? dicebearUrl : defaultLocalUrl;
+
+  const [imgSrc, setImgSrc] = useState(initialSrc);
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    setImgSrc(localUrl);
+    setImgSrc(isCustomUploaded ? dicebearUrl : defaultLocalUrl);
     setHasError(false);
-  }, [localUrl]);
+  }, [dicebearUrl, isCustomUploaded, defaultLocalUrl]);
 
   const onError = () => {
     if (!hasError) {
       setHasError(true);
-      setImgSrc(dicebearUrl);
+      setImgSrc(dicebearUrl || defaultLocalUrl);
     }
   };
 
@@ -621,13 +665,19 @@ function TestimonialModal({
    RAF loop — pauses on hover, resumes on leave.
    Click "Read Story" → calls onOpenModal(item).
 ───────────────────────────────────────────── */
-function FanTrack({ onOpenModal }: { onOpenModal: (item: LoopItem) => void }) {
+function FanTrack({
+  onOpenModal,
+  loopItems = DEFAULT_LOOP,
+}: {
+  onOpenModal: (item: LoopItem) => void;
+  loopItems?: LoopItem[];
+}) {
   const containerRef  = useRef<HTMLDivElement>(null);
   const rafRef        = useRef<number | null>(null);
   const lastTimeRef   = useRef<number | null>(null);
   const offsetRef     = useRef(0);
   const isPausedRef   = useRef(false);
-  const N = LOOP.length; // 19 * 3 = 57
+  const N = loopItems.length;
 
   // Dragging and Touch Swipe References
   const isDraggingRef = useRef(false);
@@ -792,7 +842,7 @@ function FanTrack({ onOpenModal }: { onOpenModal: (item: LoopItem) => void }) {
         touchAction: "pan-y",
       }}
     >
-      {LOOP.map((t, i) => {
+      {loopItems.map((t, i) => {
         const p = PALETTES[t.paletteIdx];
         return (
           <div
@@ -1190,14 +1240,25 @@ function TestimonialSkeleton() {
   );
 }
 
+interface TestimonialShowcaseProps {
+  items?: HomepageTestimonial[];
+}
+
 /* ─────────────────────────────────────────────
    ROOT SECTION EXPORT
    Manages modal state and deferred carousel mounting.
 ───────────────────────────────────────────── */
-export default function TestimonialShowcase() {
+export default function TestimonialShowcase({ items = [] }: TestimonialShowcaseProps) {
   const [modalItem, setModalItem] = useState<LoopItem | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const loopItems = useMemo(() => {
+    if (items && items.length > 0) {
+      return buildLoopItems(items.map(mapDbTestimonial));
+    }
+    return DEFAULT_LOOP;
+  }, [items]);
 
   // Restore scroll position when user navigates back to homepage
   useEffect(() => {
@@ -1281,7 +1342,7 @@ export default function TestimonialShowcase() {
       <div style={{ height: "clamp(36px, 4.5vw, 60px)" }} />
 
       {hasInteracted ? (
-        <FanTrack onOpenModal={setModalItem} />
+        <FanTrack loopItems={loopItems} onOpenModal={setModalItem} />
       ) : (
         <TestimonialSkeleton />
       )}

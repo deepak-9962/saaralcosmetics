@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import GradientBackground from "@/components/layout/GradientBackground";
@@ -37,8 +38,14 @@ function SidebarContent({
       {/* Branding */}
       <div className="mb-[var(--spacing-stack-md)] px-4 mt-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-sm shadow-md">
-            S
+          <div className="w-10 h-10 rounded-full bg-[#FDF6F0] border border-[#C9A74D]/30 flex items-center justify-center p-1 shadow-sm overflow-hidden flex-shrink-0">
+            <Image
+              src="/images/logo.webp"
+              alt="Saaral"
+              width={40}
+              height={40}
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
             <h2 className="font-display text-[22px] leading-[1.3] text-primary">Saaral</h2>

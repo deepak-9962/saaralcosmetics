@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
@@ -126,21 +127,36 @@ export default function TopNavBar() {
           {/* Logo — desktop: inline with hamburger, mobile: hidden here (shown in center) */}
           <Link
             href="/"
-            className="hidden md:block font-display text-on-surface tracking-tight transition-all duration-200 active:scale-98"
-            style={{ fontSize: "clamp(28px, 4.5vw, 36px)", fontWeight: 700 }}
+            className="hidden md:flex items-center transition-transform duration-200 hover:opacity-90 active:scale-98 py-1"
+            aria-label="Saaral Cosmetics Home"
           >
-            Saaral
+            <Image
+              src="/images/logo.webp"
+              alt="Saaral Cosmetics"
+              width={160}
+              height={104}
+              priority
+              fetchPriority="high"
+              className="h-[46px] lg:h-[52px] w-auto object-contain"
+            />
           </Link>
         </div>
 
         {/* CENTER — Logo (mobile only, absolutely centered) */}
         <Link
           href="/"
-          className="md:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-display text-on-surface tracking-tight transition-all duration-200 active:scale-95"
-          style={{ fontSize: "27px", fontWeight: 700, letterSpacing: "-0.02em" }}
-          aria-label="Saaral Cosmetics home"
+          className="md:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center transition-transform duration-200 active:scale-95 py-1"
+          aria-label="Saaral Cosmetics Home"
         >
-          Saaral
+          <Image
+            src="/images/logo.webp"
+            alt="Saaral Cosmetics"
+            width={130}
+            height={85}
+            priority
+            fetchPriority="high"
+            className="h-[38px] w-auto object-contain"
+          />
         </Link>
 
         {/* CENTER — Nav links (desktop only, absolute) */}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { listCategories } from "@/lib/supabase/data";
 import type { Category } from "@/lib/types";
 
@@ -28,7 +29,20 @@ export default function Footer() {
 
         {/* Brand */}
         <div className="md:col-span-2">
-          <h3 className="font-display text-white text-[28px] leading-tight mb-3">Saaral Cosmetics</h3>
+          <Link
+            href="/"
+            className="inline-flex items-center py-2 px-4 rounded-2xl bg-[#FDF6F0] border border-[#C9A74D]/40 shadow-[0_4px_20px_rgba(0,0,0,0.28)] mb-5 hover:scale-[1.02] hover:border-[#C9A74D]/70 transition-all duration-200"
+            aria-label="Saaral Cosmetics Home"
+          >
+            <Image
+              src="/images/logo.webp"
+              alt="Saaral Cosmetics"
+              width={140}
+              height={91}
+              className="h-11 w-auto object-contain"
+            />
+          </Link>
+          <h3 className="font-display text-white text-[26px] leading-tight mb-3">Saaral Cosmetics</h3>
           <p className="font-body text-white/45 text-[14px] leading-relaxed max-w-sm mb-6">
             Pure. Natural. You. Heritage-inspired botanical formulations for mindful daily self-care. Crafted with love in Tamil Nadu, India.
           </p>

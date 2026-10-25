@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
+import type { CustomerTransformation } from "@/lib/types";
 
 /* ─────────────────────────────────────────────
    TYPES
@@ -610,10 +611,46 @@ function TrustStat({ value, label, delay }: { value: string; label: string; dela
   );
 }
 
+function mapDbTransformation(t: CustomerTransformation): Transformation {
+  return {
+    id: t.id,
+    customer: t.customer,
+    location: t.location || "",
+    duration: t.duration || "6 weeks",
+    product: t.product,
+    productHref: t.product_href || "/products",
+    product1Label: t.product1_label || "View Product",
+    productHref2: t.product_href2 || undefined,
+    product2Label: t.product2_label || undefined,
+    concerns: t.concerns || [],
+    result: t.result,
+    beforeSrc: t.before_src || undefined,
+    afterSrc: t.after_src || undefined,
+    beforeBg: "linear-gradient(135deg, #C8B8A8 0%, #B0A090 100%)",
+    afterBg: "linear-gradient(135deg, #DDD0C0 0%, #CCBCAA 100%)",
+    accentColor: t.accent_color || "#7A2040",
+    tagLabel: t.tag_label || "Transformation",
+    tagIcon: (
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="5" />
+        <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+      </svg>
+    ),
+  };
+}
+
+interface CustomerTransformationsProps {
+  items?: CustomerTransformation[];
+}
+
 /* ─────────────────────────────────────────────
    MAIN EXPORT
 ───────────────────────────────────────────── */
-export default function CustomerTransformations() {
+export default function CustomerTransformations({ items = [] }: CustomerTransformationsProps) {
+  const displayItems: Transformation[] = items && items.length > 0
+    ? items.map(mapDbTransformation)
+    : TRANSFORMATIONS;
+
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "start",
@@ -776,7 +813,7 @@ export default function CustomerTransformations() {
         {/* ── Infinite carousel — active on all screen sizes ── */}
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex items-stretch" style={{ gap: "0px" }}>
-            {TRANSFORMATIONS.map((item, i) => (
+            {displayItems.map((item, i) => (
               <div
                 key={item.id}
                 className="flex-[0_0_100%] min-w-0 px-2 md:flex-[0_0_calc(33.333%-18px)] md:mx-[9px] flex flex-col"
@@ -812,7 +849,7 @@ export default function CustomerTransformations() {
 
           {/* Dot indicators */}
           <div className="flex items-center gap-2">
-            {TRANSFORMATIONS.map((_, index) => (
+            {displayItems.map((_, index) => (
               <button
                 key={index}
                 onClick={() => emblaApi?.scrollTo(index)}

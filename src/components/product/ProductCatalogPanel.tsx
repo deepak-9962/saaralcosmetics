@@ -230,7 +230,7 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
   return (
     <div ref={panelRef}>
       {/* ── STICKY FILTER BAR (DermaCo style) ── */}
-      <div className="sticky top-[84px] md:top-[98px] z-30 w-full">
+      <div className="sticky top-[56px] md:top-[68px] z-30 w-full">
         <div
           style={{
             background: "rgba(253,246,240,0.97)",
@@ -498,11 +498,11 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
       </div>
 
       {/* ── PRODUCT GRID SECTION ── */}
-      <div className="max-w-[1280px] mx-auto px-4 md:px-[72px] pt-4 pb-12">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-[72px] pt-3 pb-12">
 
         {/* Product count line */}
         <p
-          className="font-body text-[12px] mb-5 md:mb-6"
+          className="font-body text-[12px] mb-3 md:mb-4"
           style={{ color: "rgba(42,26,20,0.50)" }}
         >
           <span style={{ fontWeight: 600, color: "rgba(42,26,20,0.75)" }}>
