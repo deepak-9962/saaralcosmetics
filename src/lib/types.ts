@@ -272,6 +272,7 @@ export interface PromoBannerCode {
   discount_type: DiscountType;
   discount_value: number;
   max_discount_cap: number | null;
+  expires_at?: string | null;
 }
 
 /** Returned by /api/promo/validate */

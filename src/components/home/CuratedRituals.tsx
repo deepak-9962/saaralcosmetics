@@ -1,107 +1,85 @@
+"use client";
+
 import Link from "next/link";
-import RitualCard from "./RitualCard";
+import RitualCard, { type RitualItem } from "./RitualCard";
 import FadeIn from "@/components/layout/FadeIn";
+import type { HomepageCategory } from "@/lib/types";
 
 /* ─────────────────────────────────────────────
-   DATA
+   CURATED RITUALS DATA — EXACT REFERENCE LAYOUT
+   1. Face Wash    (Cleanse & Refresh) - Pastel Blue #EEF4FD
+   2. Soaps        (Purify & Soften)   - Pastel Peach #FDF2EA
+   3. Herbal Care  (Heritage Ritual)   - Pastel Cream #FAF4E6
+   4. Creams       (Nourish & Restore) - Pastel Sage  #EEF8F1
 ───────────────────────────────────────────── */
-const rituals = [
-  {
-    id: "face-cream",
-    name: "Face Cream",
-    ritual: "Morning Radiance",
-    story: "A slow-pour of botanical actives that restore luminosity while you sleep and protect through the day.",
-    image: "/images/cat-face-cream.webp",
-    href: "/products?category=face-cream",
-    accent: "#B06080",
-    accentLight: "rgba(176,96,128,0.15)",
-    tag: "Signature Ritual",
-    icon: "spa",
-  },
+const defaultRituals: RitualItem[] = [
   {
     id: "face-wash",
     name: "Face Wash",
-    ritual: "Cleansing Ceremony",
-    story: "Ancient botanicals meet fresh-water clarity — a ritual that resets the skin's natural balance.",
-    image: "/images/cat-face-wash.webp",
+    subtitle: "CLEANSE & REFRESH",
+    image: "/images/head-facewash-duo.webp",
     href: "/products?category=face-wash",
-    accent: "#7E6B9A",
-    accentLight: "rgba(126,107,154,0.15)",
-    tag: "Daily Essential",
+    bg: "#EEF4FD",
+    icon: "spa",
+  },
+  {
+    id: "soaps",
+    name: "Soaps",
+    subtitle: "PURIFY & SOFTEN",
+    image: "/images/cat-soap.webp",
+    href: "/products?category=soap",
+    bg: "#FDF2EA",
     icon: "water_drop",
   },
   {
-    id: "soap",
-    name: "Botanical Soap",
-    ritual: "Purifying Ritual",
-    story: "Cold-pressed, handcrafted bars that lather with intention and leave skin irresistibly soft.",
-    image: "/images/cat-soap.webp",
-    href: "/products?category=soap",
-    accent: "#4A7C59",
-    accentLight: "rgba(74,124,89,0.15)",
-    tag: "Handcrafted",
+    id: "herbal-care",
+    name: "Herbal Care",
+    subtitle: "HERITAGE RITUAL",
+    image: "/images/cat-nalangu-maavu.webp",
+    href: "/products?category=nalangu-maavu",
+    bg: "#FAF4E6",
     icon: "local_florist",
   },
   {
-    id: "nalangu-maavu",
-    name: "Nalangu Maavu",
-    ritual: "Heritage Ceremony",
-    story: "A 2,000-year-old Tamil Nadu bridal tradition — turmeric, sandalwood, and pulse flour in harmony.",
-    image: "/images/cat-nalangu-maavu.webp",
-    href: "/products?category=nalangu-maavu",
-    accent: "#C9A74D",
-    accentLight: "rgba(201,167,77,0.18)",
-    tag: "Heritage Formula",
+    id: "creams",
+    name: "Creams",
+    subtitle: "NOURISH & RESTORE",
+    image: "/images/cat-face-cream.webp",
+    href: "/products?category=face-cream",
+    bg: "#EEF8F1",
     icon: "auto_awesome",
   },
 ];
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-import type { HomepageCategory } from "@/lib/types";
-
 interface CuratedRitualsProps {
   categories?: HomepageCategory[];
 }
 
-/* ─────────────────────────────────────────────
-   MAIN SECTION
-───────────────────────────────────────────── */
 export default function CuratedRituals({ categories = [] }: CuratedRitualsProps) {
-  const displayRituals = categories && categories.length > 0
-    ? categories.slice(0, 4).map((c, i) => ({
-        id: c.id,
-        name: c.title,
-        ritual: c.subtitle || "Ayurvedic Ritual",
-        story: `Handcrafted natural botanical formula for ${c.title.toLowerCase()}. Pure, traditional, and revitalizing.`,
-        image: c.image_url,
-        href: c.link_url || "/products",
-        accent: c.blob_color || (i === 0 ? "#B06080" : i === 1 ? "#7E6B9A" : i === 2 ? "#4A7C59" : "#C9A74D"),
-        accentLight: `${c.blob_color || "#B06080"}26`,
-        tag: i === 0 ? "Signature Ritual" : i === 1 ? "Daily Essential" : i === 2 ? "Handcrafted" : "Heritage Formula",
-        icon: ["spa", "water_drop", "local_florist", "auto_awesome"][i % 4],
-      }))
-    : rituals;
+  // Use curated 4-card collection matching the reference design
+  const displayRituals: RitualItem[] = defaultRituals;
+
   return (
     <section
       className="relative w-full overflow-hidden"
       style={{
         background: "#ffffff",
-        padding: "80px 0 96px",
+        padding: "72px 0 88px",
       }}
     >
-
       <div className="relative z-10 max-w-[1280px] mx-auto px-5 md:px-[72px]">
         {/* ── Section Header ── */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 md:mb-16 gap-6">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-10 md:mb-14 gap-6">
           <FadeIn
-            initial={{ opacity: 0, y: 32 }}
+            initial={{ opacity: 0, y: 28 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.7, ease }}
           >
             {/* Eyebrow */}
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-3">
               <div className="w-8 h-px bg-[#C9A74D]" />
               <span className="label-caps text-[#C9A74D]">Shop By Category</span>
             </div>
@@ -110,8 +88,8 @@ export default function CuratedRituals({ categories = [] }: CuratedRitualsProps)
             <h2
               className="font-display text-[#2A1A14]"
               style={{
-                fontSize: "clamp(36px, 5vw, 60px)",
-                lineHeight: 1.06,
+                fontSize: "clamp(34px, 4.5vw, 56px)",
+                lineHeight: 1.08,
                 letterSpacing: "-0.02em",
               }}
             >
@@ -124,8 +102,8 @@ export default function CuratedRituals({ categories = [] }: CuratedRitualsProps)
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.6, delay: 0.2, ease }}
-            className="flex flex-col gap-3"
+            transition={{ duration: 0.6, delay: 0.15, ease }}
+            className="flex flex-col gap-2.5"
           >
             <p
               className="font-body text-[#5A3A2C]/65 text-[14px] leading-relaxed md:text-right"
@@ -145,64 +123,68 @@ export default function CuratedRituals({ categories = [] }: CuratedRitualsProps)
           </FadeIn>
         </div>
 
-        {/* ── Desktop Grid: asymmetric 2-2 layout ── */}
-        <div className="hidden md:grid md:grid-cols-4 gap-5">
+        {/* ── Desktop Grid: 4 horizontal cards in a single row ── */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
           {displayRituals.map((ritual, i) => (
             <RitualCard key={ritual.id} ritual={ritual} index={i} />
           ))}
         </div>
 
-        {/* ── Mobile: horizontal scroll snap ── */}
-        <div className="md:hidden -mx-5 px-5 overflow-x-auto no-scrollbar snap-x snap-mandatory flex gap-4 pb-2">
+        {/* ── Mobile: horizontal swipe scroll snap ── */}
+        <div className="md:hidden -mx-5 px-5 overflow-x-auto no-scrollbar snap-x snap-mandatory flex gap-3.5 pb-2">
           {displayRituals.map((ritual, i) => (
             <div
               key={ritual.id}
               className="snap-center shrink-0"
-              style={{ width: "72vw", maxWidth: "280px" }}
+              style={{ width: "82vw", maxWidth: "340px" }}
             >
               <RitualCard ritual={ritual} index={i} />
             </div>
           ))}
         </div>
 
-        {/* ── Bottom editorial strip ── */}
+        {/* ── Bottom Editorial Trust Bar (Matching Reference Screenshot) ── */}
         <FadeIn
-          className="mt-14 md:mt-16 flex flex-wrap items-center justify-center gap-8 md:gap-14"
-          initial={{ opacity: 0, y: 20 }}
+          className="mt-12 md:mt-16 pt-8 border-t border-black/[0.05] flex flex-wrap items-center justify-center gap-6 sm:gap-8 md:gap-12"
+          initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.5 }}
-          transition={{ duration: 0.65, delay: 0.3, ease }}
+          transition={{ duration: 0.65, delay: 0.25, ease }}
         >
           {[
             { icon: "spa", label: "100% Natural" },
             { icon: "pets", label: "Cruelty Free" },
             { icon: "handyman", label: "Handmade" },
             { icon: "eco", label: "Ethically Sourced" },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className="flex items-center gap-2.5"
-            >
-              <div
-                className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-                style={{
-                  background: "rgba(176,96,128,0.1)",
-                  border: "1px solid rgba(176,96,128,0.2)",
-                }}
-              >
-                <span
-                  className="material-symbols-outlined text-[14px]"
-                  style={{ color: "#B06080" }}
+          ].map((item, idx) => (
+            <div key={item.label} className="flex items-center gap-4 sm:gap-6 md:gap-10">
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                  style={{
+                    background: "rgba(176,96,128,0.12)",
+                    border: "1px solid rgba(176,96,128,0.22)",
+                  }}
                 >
-                  {item.icon}
+                  <span
+                    className="material-symbols-outlined text-[14px]"
+                    style={{ color: "#B06080" }}
+                  >
+                    {item.icon}
+                  </span>
+                </div>
+                <span
+                  className="font-body text-[11px] sm:text-[11.5px] font-bold tracking-[0.14em] uppercase"
+                  style={{ color: "#4A2F25" }}
+                >
+                  {item.label}
                 </span>
               </div>
-              <span
-                className="font-body text-[12px] tracking-[0.1em] uppercase"
-                style={{ color: "#5A3A2C", opacity: 0.7 }}
-              >
-                {item.label}
-              </span>
+
+              {/* Vertical divider line between items (except last) */}
+              {idx < 3 && (
+                <div className="hidden sm:block w-px h-4 bg-black/10 shrink-0" />
+              )}
             </div>
           ))}
         </FadeIn>
