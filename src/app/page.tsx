@@ -30,6 +30,7 @@ import {
   listCombos,
   listTransformations,
   listHomepageTestimonials,
+  listHomepagePromoCards,
 } from "@/lib/supabase/data";
 import type {
   HeroSlide,
@@ -37,6 +38,7 @@ import type {
   ComboWithProducts,
   CustomerTransformation,
   HomepageTestimonial,
+  HomepagePromoCard,
 } from "@/lib/types";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -127,20 +129,23 @@ export default async function HomePage() {
   let combos: ComboWithProducts[] = [];
   let transformations: CustomerTransformation[] = [];
   let testimonials: HomepageTestimonial[] = [];
+  let promoCards: HomepagePromoCard[] = [];
 
   try {
-    const [slidesRes, catsRes, combosRes, transRes, testmRes] = await Promise.all([
+    const [slidesRes, catsRes, combosRes, transRes, testmRes, promoCardsRes] = await Promise.all([
       listHeroSlides(true),
       listHomepageCategories(true),
       listCombos(true),
       listTransformations(true),
       listHomepageTestimonials(true),
+      listHomepagePromoCards(true),
     ]);
     heroSlides = slidesRes;
     homepageCategories = catsRes;
     combos = combosRes;
     transformations = transRes;
     testimonials = testmRes;
+    promoCards = promoCardsRes;
   } catch (e) {
     console.error("Failed to load homepage data:", e);
   }
@@ -161,8 +166,8 @@ export default async function HomePage() {
         {/* ── MOBILE-ONLY: 3. Social Proof Bar — stars + customers + India ── */}
         <MobileTrustBar />
 
-        {/* ── MOBILE-ONLY: 5. Promotional Collection Grid — gradient cards ── */}
-        <MobilePromoGrid />
+        {/* ── MOBILE-ONLY: 5. Promotional Collection Grid — gradient cards (Admin Managed) ── */}
+        <MobilePromoGrid cards={promoCards} />
 
         {/* ── DESKTOP ONLY: Category Showcase Strip ── */}
         <DesktopCategoryStrip categories={homepageCategories} />

@@ -559,3 +559,42 @@ export interface HomepageTestimonialInput {
   is_active?: boolean;
 }
 
+export type BotanicalAccentType = "leaf" | "flower" | "herb" | "lavender" | "none";
+
+export interface HomepagePromoCard {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  link_url: string;
+  destination_type: DestinationType;
+  destination_id: string | null;
+  product_id?: string | null;
+  category_id?: string | null;
+  bg_color: string;
+  accent_color: string;
+  botanical_accent: BotanicalAccentType;
+  badge_text?: string | null;
+  has_arrow: boolean;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HomepagePromoCardInput {
+  title: string;
+  subtitle?: string | null;
+  link_url?: string;
+  destination_type?: DestinationType;
+  destination_id?: string | null;
+  product_id?: string | null;
+  category_id?: string | null;
+  bg_color?: string;
+  accent_color?: string;
+  botanical_accent?: BotanicalAccentType;
+  badge_text?: string | null;
+  has_arrow?: boolean;
+  display_order?: number;
+  is_active?: boolean;
+}
+

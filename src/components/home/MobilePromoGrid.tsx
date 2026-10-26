@@ -1,57 +1,11 @@
 import Link from "next/link";
-
-/* ─────────────────────────────────────────────
-   Promo cards — reference layout (Image 1)
-   2-col grid, 4 cards, product image bleeds
-   upward/left out of card, text bottom-right
-───────────────────────────────────────────── */
-const promoCards = [
-  {
-    id: "new-arrivals",
-    title: "New\nLaunches",
-    href: "/products",
-    bg: "#F0E8CC",
-    productImage: "/images/explore-new-launches.avif",
-    accentColor: "#8B6A3A",
-    BotanicalAccent: LeafAccent,
-    hasArrowButton: false,
-  },
-  {
-    id: "best-sellers",
-    title: "BestSellers\nUnder 499",
-    href: "/products",
-    bg: "#F5E0E8",
-    productImage: "/images/explore-best-sellers.avif",
-    accentColor: "#8B3A5E",
-    BotanicalAccent: FlowerAccent,
-    hasArrowButton: true,
-  },
-  {
-    id: "combos",
-    title: "Combos\nUnder 999",
-    href: "/products",
-    bg: "#D8EDE0",
-    productImage: "/images/explore-limited-edition.avif",
-    accentColor: "#2E6640",
-    BotanicalAccent: HerbAccent,
-    hasArrowButton: false,
-  },
-  {
-    id: "genz",
-    title: "Gen Z\nFavourites",
-    href: "/products",
-    bg: "#E4DAEF",
-    productImage: "/images/explore-summer-skin.avif",
-    accentColor: "#5A3A8A",
-    BotanicalAccent: LavenderAccent,
-    hasArrowButton: true,
-  },
-];
+import type { HomepagePromoCard, BotanicalAccentType } from "@/lib/types";
+import { DEFAULT_HOMEPAGE_PROMO_CARDS } from "@/lib/supabase/data";
 
 /* ─────────────────────────────────────────────
    Botanical SVG accents — bottom-right corner
 ───────────────────────────────────────────── */
-function LeafAccent() {
+function LeafAccent({ color = "#8B6A3A" }: { color?: string }) {
   return (
     <svg
       viewBox="0 0 80 80"
@@ -67,14 +21,14 @@ function LeafAccent() {
         pointerEvents: "none",
       }}
     >
-      <path d="M20 70 C 30 55, 40 30, 45 10" stroke="#8B6A3A" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M38 45 C 55 38, 68 42, 72 52 C 58 60, 40 55, 38 45 Z" fill="#8B6A3A" />
-      <path d="M34 28 C 20 22, 8 28, 5 38 C 18 44, 30 36, 34 28 Z" fill="#8B6A3A" />
+      <path d="M20 70 C 30 55, 40 30, 45 10" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M38 45 C 55 38, 68 42, 72 52 C 58 60, 40 55, 38 45 Z" fill={color} />
+      <path d="M34 28 C 20 22, 8 28, 5 38 C 18 44, 30 36, 34 28 Z" fill={color} />
     </svg>
   );
 }
 
-function FlowerAccent() {
+function FlowerAccent({ color = "#8B3A5E" }: { color?: string }) {
   return (
     <svg
       viewBox="0 0 80 80"
@@ -100,15 +54,15 @@ function FlowerAccent() {
           transform={`rotate(${deg} ${40 + 16 * Math.cos((deg * Math.PI) / 180)} ${
             40 + 16 * Math.sin((deg * Math.PI) / 180)
           })`}
-          fill="#8B3A5E"
+          fill={color}
         />
       ))}
-      <circle cx="40" cy="40" r="6" fill="#8B3A5E" />
+      <circle cx="40" cy="40" r="6" fill={color} />
     </svg>
   );
 }
 
-function HerbAccent() {
+function HerbAccent({ color = "#2E6640" }: { color?: string }) {
   return (
     <svg
       viewBox="0 0 80 80"
@@ -124,15 +78,15 @@ function HerbAccent() {
         pointerEvents: "none",
       }}
     >
-      <path d="M40 72 L 40 20" stroke="#2E6640" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M38 50 C 25 44, 14 48, 10 55 C 22 60, 34 55, 38 50 Z" fill="#2E6640" />
-      <path d="M42 35 C 55 28, 66 32, 70 40 C 58 44, 46 40, 42 35 Z" fill="#2E6640" />
-      <path d="M38 22 C 30 15, 20 18, 16 24 C 26 28, 34 24, 38 22 Z" fill="#2E6640" />
+      <path d="M40 72 L 40 20" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M38 50 C 25 44, 14 48, 10 55 C 22 60, 34 55, 38 50 Z" fill={color} />
+      <path d="M42 35 C 55 28, 66 32, 70 40 C 58 44, 46 40, 42 35 Z" fill={color} />
+      <path d="M38 22 C 30 15, 20 18, 16 24 C 26 28, 34 24, 38 22 Z" fill={color} />
     </svg>
   );
 }
 
-function LavenderAccent() {
+function LavenderAccent({ color = "#5A3A8A" }: { color?: string }) {
   return (
     <svg
       viewBox="0 0 80 80"
@@ -148,30 +102,46 @@ function LavenderAccent() {
         pointerEvents: "none",
       }}
     >
-      <path d="M40 72 L 40 25" stroke="#5A3A8A" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M40 72 L 40 25" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
       {[0, 1, 2, 3].map((i) => (
-        <ellipse key={i} cx={38 - i * 2} cy={25 + i * 10} rx="5" ry="3.5" fill="#5A3A8A" />
+        <ellipse key={i} cx={38 - i * 2} cy={25 + i * 10} rx="5" ry="3.5" fill={color} />
       ))}
       {[0, 1, 2, 3].map((i) => (
-        <ellipse key={i} cx={42 + i * 2} cy={28 + i * 10} rx="5" ry="3.5" fill="#5A3A8A" />
+        <ellipse key={i} cx={42 + i * 2} cy={28 + i * 10} rx="5" ry="3.5" fill={color} />
       ))}
     </svg>
   );
 }
 
-function PromoCard({ card }: { card: (typeof promoCards)[number] }) {
-  const BotanicalAccent = card.BotanicalAccent;
+function renderBotanicalAccent(accent: BotanicalAccentType | string, color?: string) {
+  switch (accent) {
+    case "flower":
+      return <FlowerAccent color={color} />;
+    case "herb":
+      return <HerbAccent color={color} />;
+    case "lavender":
+      return <LavenderAccent color={color} />;
+    case "none":
+      return null;
+    case "leaf":
+    default:
+      return <LeafAccent color={color} />;
+  }
+}
+
+interface PromoCardProps {
+  card: HomepagePromoCard;
+}
+
+function PromoCard({ card }: PromoCardProps) {
   return (
     <Link
-      href={card.href}
-      className="group active:scale-[0.97] transition-transform duration-200"
+      href={card.link_url || "/products"}
+      className="group active:scale-[0.97] transition-all duration-200 block relative overflow-hidden"
       style={{
-        display: "block",
-        position: "relative",
-        overflow: "hidden",
         borderRadius: "20px",
-        minHeight: "80px",
-        background: card.bg,
+        minHeight: "84px",
+        background: card.bg_color || "#F0E8CC",
         border: "1px solid rgba(255,255,255,0.55)",
         boxShadow: "0 3px 14px rgba(0,0,0,0.07), 0 1px 0 rgba(255,255,255,0.85) inset",
       }}
@@ -186,7 +156,7 @@ function PromoCard({ card }: { card: (typeof promoCards)[number] }) {
           pointerEvents: "none",
         }}
       >
-        <BotanicalAccent />
+        {renderBotanicalAccent(card.botanical_accent, card.accent_color)}
       </div>
 
       {/* Text area — left-aligned, vertically centered */}
@@ -205,7 +175,7 @@ function PromoCard({ card }: { card: (typeof promoCards)[number] }) {
             fontFamily: "var(--font-display)",
             fontSize: "14px",
             fontWeight: 700,
-            lineHeight: 1.2,
+            lineHeight: 1.22,
             letterSpacing: "-0.01em",
             color: "#2A1A14",
             whiteSpace: "pre-line",
@@ -213,26 +183,43 @@ function PromoCard({ card }: { card: (typeof promoCards)[number] }) {
         >
           {card.title}
         </h3>
+        {card.badge_text && (
+          <span
+            className="inline-block mt-1 font-body text-[9.5px] px-1.5 py-0.5 rounded-full font-semibold"
+            style={{
+              background: "rgba(255,255,255,0.65)",
+              color: card.accent_color || "#2A1A14",
+            }}
+          >
+            {card.badge_text}
+          </span>
+        )}
       </div>
     </Link>
   );
 }
 
 /* ─────────────────────────────────────────────
-   Main export — mobile only
+   Main export — mobile only (customizable by Admin)
  ───────────────────────────────────────────── */
-export default function MobilePromoGrid() {
+interface MobilePromoGridProps {
+  cards?: HomepagePromoCard[];
+}
+
+export default function MobilePromoGrid({ cards }: MobilePromoGridProps) {
+  const displayCards =
+    cards && cards.length > 0
+      ? cards.filter((c) => c.is_active)
+      : DEFAULT_HOMEPAGE_PROMO_CARDS.filter((c) => c.is_active);
+
   return (
     <div
       className="block md:hidden w-full"
       style={{ padding: "10px 16px 28px", background: "#FDF6F0" }}
     >
       {/* 2-column grid — gap matches reference */}
-      <div
-        className="grid grid-cols-2"
-        style={{ gap: "12px" }}
-      >
-        {promoCards.map((card) => (
+      <div className="grid grid-cols-2" style={{ gap: "12px" }}>
+        {displayCards.map((card) => (
           <PromoCard key={card.id} card={card} />
         ))}
       </div>

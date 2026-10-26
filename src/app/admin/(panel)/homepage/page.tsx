@@ -3,6 +3,7 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import HeroSlidesManager from "@/components/admin/homepage/HeroSlidesManager";
+import PromoCardsManager from "@/components/admin/homepage/PromoCardsManager";
 import CategoryCardsManager from "@/components/admin/homepage/CategoryCardsManager";
 import CombosManager from "@/components/admin/homepage/CombosManager";
 import TransformationsManager from "@/components/admin/homepage/TransformationsManager";
@@ -19,6 +20,7 @@ function HomepageAdminTabs() {
 
   const tabs = [
     { id: "hero", label: "Hero Slides", icon: "view_carousel" },
+    { id: "promo_cards", label: "Promo Cards (4-Grid)", icon: "grid_view" },
     { id: "categories", label: "Shop by Category", icon: "category" },
     { id: "combos", label: "Combos", icon: "auto_awesome_motion" },
     { id: "transformations", label: "Transformations", icon: "compare" },
@@ -33,7 +35,7 @@ function HomepageAdminTabs() {
           Homepage Management
         </h1>
         <p className="font-body text-[14px] text-on-surface-variant mt-1">
-          Customize the hero banners, categories, combos, transformations, and testimonials displayed on the homepage.
+          Customize the hero banners, 4 quick promo cards, categories, combos, transformations, and testimonials displayed on the homepage.
         </p>
       </div>
 
@@ -62,6 +64,7 @@ function HomepageAdminTabs() {
       {/* Tab Panels */}
       <div>
         {currentTab === "hero" && <HeroSlidesManager />}
+        {currentTab === "promo_cards" && <PromoCardsManager />}
         {currentTab === "categories" && <CategoryCardsManager />}
         {currentTab === "combos" && <CombosManager />}
         {currentTab === "transformations" && <TransformationsManager />}

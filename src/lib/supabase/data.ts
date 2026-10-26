@@ -28,6 +28,8 @@ import type {
   CustomerTransformationInput,
   HomepageTestimonial,
   HomepageTestimonialInput,
+  HomepagePromoCard,
+  HomepagePromoCardInput,
 } from "@/lib/types";
 import { getSupabaseBrowserClient } from "./client";
 import type { Database, Json } from "./database.types";
@@ -2369,5 +2371,315 @@ export async function reorderHomepageTestimonials(ids: string[]): Promise<void> 
     supabase.from("homepage_testimonials").update({ display_order: index }).eq("id", id)
   );
   await Promise.all(updates);
+}
+
+// ─────────────────────────────────────────────────────────────
+// HOMEPAGE PROMO CARDS (4-GRID)
+// ─────────────────────────────────────────────────────────────
+
+export const DEFAULT_HOMEPAGE_PROMO_CARDS: HomepagePromoCard[] = [
+  {
+    id: "default-promo-new-launches",
+    title: "New\nLaunches",
+    subtitle: "Fresh Rituals",
+    link_url: "/products?collection=new-launches&sort=newest#catalog",
+    destination_type: "custom",
+    destination_id: "/products?collection=new-launches&sort=newest#catalog",
+    product_id: null,
+    category_id: null,
+    bg_color: "#F0E8CC",
+    accent_color: "#8B6A3A",
+    botanical_accent: "leaf",
+    badge_text: null,
+    has_arrow: false,
+    display_order: 0,
+    is_active: true,
+    created_at: "2026-05-23T00:00:00Z",
+    updated_at: "2026-05-23T00:00:00Z",
+  },
+  {
+    id: "default-promo-bestsellers-499",
+    title: "BestSellers\nUnder 499",
+    subtitle: "Value Picks",
+    link_url: "/products?collection=bestsellers&max_price=499#catalog",
+    destination_type: "custom",
+    destination_id: "/products?collection=bestsellers&max_price=499#catalog",
+    product_id: null,
+    category_id: null,
+    bg_color: "#F5E0E8",
+    accent_color: "#8B3A5E",
+    botanical_accent: "flower",
+    badge_text: null,
+    has_arrow: true,
+    display_order: 1,
+    is_active: true,
+    created_at: "2026-05-23T00:00:00Z",
+    updated_at: "2026-05-23T00:00:00Z",
+  },
+  {
+    id: "default-promo-combos-999",
+    title: "Combos\nUnder 999",
+    subtitle: "Curated Sets",
+    link_url: "/products?category=combos&max_price=999#catalog",
+    destination_type: "category",
+    destination_id: "combos",
+    product_id: null,
+    category_id: null,
+    bg_color: "#D8EDE0",
+    accent_color: "#2E6640",
+    botanical_accent: "herb",
+    badge_text: null,
+    has_arrow: false,
+    display_order: 2,
+    is_active: true,
+    created_at: "2026-05-23T00:00:00Z",
+    updated_at: "2026-05-23T00:00:00Z",
+  },
+  {
+    id: "default-promo-genz",
+    title: "Gen Z\nFavourites",
+    subtitle: "Trending Now",
+    link_url: "/products?collection=gen-z-favourites#catalog",
+    destination_type: "custom",
+    destination_id: "/products?collection=gen-z-favourites#catalog",
+    product_id: null,
+    category_id: null,
+    bg_color: "#E4DAEF",
+    accent_color: "#5A3A8A",
+    botanical_accent: "lavender",
+    badge_text: null,
+    has_arrow: true,
+    display_order: 3,
+    is_active: true,
+    created_at: "2026-05-23T00:00:00Z",
+    updated_at: "2026-05-23T00:00:00Z",
+  },
+];
+
+export function normalizeHomepagePromoCard(row: any): HomepagePromoCard {
+  return {
+    id: row.id,
+    title: row.title,
+    subtitle: row.subtitle ?? null,
+    link_url: row.link_url || "/products",
+    destination_type: row.destination_type || "custom",
+    destination_id: row.destination_id ?? null,
+    product_id: row.product_id ?? null,
+    category_id: row.category_id ?? null,
+    bg_color: row.bg_color || "#F0E8CC",
+    accent_color: row.accent_color || "#8B6A3A",
+    botanical_accent: row.botanical_accent || "leaf",
+    badge_text: row.badge_text ?? null,
+    has_arrow: Boolean(row.has_arrow),
+    display_order: row.display_order ?? 0,
+    is_active: row.is_active ?? true,
+    created_at: row.created_at || new Date().toISOString(),
+    updated_at: row.updated_at || new Date().toISOString(),
+  };
+}
+
+const LOCAL_STORAGE_PROMO_KEY = "saaral_homepage_promo_cards";
+
+function getLocalPromoCards(): HomepagePromoCard[] {
+  if (typeof window === "undefined") return DEFAULT_HOMEPAGE_PROMO_CARDS;
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_PROMO_KEY);
+    if (!raw) return DEFAULT_HOMEPAGE_PROMO_CARDS;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_HOMEPAGE_PROMO_CARDS;
+  } catch {
+    return DEFAULT_HOMEPAGE_PROMO_CARDS;
+  }
+}
+
+function saveLocalPromoCards(cards: HomepagePromoCard[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(LOCAL_STORAGE_PROMO_KEY, JSON.stringify(cards));
+  } catch {}
+}
+
+export async function listHomepagePromoCards(onlyActive = true): Promise<HomepagePromoCard[]> {
+  const supabase = getSupabaseBrowserClient() as any;
+  try {
+    let query = supabase
+      .from("homepage_promo_cards")
+      .select("*")
+      .order("display_order", { ascending: true });
+
+    if (onlyActive) {
+      query = query.eq("is_active", true);
+    }
+
+    const { data, error } = await query;
+    if (error || !data || data.length === 0) {
+      const local = getLocalPromoCards();
+      return onlyActive ? local.filter((c) => c.is_active) : local;
+    }
+    const normalized = (data ?? []).map(normalizeHomepagePromoCard);
+    saveLocalPromoCards(normalized);
+    return normalized;
+  } catch {
+    const local = getLocalPromoCards();
+    return onlyActive ? local.filter((c) => c.is_active) : local;
+  }
+}
+
+export async function createHomepagePromoCard(input: HomepagePromoCardInput): Promise<HomepagePromoCard> {
+  const supabase = getSupabaseBrowserClient() as any;
+  const newCard: HomepagePromoCard = {
+    id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "card-" + Date.now(),
+    title: input.title,
+    subtitle: input.subtitle || null,
+    link_url: input.link_url || "/products",
+    destination_type: input.destination_type || "custom",
+    destination_id: input.destination_id || null,
+    product_id: input.product_id || null,
+    category_id: input.category_id || null,
+    bg_color: input.bg_color || "#F0E8CC",
+    accent_color: input.accent_color || "#8B6A3A",
+    botanical_accent: input.botanical_accent || "leaf",
+    badge_text: input.badge_text || null,
+    has_arrow: input.has_arrow ?? false,
+    display_order: input.display_order ?? 0,
+    is_active: input.is_active ?? true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  try {
+    const { data, error } = await supabase
+      .from("homepage_promo_cards")
+      .insert({
+        title: newCard.title,
+        subtitle: newCard.subtitle,
+        link_url: newCard.link_url,
+        destination_type: newCard.destination_type,
+        destination_id: newCard.destination_id,
+        product_id: newCard.product_id,
+        category_id: newCard.category_id,
+        bg_color: newCard.bg_color,
+        accent_color: newCard.accent_color,
+        botanical_accent: newCard.botanical_accent,
+        badge_text: newCard.badge_text,
+        has_arrow: newCard.has_arrow,
+        display_order: newCard.display_order,
+        is_active: newCard.is_active,
+      })
+      .select("*")
+      .single();
+
+    if (!error && data) {
+      const result = normalizeHomepagePromoCard(data);
+      const all = getLocalPromoCards().filter((c) => c.id !== result.id);
+      all.push(result);
+      saveLocalPromoCards(all);
+      return result;
+    }
+  } catch {}
+
+  // Fallback to local storage
+  const current = getLocalPromoCards();
+  const next = [...current, newCard];
+  saveLocalPromoCards(next);
+  return newCard;
+}
+
+export async function updateHomepagePromoCard(
+  id: string,
+  input: Partial<HomepagePromoCardInput>
+): Promise<HomepagePromoCard> {
+  const supabase = getSupabaseBrowserClient() as any;
+  const payload: any = { ...input, updated_at: new Date().toISOString() };
+  delete payload.id;
+  delete payload.created_at;
+
+  try {
+    const { data, error } = await supabase
+      .from("homepage_promo_cards")
+      .update(payload)
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (!error && data) {
+      const updated = normalizeHomepagePromoCard(data);
+      const current = getLocalPromoCards();
+      const next = current.map((c) => (c.id === id ? updated : c));
+      saveLocalPromoCards(next);
+      return updated;
+    }
+  } catch {}
+
+  // Fallback to local storage
+  const current = getLocalPromoCards();
+  let updatedCard: HomepagePromoCard = { ...DEFAULT_HOMEPAGE_PROMO_CARDS[0], id, ...input } as any;
+  const next = current.map((c) => {
+    if (c.id === id) {
+      updatedCard = { ...c, ...input, updated_at: new Date().toISOString() };
+      return updatedCard;
+    }
+    return c;
+  });
+  saveLocalPromoCards(next);
+  return updatedCard;
+}
+
+export async function deleteHomepagePromoCard(id: string): Promise<void> {
+  const supabase = getSupabaseBrowserClient() as any;
+  try {
+    await supabase.from("homepage_promo_cards").delete().eq("id", id);
+  } catch {}
+
+  const current = getLocalPromoCards();
+  saveLocalPromoCards(current.filter((c) => c.id !== id));
+}
+
+export async function reorderHomepagePromoCards(ids: string[]): Promise<void> {
+  const supabase = getSupabaseBrowserClient() as any;
+  try {
+    const updates = ids.map((id, index) =>
+      supabase.from("homepage_promo_cards").update({ display_order: index }).eq("id", id)
+    );
+    await Promise.all(updates);
+  } catch {}
+
+  const current = getLocalPromoCards();
+  const map = new Map(current.map((c) => [c.id, c]));
+  const reordered: HomepagePromoCard[] = [];
+  ids.forEach((id, index) => {
+    const item = map.get(id);
+    if (item) {
+      reordered.push({ ...item, display_order: index });
+      map.delete(id);
+    }
+  });
+  map.forEach((item) => reordered.push(item));
+  saveLocalPromoCards(reordered);
+}
+
+export async function resetHomepagePromoCardsToDefault(): Promise<HomepagePromoCard[]> {
+  const supabase = getSupabaseBrowserClient() as any;
+  try {
+    await supabase.from("homepage_promo_cards").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    for (const card of DEFAULT_HOMEPAGE_PROMO_CARDS) {
+      await supabase.from("homepage_promo_cards").insert({
+        title: card.title,
+        subtitle: card.subtitle,
+        link_url: card.link_url,
+        destination_type: card.destination_type,
+        destination_id: card.destination_id,
+        bg_color: card.bg_color,
+        accent_color: card.accent_color,
+        botanical_accent: card.botanical_accent,
+        has_arrow: card.has_arrow,
+        display_order: card.display_order,
+        is_active: card.is_active,
+      });
+    }
+  } catch {}
+
+  saveLocalPromoCards(DEFAULT_HOMEPAGE_PROMO_CARDS);
+  return DEFAULT_HOMEPAGE_PROMO_CARDS;
 }
 

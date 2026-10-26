@@ -6,7 +6,7 @@ import { motion, AnimatePresence, LayoutGroup, animate } from "framer-motion";
 import ProductCard from "@/components/product/ProductCard";
 import { CATEGORIES, type Category, type CategoryFilter, type Product } from "@/lib/types";
 
-type SortMode = "featured" | "price-low-high" | "price-high-low" | "name-a-z";
+type SortMode = "featured" | "newest" | "price-low-high" | "price-high-low" | "name-a-z";
 type PriceFilter = "all-prices" | "under-500" | "500-999" | "1000-plus";
 
 interface ProductCatalogPanelProps {
@@ -19,23 +19,55 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
   const router = useRouter();
   const activeCategory = (searchParams.get("category") as CategoryFilter) || "all";
 
-  const [priceFilter, setPriceFilter] = useState<PriceFilter>("all-prices");
-  const [sortMode, setSortMode] = useState<SortMode>("featured");
+  const collectionParam = searchParams.get("collection");
+  const searchParam = searchParams.get("search") || searchParams.get("q");
+  const maxPriceParam = searchParams.get("max_price");
+  const priceParam = searchParams.get("price");
+  const sortParam = searchParams.get("sort");
+
+  // Initialize or synchronize priceFilter from explicit URL price param
+  const initialPriceFilter: PriceFilter = useMemo(() => {
+    if (priceParam === "under-500") return "under-500";
+    if (priceParam === "500-999") return "500-999";
+    if (priceParam === "1000-plus") return "1000-plus";
+    return "all-prices";
+  }, [priceParam]);
+
+  const [priceFilter, setPriceFilter] = useState<PriceFilter>(initialPriceFilter);
+  useEffect(() => {
+    setPriceFilter(initialPriceFilter);
+  }, [initialPriceFilter]);
+
+  // Initialize or synchronize sortMode from URL params
+  const initialSortMode: SortMode = useMemo(() => {
+    if (sortParam === "newest" || sortParam === "latest") return "newest";
+    if (collectionParam === "new-launches" || collectionParam === "new-arrivals") return "newest";
+    if (sortParam === "price-low-high") return "price-low-high";
+    if (sortParam === "price-high-low") return "price-high-low";
+    if (sortParam === "name-a-z") return "name-a-z";
+    return "featured";
+  }, [sortParam, collectionParam]);
+
+  const [sortMode, setSortMode] = useState<SortMode>(initialSortMode);
+  useEffect(() => {
+    setSortMode(initialSortMode);
+  }, [initialSortMode]);
+
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const mobileActiveRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
 
-  const collectionParam = searchParams.get("collection");
-  const searchParam = searchParams.get("search") || searchParams.get("q");
-
-  // Auto-scroll directly to the product catalog when navigating with categories/collections/search
+  // Auto-scroll directly to the product catalog when navigating with categories/collections/search/price
   useEffect(() => {
     const hasFilter =
       searchParams.has("category") ||
       searchParams.has("collection") ||
       searchParams.has("search") ||
       searchParams.has("q") ||
+      searchParams.has("max_price") ||
+      searchParams.has("price") ||
+      searchParams.has("sort") ||
       (typeof window !== "undefined" && window.location.hash === "#catalog");
 
     if (hasFilter) {
@@ -98,9 +130,10 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
   // Derived counts
   const activeFilterCount =
     (activeCategory !== "all" ? 1 : 0) +
-    (priceFilter !== "all-prices" ? 1 : 0) +
+    (priceFilter !== "all-prices" || Boolean(maxPriceParam) ? 1 : 0) +
     (collectionParam ? 1 : 0) +
-    (searchParam ? 1 : 0);
+    (searchParam ? 1 : 0) +
+    (sortMode !== "featured" ? 1 : 0);
 
   // Dynamic category tabs derived from DB categories with fallback
   const allCategoryChips = useMemo(() => {
@@ -136,15 +169,37 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
 
     if (activeCategory !== "all") {
       next = next.filter(
-        (p) => p.category === activeCategory || p.category_id === activeCategory
+        (p) =>
+          p.category === activeCategory ||
+          p.category_id === activeCategory ||
+          (activeCategory === "combos" &&
+            (p.category === "combos" ||
+              p.category_id === "1f6f75e2-e75c-486e-9447-6f807695e25d" ||
+              p.name.toLowerCase().includes("combo")))
       );
     }
 
     if (collectionParam) {
-      if (
-        collectionParam.toLowerCase() !== "bestsellers" &&
-        collectionParam.toLowerCase() !== "best-sellers"
-      ) {
+      const colLower = collectionParam.toLowerCase();
+      if (colLower === "new-launches" || colLower === "new-arrivals") {
+        // Shown with newest first via sortMode
+      } else if (colLower === "bestsellers" || colLower === "best-sellers") {
+        // Will be filtered by max_price if present (e.g. 499)
+      } else if (colLower === "combos" || colLower === "combos-under-999") {
+        next = next.filter(
+          (p) => p.category === "combos" || p.name.toLowerCase().includes("combo")
+        );
+      } else if (colLower === "gen-z-favourites" || colLower === "genz") {
+        const trendingKeywords = ["facewash", "face wash", "butterfly", "redwine", "red wine", "charcoal", "brightening", "balm"];
+        next = next.filter((p) =>
+          trendingKeywords.some(
+            (k) =>
+              p.name.toLowerCase().includes(k) ||
+              p.slug.toLowerCase().includes(k) ||
+              (p.description && p.description.toLowerCase().includes(k))
+          )
+        );
+      } else {
         const col = collectionParam.toLowerCase().replace(/-/g, " ");
         const colSlug = collectionParam.toLowerCase();
         next = next.filter(
@@ -167,6 +222,12 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
       );
     }
 
+    // Explicit maxPriceParam filter if passed from card e.g. max_price=499 or max_price=999
+    if (maxPriceParam && !isNaN(Number(maxPriceParam))) {
+      const maxVal = Number(maxPriceParam);
+      next = next.filter((product) => product.price <= maxVal);
+    }
+
     next = next.filter((product) => {
       if (priceFilter === "all-prices") return true;
       if (priceFilter === "under-500") return product.price < 500;
@@ -174,20 +235,32 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
       return product.price >= 1000;
     });
 
+    if (sortMode === "newest") {
+      return [...next].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
     if (sortMode === "price-low-high") return [...next].sort((a, b) => a.price - b.price);
     if (sortMode === "price-high-low") return [...next].sort((a, b) => b.price - a.price);
     if (sortMode === "name-a-z") return [...next].sort((a, b) => a.name.localeCompare(b.name));
 
     return next;
-  }, [products, activeCategory, collectionParam, searchParam, priceFilter, sortMode]);
+  }, [products, activeCategory, collectionParam, searchParam, maxPriceParam, priceFilter, sortMode]);
 
   const activeCategoryLabel = useMemo(() => {
     if (collectionParam) {
-      if (
-        collectionParam.toLowerCase() === "bestsellers" ||
-        collectionParam.toLowerCase() === "best-sellers"
-      ) {
+      const colLower = collectionParam.toLowerCase();
+      if (colLower === "bestsellers" || colLower === "best-sellers") {
+        if (maxPriceParam) return `BestSellers Under ₹${maxPriceParam}`;
         return "Best Selling Products";
+      }
+      if (colLower === "new-launches" || colLower === "new-arrivals") {
+        return "New Launches";
+      }
+      if (colLower === "gen-z-favourites" || colLower === "genz") {
+        return "Gen Z Favourites";
+      }
+      if (colLower === "combos" || colLower === "combos-under-999") {
+        if (maxPriceParam) return `Combos Under ₹${maxPriceParam}`;
+        return "Signature Combos";
       }
       return (
         collectionParam
@@ -199,10 +272,13 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
     if (searchParam) {
       return `Results for "${searchParam}"`;
     }
+    if (activeCategory === "combos" && maxPriceParam) {
+      return `Combos Under ₹${maxPriceParam}`;
+    }
     if (activeCategory === "all") return "All Products";
     const found = allCategoryChips.find((c) => c.slug === activeCategory);
     return found?.label ?? (activeCategory.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" "));
-  }, [collectionParam, searchParam, activeCategory, allCategoryChips]);
+  }, [collectionParam, searchParam, maxPriceParam, activeCategory, allCategoryChips]);
 
   const containerVariants = {
     hidden: {},
@@ -221,6 +297,8 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
   const sortLabel =
     sortMode === "featured"
       ? "Featured"
+      : sortMode === "newest"
+      ? "Newest"
       : sortMode === "price-low-high"
       ? "Price ↑"
       : sortMode === "price-high-low"
@@ -322,6 +400,7 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
                       >
                         {[
                           { label: "Featured", value: "featured" },
+                          { label: "Newest Launches", value: "newest" },
                           { label: "Price: Low to High", value: "price-low-high" },
                           { label: "Price: High to Low", value: "price-high-low" },
                           { label: "Name A–Z", value: "name-a-z" },
@@ -401,19 +480,58 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
                 </div>
               </LayoutGroup>
 
-              {/* Active price filter "×" chip */}
-              {priceFilter !== "all-prices" && (
+              {/* Active collection filter "×" chip */}
+              {collectionParam && (
                 <button
-                  onClick={() => setPriceFilter("all-prices")}
-                  className="shrink-0 flex items-center gap-1 h-8 px-3 rounded-full font-body text-[11px] font-medium transition-all duration-200 cursor-pointer mt-2"
+                  onClick={() => {
+                    const p = new URLSearchParams(searchParams.toString());
+                    p.delete("collection");
+                    router.push(`/products${p.toString() ? `?${p.toString()}` : ""}`, { scroll: false });
+                  }}
+                  className="shrink-0 flex items-center gap-1.5 h-8 px-3 rounded-full font-body text-[11px] font-semibold transition-all duration-200 cursor-pointer mt-2"
                   style={{
-                    background: "rgba(139,58,94,0.08)",
-                    border: "1.5px solid rgba(139,58,94,0.22)",
+                    background: "rgba(139,58,94,0.10)",
+                    border: "1.5px solid rgba(139,58,94,0.28)",
                     color: "#8B3A5E",
                   }}
                 >
                   <span>
-                    {priceFilter === "under-500"
+                    {collectionParam === "new-launches"
+                      ? "New Launches"
+                      : collectionParam === "bestsellers"
+                      ? "BestSellers"
+                      : collectionParam === "gen-z-favourites"
+                      ? "Gen Z Favourites"
+                      : collectionParam}
+                  </span>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
+
+              {/* Active price filter "×" chip */}
+              {(priceFilter !== "all-prices" || Boolean(maxPriceParam)) && (
+                <button
+                  onClick={() => {
+                    const p = new URLSearchParams(searchParams.toString());
+                    p.delete("max_price");
+                    p.delete("price");
+                    setPriceFilter("all-prices");
+                    router.push(`/products${p.toString() ? `?${p.toString()}` : ""}`, { scroll: false });
+                  }}
+                  className="shrink-0 flex items-center gap-1.5 h-8 px-3 rounded-full font-body text-[11px] font-semibold transition-all duration-200 cursor-pointer mt-2"
+                  style={{
+                    background: "rgba(139,58,94,0.10)",
+                    border: "1.5px solid rgba(139,58,94,0.28)",
+                    color: "#8B3A5E",
+                  }}
+                >
+                  <span>
+                    {maxPriceParam
+                      ? `Under ₹${maxPriceParam}`
+                      : priceFilter === "under-500"
                       ? "Under ₹500"
                       : priceFilter === "500-999"
                       ? "₹500–₹999"
@@ -426,15 +544,16 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
                 </button>
               )}
 
-              {/* Clear all if multiple filters */}
-              {activeFilterCount > 1 && (
+              {/* Clear all if any filter is active */}
+              {activeFilterCount > 0 && (
                 <button
                   onClick={() => {
                     setPriceFilter("all-prices");
+                    setSortMode("featured");
                     router.push("/products", { scroll: false });
                   }}
-                  className="shrink-0 font-body text-[10px] tracking-[0.06em] underline underline-offset-2 cursor-pointer whitespace-nowrap mt-2"
-                  style={{ color: "rgba(139,58,94,0.65)" }}
+                  className="shrink-0 font-body text-[11px] font-semibold tracking-[0.04em] underline underline-offset-2 cursor-pointer whitespace-nowrap mt-2 hover:opacity-80"
+                  style={{ color: "#8B3A5E" }}
                 >
                   Clear all
                 </button>
