@@ -1,4 +1,6 @@
+import { cache } from "react";
 import { generateOrderNumber, generateSlug } from "@/lib/utils";
+import { MOCK_PRODUCTS } from "@/lib/products";
 import type {
   CartItem,
   Category,
@@ -142,7 +144,7 @@ export function normalizeProduct(row: ProductRow): Product {
   };
 }
 
-function normalizeOrder(row: OrderRow): Order {
+export function normalizeOrder(row: OrderRow): Order {
   return {
     id: row.id,
     user_id: (row as any).user_id ?? null,
@@ -244,7 +246,7 @@ export async function listProducts(category: CategoryFilter = "all"): Promise<Pr
   return uniqueProducts;
 }
 
-export async function listFeaturedProducts(limit = 3): Promise<Product[]> {
+export const listFeaturedProducts = cache(async function listFeaturedProducts(limit = 3): Promise<Product[]> {
   const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
     .from("products")
@@ -265,6 +267,47 @@ export async function listFeaturedProducts(limit = 3): Promise<Product[]> {
   });
 
   return uniqueProducts.slice(0, limit);
+});
+
+
+
+export async function searchProducts(searchTerm: string, limit = 10): Promise<Product[]> {
+  const cleanTerm = searchTerm.trim();
+  if (!cleanTerm) return listFeaturedProducts(limit);
+
+  try {
+    const supabase = getSupabaseBrowserClient() as any;
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("is_active", true)
+      .or(`name.ilike.%${cleanTerm}%,description.ilike.%${cleanTerm}%,category.ilike.%${cleanTerm}%`)
+      .order("price", { ascending: true })
+      .limit(limit);
+
+    if (error) throw error;
+    if (data && data.length > 0) {
+      const seen = new Set<string>();
+      return data
+        .map((row: any) => normalizeProduct(row))
+        .filter((p: Product) => {
+          if (seen.has(p.name)) return false;
+          seen.add(p.name);
+          return true;
+        });
+    }
+  } catch (err) {
+    console.warn("Supabase search fallback:", err);
+  }
+
+  const lower = cleanTerm.toLowerCase();
+  return MOCK_PRODUCTS.filter(
+    (p) =>
+      p.is_active &&
+      (p.name.toLowerCase().includes(lower) ||
+        p.category.toLowerCase().includes(lower) ||
+        (p.description && p.description.toLowerCase().includes(lower)))
+  ).slice(0, limit);
 }
 
 export async function getProductVariants(name: string): Promise<Product[]> {

@@ -21,6 +21,9 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+// Revalidate individual product pages every 2 minutes
+export const revalidate = 120;
+
 // ─────────────────────────────────────────────
 // SEO BEST PRACTICES — Dynamic Metadata Tags
 // ─────────────────────────────────────────────

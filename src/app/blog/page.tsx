@@ -15,6 +15,8 @@ export const metadata: Metadata = {
     "Explore traditional Tamil apothecary secrets, natural skincare guides, ingredient deep-dives, and wellness rituals from Saaral Cosmetics.",
 };
 
+export const revalidate = 300; // Cache blog listing for 5 minutes
+
 export default async function PublicBlogPage() {
   const [categories, initialPosts] = await Promise.all([
     listBlogCategories(),

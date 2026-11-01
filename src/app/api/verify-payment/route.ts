@@ -152,7 +152,36 @@ export async function POST(request: Request) {
       );
     }
 
-    // ── 9. Mark Order as Paid ─────────────────────────────────────────────────
+    // ── 9. Atomic Payment & Inventory Processing via PostgreSQL RPC ──
+    const { data: rpcResult, error: rpcError } = await (supabase as any).rpc(
+      "process_order_payment",
+      {
+        p_order_id: orderId,
+        p_razorpay_payment_id: razorpay_payment_id,
+        p_order_status: "new",
+      }
+    );
+
+    if (!rpcError && rpcResult) {
+      if (rpcResult.status === "already_processed") {
+        return NextResponse.json(
+          { success: true, status: "already_processed" },
+          { headers: { "X-RateLimit-Remaining": String(remaining) } }
+        );
+      }
+      if (!rpcResult.success && rpcResult.error === "insufficient_stock") {
+        return NextResponse.json(
+          { error: `Insufficient stock for ${rpcResult.product_name}. Our support team will process a refund.` },
+          { status: 409 }
+        );
+      }
+      return NextResponse.json(
+        { success: true },
+        { headers: { "X-RateLimit-Remaining": String(remaining) } }
+      );
+    }
+
+    // ── Fallback for environments where RPC is not yet applied ──
     const { error: updateError } = await supabase
       .from("orders")
       .update({
@@ -162,7 +191,7 @@ export async function POST(request: Request) {
         order_status: "new",
       })
       .eq("id", orderId)
-      .eq("payment_status", "pending"); // Double-lock: only update if still pending
+      .eq("payment_status", "pending");
 
     if (updateError) {
       console.error("[verify-payment] DB update error:", updateError.message);

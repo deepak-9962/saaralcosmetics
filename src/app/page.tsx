@@ -17,8 +17,8 @@ import dynamicImport from "next/dynamic";
 import DesktopCategoryStrip from "@/components/home/DesktopCategoryStrip";
 import ComboSection from "@/components/home/ComboSection";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// Revalidate every 2 minutes for ISR caching while keeping content fresh
+export const revalidate = 120;
 
 const TestimonialShowcase = dynamicImport(() => import("@/components/home/TestimonialShowcase"));
 const CustomerTransformations = dynamicImport(() => import("@/components/home/CustomerTransformations"));

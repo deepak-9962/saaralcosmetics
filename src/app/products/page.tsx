@@ -10,8 +10,8 @@ import ProductCatalogPanel from "@/components/product/ProductCatalogPanel";
 import { listProducts, listCategories } from "@/lib/supabase/data";
 import { Product, Category } from "@/lib/types";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// Revalidate product catalog every 2 minutes for ISR caching
+export const revalidate = 120;
 
 export const metadata: Metadata = {
   title: "Shop All Products | Saaral Cosmetics",

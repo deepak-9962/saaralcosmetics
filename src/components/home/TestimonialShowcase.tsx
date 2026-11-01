@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState, useMemo } from "react";
+import { useRef, useEffect, useState, useMemo, useCallback, memo } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import type { HomepageTestimonial } from "@/lib/types";
@@ -247,6 +247,7 @@ export type LoopItem = {
   products: string[];
   uid: string;
   paletteIdx: number;
+  isDuplicate?: boolean;
 };
 
 function mapDbTestimonial(t: HomepageTestimonial, idx: number) {
@@ -275,6 +276,7 @@ function buildLoopItems(baseItems: { id: string | number; name: string; location
     ...t,
     uid: `${t.id}-${i}`,
     paletteIdx: PALETTE_SEQ[i % PALETTE_SEQ.length],
+    isDuplicate: i >= baseItems.length,
   }));
 }
 
@@ -345,24 +347,19 @@ function AvatarImage({
   const defaultLocalUrl = `/images/testimonials/avatar-${localNum}.avif`;
   const initialSrc = isCustomUploaded ? dicebearUrl : defaultLocalUrl;
 
-  const [imgSrc, setImgSrc] = useState(initialSrc);
   const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    setImgSrc(isCustomUploaded ? dicebearUrl : defaultLocalUrl);
-    setHasError(false);
-  }, [dicebearUrl, isCustomUploaded, defaultLocalUrl]);
 
   const onError = () => {
     if (!hasError) {
       setHasError(true);
-      setImgSrc(dicebearUrl || defaultLocalUrl);
     }
   };
 
+  const src = hasError ? (dicebearUrl || defaultLocalUrl) : initialSrc;
+
   return (
     <img
-      src={imgSrc}
+      src={src}
       alt={name}
       width={width}
       height={height}
@@ -662,104 +659,236 @@ function TestimonialModal({
 
 /* ─────────────────────────────────────────────
    AUTO-SCROLLING FAN TRACK
-   RAF loop — pauses on hover, resumes on leave.
-   Click "Read Story" → calls onOpenModal(item).
+   Optimized 60/120fps compositor animation.
+   Pauses on hover, keyboard focus, off-screen,
+   tab hidden, and prefers-reduced-motion.
+   Zero forced layout reflows; zero React state updates.
 ───────────────────────────────────────────── */
-function FanTrack({
+const FanTrack = memo(function FanTrack({
   onOpenModal,
   loopItems = DEFAULT_LOOP,
 }: {
   onOpenModal: (item: LoopItem) => void;
   loopItems?: LoopItem[];
 }) {
-  const containerRef  = useRef<HTMLDivElement>(null);
-  const rafRef        = useRef<number | null>(null);
-  const lastTimeRef   = useRef<number | null>(null);
-  const offsetRef     = useRef(0);
-  const isPausedRef   = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number | null>(null);
+  const lastTimeRef = useRef<number | null>(null);
+  const offsetRef = useRef(0);
+  const isPausedRef = useRef(false);
+  const isFocusedRef = useRef(false);
+  const isInViewRef = useRef(false);
+  const isTabHiddenRef = useRef(false);
+  const prefersReducedMotionRef = useRef(false);
+  const isOffsetInitializedRef = useRef(false);
   const N = loopItems.length;
+
+  // Cached layout metrics to avoid reading layout geometry in the animation loop
+  const layoutMetricsRef = useRef({
+    W: 0,
+    cx: 0,
+    cardW: 302,
+    cardStep: 350,
+    TOTAL: 0,
+    maxDist: 800,
+  });
 
   // Dragging and Touch Swipe References
   const isDraggingRef = useRef(false);
-  const startXRef     = useRef(0);
+  const startXRef = useRef(0);
   const startOffsetRef = useRef(0);
   const dragVelocityRef = useRef(0);
-  const lastDragXRef  = useRef(0);
+  const lastDragXRef = useRef(0);
   const lastDragTimeRef = useRef(0);
   const dragDistanceRef = useRef(0);
   const inertiaVelocityRef = useRef(0);
+
+  const renderFrame = useCallback((dt: number) => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const { W, cx, cardW, cardStep, TOTAL, maxDist } = layoutMetricsRef.current;
+    if (W === 0 || TOTAL === 0) return;
+
+    /* Apply auto-scroll or inertia or keep frozen if dragging */
+    if (isDraggingRef.current) {
+      // Updated in real-time by move handlers
+    } else if (Math.abs(inertiaVelocityRef.current) > 0.5) {
+      offsetRef.current = (offsetRef.current + (inertiaVelocityRef.current * dt) / 1000) % TOTAL;
+      inertiaVelocityRef.current *= 0.94; // Decay
+    } else if (!isPausedRef.current && !isFocusedRef.current && !prefersReducedMotionRef.current) {
+      offsetRef.current = (offsetRef.current + (SPEED * dt) / 1000) % TOTAL;
+    }
+
+    // Safe bounds
+    offsetRef.current = (offsetRef.current + TOTAL) % TOTAL;
+
+    const kids = container.children;
+
+    for (let i = 0; i < N; i++) {
+      const el = kids[i] as HTMLElement | undefined;
+      if (!el) continue;
+
+      const rawX = ((i * cardStep - offsetRef.current) % TOTAL + TOTAL) % TOTAL;
+      const offset = rawX - TOTAL / 2;
+      const xPos = offset + cx - cardW / 2;
+
+      // Off-screen culling: hide elements outside viewport to bypass rendering and compositing
+      if (xPos > W + cardW * 0.6 || xPos < -cardW * 1.4) {
+        if (el.style.visibility !== "hidden") {
+          el.style.visibility = "hidden";
+          el.style.opacity = "0";
+          el.style.pointerEvents = "none";
+        }
+        continue;
+      }
+
+      if (el.style.visibility !== "visible") {
+        el.style.visibility = "visible";
+        el.style.pointerEvents = "auto";
+      }
+
+      const absT = Math.min(Math.abs(offset) / maxDist, 1);
+      const sign = offset >= 0 ? 1 : -1;
+
+      const rotate = -sign * absT * MAX_ROT;
+      const scale = 1 - absT * MAX_SCALE_L;
+      const ty = absT * MAX_Y;
+      const opacity = Math.max(0.18, 1 - absT * MAX_OPQ_L);
+      const zIndex = Math.round((1 - absT) * 10);
+
+      // Hardware-accelerated 3D transform without forced reflow or layout writes
+      el.style.transform = `translate3d(${xPos.toFixed(1)}px, ${ty.toFixed(1)}px, 0) rotate(${rotate.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+      el.style.opacity = opacity.toFixed(3);
+
+      if (el.dataset.z !== String(zIndex)) {
+        el.dataset.z = String(zIndex);
+        el.style.zIndex = String(zIndex);
+      }
+    }
+  }, [N]);
+
+  const updateLayoutMetrics = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const W = container.clientWidth;
+    if (W === 0) return;
+
+    const cx = W / 2;
+    const cardW = W < 480 ? Math.min(240, W * 0.78) : W < 768 ? 262 : W < 1024 ? 282 : 302;
+    const cardStep = cardW + Math.round(W * 0.055 + 24);
+    const TOTAL = N * cardStep;
+    const maxDist = cardStep * 2.35;
+
+    layoutMetricsRef.current = { W, cx, cardW, cardStep, TOTAL, maxDist };
+    container.style.setProperty("--card-w", `${cardW}px`);
+
+    if (!isOffsetInitializedRef.current && TOTAL > 0) {
+      isOffsetInitializedRef.current = true;
+      const baseCount = loopItems.filter(x => !x.isDuplicate).length || Math.floor(N / 2);
+      const centerPrimaryIdx = Math.floor(baseCount / 2);
+      offsetRef.current = ((centerPrimaryIdx * cardStep - TOTAL / 2) % TOTAL + TOTAL) % TOTAL;
+    }
+
+    renderFrame(0);
+  }, [N, loopItems, renderFrame]);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const tick = (time: number) => {
-      const dt = lastTimeRef.current != null
-        ? Math.min(time - lastTimeRef.current, 100)
-        : 0;
-      lastTimeRef.current = time;
+    // Check reduced motion preference
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    prefersReducedMotionRef.current = motionQuery.matches;
+    const onMotionChange = (e: MediaQueryListEvent) => {
+      prefersReducedMotionRef.current = e.matches;
+    };
+    motionQuery.addEventListener("change", onMotionChange);
 
-      const W  = container.offsetWidth;
-      const cx = W / 2;
-      const cardW    = W < 480 ? Math.min(240, W * 0.78) : W < 768 ? 262 : W < 1024 ? 282 : 302;
-      const cardStep = cardW + Math.round(W * 0.055 + 24);
-      const TOTAL    = N * cardStep;
-      const maxDist  = cardStep * 2.35;
+    // Initial metrics
+    updateLayoutMetrics();
 
-      /* Apply auto-scroll or inertia or keep frozen if dragging */
-      if (isDraggingRef.current) {
-        // Updated in real-time by move handlers
-      } else if (Math.abs(inertiaVelocityRef.current) > 0.5) {
-        offsetRef.current = (offsetRef.current + (inertiaVelocityRef.current * dt) / 1000) % TOTAL;
-        inertiaVelocityRef.current *= 0.94; // Decay
-      } else if (!isPausedRef.current) {
-        offsetRef.current = (offsetRef.current + (SPEED * dt) / 1000) % TOTAL;
-      }
+    // ResizeObserver avoids window resize polling or layout queries during animation
+    const resizeObserver = new ResizeObserver(() => {
+      updateLayoutMetrics();
+    });
+    resizeObserver.observe(container);
 
-      // Safe bounds
-      offsetRef.current = (offsetRef.current + TOTAL) % TOTAL;
-
-      const kids = container.children;
-
-      for (let i = 0; i < N; i++) {
-        const el = kids[i] as HTMLElement | undefined;
-        if (!el) continue;
-
-        const rawX  = ((i * cardStep - offsetRef.current) % TOTAL + TOTAL) % TOTAL;
-        const offset = rawX - TOTAL / 2;
-        const xPos  = offset + cx - cardW / 2;
-
-        if (xPos > W + cardW * 0.6 || xPos < -cardW * 1.4) {
-          el.style.opacity = "0";
-          el.style.pointerEvents = "none";
-          continue;
+    const startLoop = () => {
+      if (rafRef.current) return;
+      lastTimeRef.current = performance.now();
+      const tick = (time: number) => {
+        if (!isInViewRef.current || isTabHiddenRef.current) {
+          rafRef.current = null;
+          return;
         }
 
-        const absT  = Math.min(Math.abs(offset) / maxDist, 1);
-        const sign  = offset >= 0 ? 1 : -1;
+        const dt = lastTimeRef.current != null ? Math.min(time - lastTimeRef.current, 100) : 0;
+        lastTimeRef.current = time;
 
-        const rotate  = -sign * absT * MAX_ROT;
-        const scale   = 1 - absT * MAX_SCALE_L;
-        const ty      = absT * MAX_Y;
-        const opacity = Math.max(0.18, 1 - absT * MAX_OPQ_L);
-        const zIndex  = Math.round((1 - absT) * 10);
+        renderFrame(dt);
 
-        el.style.width         = `${cardW}px`;
-        el.style.transform     = `translateX(${xPos}px) translateY(${ty}px) rotate(${rotate}deg) scale(${scale})`;
-        el.style.opacity       = String(opacity);
-        el.style.zIndex        = String(zIndex);
-        el.style.pointerEvents = "auto";
-      }
-
+        rafRef.current = requestAnimationFrame(tick);
+      };
       rafRef.current = requestAnimationFrame(tick);
     };
 
-    rafRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    const stopLoop = () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
       lastTimeRef.current = null;
     };
-  }, []);
+
+    // IntersectionObserver: Pause RAF completely when scrolled away from viewport
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        isInViewRef.current = entry.isIntersecting;
+        if (entry.isIntersecting && !isTabHiddenRef.current) {
+          startLoop();
+        } else {
+          stopLoop();
+        }
+      },
+      { threshold: 0.01, rootMargin: "150px" }
+    );
+    intersectionObserver.observe(container);
+
+    // VisibilityChange: Pause animation when browser tab is inactive
+    const onVisibilityChange = () => {
+      isTabHiddenRef.current = document.hidden;
+      if (document.hidden) {
+        stopLoop();
+      } else if (isInViewRef.current) {
+        startLoop();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    // Keyboard focus: Pause when keyboard user tabs inside the carousel
+    const onFocusIn = () => {
+      isFocusedRef.current = true;
+    };
+    const onFocusOut = (e: FocusEvent) => {
+      if (!container.contains(e.relatedTarget as Node)) {
+        isFocusedRef.current = false;
+      }
+    };
+    container.addEventListener("focusin", onFocusIn);
+    container.addEventListener("focusout", onFocusOut);
+
+    return () => {
+      stopLoop();
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      motionQuery.removeEventListener("change", onMotionChange);
+      container.removeEventListener("focusin", onFocusIn);
+      container.removeEventListener("focusout", onFocusOut);
+    };
+  }, [updateLayoutMetrics, renderFrame]);
 
   const handleStart = (clientX: number) => {
     isDraggingRef.current = true;
@@ -779,12 +908,8 @@ function FanTrack({
     const deltaX = clientX - startXRef.current;
     dragDistanceRef.current += Math.abs(clientX - lastDragXRef.current);
 
-    const container = containerRef.current;
-    if (!container) return;
-    const W = container.offsetWidth;
-    const cardW = W < 480 ? Math.min(240, W * 0.78) : W < 768 ? 262 : W < 1024 ? 282 : 302;
-    const cardStep = cardW + Math.round(W * 0.055 + 24);
-    const TOTAL = N * cardStep;
+    const { TOTAL } = layoutMetricsRef.current;
+    if (TOTAL === 0) return;
 
     offsetRef.current = ((startOffsetRef.current - deltaX) % TOTAL + TOTAL) % TOTAL;
 
@@ -796,6 +921,8 @@ function FanTrack({
       lastDragXRef.current = clientX;
       lastDragTimeRef.current = now;
     }
+
+    renderFrame(0);
   };
 
   const handleEnd = () => {
@@ -840,23 +967,26 @@ function FanTrack({
         userSelect: "none",
         cursor: "grab",
         touchAction: "pan-y",
+        contain: "paint layout",
       }}
     >
-      {loopItems.map((t, i) => {
+      {loopItems.map((t) => {
         const p = PALETTES[t.paletteIdx];
+        const isDuplicate = !!t.isDuplicate;
         return (
           <div
             key={t.uid}
-            /* pointer-events managed per-frame by RAF */
+            aria-hidden={isDuplicate ? "true" : undefined}
             style={{
               position: "absolute",
               top: `${PAD_TOP}px`,
               left: 0,
-              width: "302px",        /* default — RAF overrides */
+              width: "var(--card-w, 302px)",
               height: `${CARD_H}px`,
-              opacity: 0,            /* RAF sets correct value before first paint */
-              willChange: "transform, opacity",
+              opacity: 0,
+              visibility: "hidden",
               transformOrigin: "center center",
+              contain: "layout style",
             }}
           >
             {/* ── CARD SHELL ── */}
@@ -960,6 +1090,7 @@ function FanTrack({
                     <Link
                       key={prod}
                       href={getProductLink(prod)}
+                      tabIndex={isDuplicate ? -1 : 0}
                       onClick={(e) => {
                         if (dragDistanceRef.current > 15) {
                           e.preventDefault();
@@ -1005,7 +1136,7 @@ function FanTrack({
               */}
               <div
                 role="button"
-                tabIndex={0}
+                tabIndex={isDuplicate ? -1 : 0}
                 aria-label={`Read full review by ${t.name}`}
                 onClick={(e) => {
                   if (dragDistanceRef.current > 15) {
@@ -1052,7 +1183,7 @@ function FanTrack({
       })}
     </div>
   );
-}
+});
 
 /* ─────────────────────────────────────────────
    SECTION HEADER
@@ -1253,6 +1384,14 @@ export default function TestimonialShowcase({ items = [] }: TestimonialShowcaseP
   const [hasInteracted, setHasInteracted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const handleOpenModal = useCallback((item: LoopItem) => {
+    setModalItem(item);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setModalItem(null);
+  }, []);
+
   const loopItems = useMemo(() => {
     if (items && items.length > 0) {
       return buildLoopItems(items.map(mapDbTestimonial));
@@ -1342,7 +1481,7 @@ export default function TestimonialShowcase({ items = [] }: TestimonialShowcaseP
       <div style={{ height: "clamp(36px, 4.5vw, 60px)" }} />
 
       {hasInteracted ? (
-        <FanTrack loopItems={loopItems} onOpenModal={setModalItem} />
+        <FanTrack loopItems={loopItems} onOpenModal={handleOpenModal} />
       ) : (
         <TestimonialSkeleton />
       )}
@@ -1366,7 +1505,7 @@ export default function TestimonialShowcase({ items = [] }: TestimonialShowcaseP
         {modalItem && (
           <TestimonialModal
             item={modalItem}
-            onClose={() => setModalItem(null)}
+            onClose={handleCloseModal}
           />
         )}
       </AnimatePresence>

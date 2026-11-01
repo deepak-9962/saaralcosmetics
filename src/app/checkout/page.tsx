@@ -11,6 +11,7 @@ import Footer from "@/components/layout/Footer";
 import GradientBackground from "@/components/layout/GradientBackground";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { createOrder, getActiveProductIds } from "@/lib/supabase/data";
 import { INDIAN_STATES } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
@@ -226,27 +227,41 @@ export default function CheckoutPage() {
         }
       }
 
-      // 1. Create Supabase order first
-      const order = await createOrder({
-        user_id: user?.id ?? null,
-        customer_name: formData.name.trim(),
-        customer_phone: formData.phone.trim(),
-        customer_email: formData.email.trim() || null,
-        address_line1: formData.address1.trim(),
-        address_line2: formData.address2.trim() || null,
-        city: formData.city.trim(),
-        state: formData.state.trim(),
-        pincode: formData.pincode.trim(),
-        items,
-        subtotal: total,
-        shipping_charge: shippingCharge,
-        total: grandTotal,
-        // Promo snapshot — written server-side by /api/promo/redeem after payment,
-        // but we pre-fill here as well so the order is complete from the start.
-        promo_code_snapshot: appliedPromo?.code ?? null,
-        discount_type_snapshot: appliedPromo?.discount_type ?? null,
-        discount_amount: appliedPromo?.discount_amount ?? null,
+      // 1. Create order server-side (server verifies stock, fetches real DB prices, computes totals)
+      const session = (await (getSupabaseBrowserClient().auth.getSession())).data.session;
+      const orderCreateRes = await fetch("/api/orders/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({
+          items: items.map((i) => ({
+            productId: i.product_id,
+            quantity: i.quantity,
+            variant_name: i.variant_name,
+          })),
+          customer: {
+            name: formData.name.trim(),
+            phone: formData.phone.trim(),
+            email: formData.email.trim() || null,
+            address1: formData.address1.trim(),
+            address2: formData.address2.trim() || null,
+            city: formData.city.trim(),
+            state: formData.state.trim(),
+            pincode: formData.pincode.trim(),
+          },
+          promoCode: appliedPromo?.code ?? null,
+          passkey: betaPasskey.trim() || null,
+        }),
       });
+
+      const orderCreateData = await orderCreateRes.json();
+      if (!orderCreateRes.ok || !orderCreateData.success) {
+        throw new Error(orderCreateData.error || "Failed to create order.");
+      }
+
+      const order = { id: orderCreateData.orderId, total: orderCreateData.total };
 
       // 2. Dynamically load the Razorpay checkout script
       const isScriptLoaded = await loadRazorpayScript();
@@ -262,7 +277,6 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           orderId: order.id,
-          amount: grandTotal,
         }),
       });
 

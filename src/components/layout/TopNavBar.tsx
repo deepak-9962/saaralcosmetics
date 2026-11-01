@@ -9,6 +9,7 @@ import { useWishlist } from "@/lib/wishlist";
 import { useAuth } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import PromoBanner from "@/components/layout/PromoBanner";
+import SearchDrawer from "@/components/layout/SearchDrawer";
 
 interface NavItem {
   label: string;
@@ -29,7 +30,6 @@ export default function TopNavBar() {
   const { user, profile, signOut, isLoading: authLoading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchVal, setSearchVal] = useState("");
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -55,26 +55,36 @@ export default function TopNavBar() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [accountMenuOpen]);
 
+  // Handle Escape key to close search or menus
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setIsSearchOpen(false);
+        setMobileMenuOpen(false);
+        setAccountMenuOpen(false);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Lock body scroll when search or mobile drawer is open
+  useEffect(() => {
+    if (isSearchOpen || mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isSearchOpen, mobileMenuOpen]);
+
   const handleSignOut = async () => {
     setAccountMenuOpen(false);
     await signOut();
     router.push("/");
     router.refresh();
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchVal.trim()) {
-      setIsSearchOpen(false);
-      router.push(`/products?search=${encodeURIComponent(searchVal.trim())}`);
-      setSearchVal("");
-    }
-  };
-
-  const handleSuggestionClick = (query: string) => {
-    setIsSearchOpen(false);
-    router.push(`/products?search=${encodeURIComponent(query)}`);
-    setSearchVal("");
   };
 
   const isActive = (href: string) => {
@@ -111,9 +121,9 @@ export default function TopNavBar() {
     >
       {showPromoBar && <PromoBanner />}
 
-      <div className="relative flex justify-between items-center h-[56px] md:h-[68px] px-4 md:px-16 max-w-[1280px] mx-auto">
-        {/* LEFT — Hamburger (mobile) / Logo+hamburger (desktop) */}
-        <div className="flex items-center gap-2 md:gap-3">
+      <div className="relative flex justify-between items-center h-[60px] md:h-[80px] lg:h-[86px] px-4 md:px-6 lg:px-12 max-w-[1280px] mx-auto">
+        {/* LEFT — Hamburger (mobile) / Logo (desktop & tablet) */}
+        <div className="flex items-center gap-2 md:gap-3 shrink-0 lg:min-w-[220px]">
           <button
             className="md:hidden w-11 h-11 flex items-center justify-center cursor-pointer"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
@@ -124,20 +134,20 @@ export default function TopNavBar() {
             </span>
           </button>
 
-          {/* Logo — desktop: inline with hamburger, mobile: hidden here (shown in center) */}
+          {/* Logo — desktop / tablet: inline flex */}
           <Link
             href="/"
-            className="hidden md:flex items-center transition-transform duration-200 hover:opacity-90 active:scale-98 py-1"
+            className="hidden md:flex items-center transition-transform duration-200 hover:opacity-90 active:scale-98"
             aria-label="Saaral Cosmetics Home"
           >
             <Image
               src="/images/logo.webp"
               alt="Saaral Cosmetics"
-              width={160}
-              height={104}
+              width={185}
+              height={120}
               priority
               fetchPriority="high"
-              className="h-[46px] lg:h-[52px] w-auto object-contain"
+              className="w-[105px] lg:w-[120px] h-auto max-w-full object-contain"
             />
           </Link>
         </div>
@@ -145,29 +155,29 @@ export default function TopNavBar() {
         {/* CENTER — Logo (mobile only, absolutely centered) */}
         <Link
           href="/"
-          className="md:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center transition-transform duration-200 active:scale-95 py-1"
+          className="md:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center transition-transform duration-200 active:scale-95"
           aria-label="Saaral Cosmetics Home"
         >
           <Image
             src="/images/logo.webp"
             alt="Saaral Cosmetics"
-            width={130}
-            height={85}
+            width={120}
+            height={78}
             priority
             fetchPriority="high"
-            className="h-[38px] w-auto object-contain"
+            className="w-[72px] h-auto max-w-full object-contain"
           />
         </Link>
 
-        {/* CENTER — Nav links (desktop only, absolute) */}
-        <div className="hidden md:flex items-center gap-2 lg:gap-3 absolute left-1/2 -translate-x-1/2">
+        {/* CENTER — Nav links (desktop & tablet flex layout) */}
+        <div className="hidden md:flex items-center justify-center gap-1.5 lg:gap-3 flex-1 mx-2 lg:mx-4">
           {navItems.map((item) => {
             const active = isActive(item.href);
             return (
               <Link
                 key={item.label}
                 href={item.href}
-                className={`relative px-3.5 py-1.5 rounded-full text-[14px] font-medium transition-all duration-200 ${
+                className={`relative px-3 lg:px-3.5 py-1.5 rounded-full text-[13px] lg:text-[14px] font-medium transition-all duration-200 ${
                   active
                     ? "text-[#B06080] font-semibold bg-[#B06080]/[0.08]"
                     : "text-[#2A1A14]/75 hover:text-[#2A1A14] hover:bg-[#2A1A14]/[0.05]"
@@ -186,15 +196,11 @@ export default function TopNavBar() {
           })}
         </div>
 
-        <div className="flex items-center gap-1 md:gap-3">
+        <div className="flex items-center justify-end gap-1 md:gap-2.5 lg:gap-3 shrink-0 lg:min-w-[220px]">
           <button
             onClick={() => {
-              if (window.innerWidth < 768) {
-                setMobileMenuOpen(false);
-                setIsSearchOpen(true);
-              } else {
-                router.push("/products");
-              }
+              setMobileMenuOpen(false);
+              setIsSearchOpen(true);
             }}
             className="inline-flex items-center justify-center w-11 h-11 hover:bg-surface-container-high/50 rounded-full transition-all duration-200 active:scale-90 cursor-pointer"
             aria-label="Search products"
@@ -325,85 +331,11 @@ export default function TopNavBar() {
       </div>
 
 
-      {/* ── IMMERSIVE FULL-SCREEN SEARCH PORTAL ── */}
-      <AnimatePresence>
-        {isSearchOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-50 luxury-gradient-bg flex flex-col p-6 overflow-y-auto grain-overlay"
-          >
-            {/* Ambient glows */}
-            <div className="absolute top-10 left-10 w-72 h-72 rounded-full bg-primary/10 blur-[80px] pointer-events-none" />
-            <div className="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-[#C9A74D]/10 blur-[90px] pointer-events-none" />
-
-            {/* Header / Close Row */}
-            <div className="flex justify-between items-center z-10">
-              <span className="font-display italic text-[#B06080] text-[20px]">Saaral Portal</span>
-              <button
-                onClick={() => setIsSearchOpen(false)}
-                className="h-10 w-10 rounded-full border border-outline-variant/30 flex items-center justify-center bg-surface-container-lowest/80 text-on-surface hover:text-[#B06080] hover:border-[#B06080]/40 transition-all duration-200 active:scale-90 cursor-pointer"
-                aria-label="Close search"
-              >
-                <span className="material-symbols-outlined text-[20px]">close</span>
-              </button>
-            </div>
-
-            {/* Main Input Field Container */}
-            <div className="mt-14 z-10">
-              <form onSubmit={handleSearchSubmit} className="relative">
-                <input
-                  type="text"
-                  value={searchVal}
-                  onChange={(e) => setSearchVal(e.target.value)}
-                  placeholder="Search formulations, rituals, ingredients..."
-                  className="w-full bg-transparent border-b border-outline-variant py-4 pr-12 font-display italic text-[24px] focus:outline-none focus:border-primary text-on-surface placeholder:text-outline/40 transition-colors"
-                  autoFocus
-                />
-                <button
-                  type="submit"
-                  className="absolute right-0 top-1/2 -translate-y-1/2 p-2 text-on-surface hover:text-[#B06080] cursor-pointer"
-                  aria-label="Submit search"
-                >
-                  <span className="material-symbols-outlined text-[28px]">arrow_forward</span>
-                </button>
-              </form>
-            </div>
-
-            {/* Curated Botanical Suggestions */}
-            <div className="mt-12 z-10 flex-grow">
-              <p className="label-caps text-[#C9A74D] block mb-4 text-[10px] tracking-[0.15em]">Curated Botanical Queries</p>
-              <div className="flex flex-wrap gap-2.5">
-                {[
-                  "Saffron Serum",
-                  "Neem & Tulsi Wash",
-                  "Turmeric Glow Bar",
-                  "Nalangu Maavu",
-                  "Face Cream",
-                  "Soap"
-                ].map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => handleSuggestionClick(item)}
-                    className="search-suggestion-chip px-4 py-2.5 rounded-full border border-outline-variant/30 bg-surface-container-lowest text-[13px] font-body text-on-surface-variant flex items-center gap-1.5 cursor-pointer shadow-sm hover:shadow transition-all duration-200 active:scale-95"
-                  >
-                    <span className="text-[#C9A74D] text-xs">✦</span>
-                    {item}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Bottom Brand Stamp */}
-            <div className="mt-8 pt-6 border-t border-outline-variant/20 flex justify-between items-center text-outline/50 z-10">
-              <span className="font-body text-[10px] uppercase tracking-wider">100% Ayurvedic Wisdom</span>
-              <span className="font-body text-[10px] uppercase tracking-wider">Handcrafted in India</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ── LIVE SEARCH DRAWER (Vilvah Store style) ── */}
+      <SearchDrawer
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
 
       {/* ── EDITORIAL FULL-SCREEN DRAWER MENU ── */}
       <AnimatePresence>

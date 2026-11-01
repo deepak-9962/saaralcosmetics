@@ -21,7 +21,14 @@ export async function GET() {
             average_rating: Number(row.average_rating),
           };
         });
-        return NextResponse.json({ ratings: map });
+        return NextResponse.json(
+          { ratings: map },
+          {
+            headers: {
+              "Cache-Control": "public, s-maxage=120, stale-while-revalidate=300",
+            },
+          }
+        );
       }
     } catch {
       // ignore, use fallback
@@ -56,7 +63,14 @@ export async function GET() {
       };
     }
 
-    return NextResponse.json({ ratings: map });
+    return NextResponse.json(
+      { ratings: map },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=120, stale-while-revalidate=300",
+        },
+      }
+    );
   } catch (err) {
     console.error("[products/ratings GET]", err);
     return NextResponse.json({ error: "Failed to fetch product ratings." }, { status: 500 });

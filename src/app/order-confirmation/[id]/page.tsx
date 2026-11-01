@@ -4,7 +4,8 @@ import Footer from "@/components/layout/Footer";
 import GradientBackground from "@/components/layout/GradientBackground";
 import ConfettiTrigger from "@/components/order/ConfettiTrigger";
 import FadeIn from "@/components/layout/FadeIn";
-import { getOrderById } from "@/lib/supabase/data";
+import { getOrderById, normalizeOrder } from "@/lib/supabase/data";
+import { getSupabaseServiceClient } from "@/lib/supabase/server";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -30,7 +31,23 @@ export default async function OrderConfirmationPage({ params }: Props) {
   let error = null;
 
   try {
-    order = await getOrderById(id);
+    try {
+      const supabase = getSupabaseServiceClient();
+      const { data, error: dbError } = await (supabase as any)
+        .from("orders")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (dbError) throw dbError;
+      if (data) {
+        order = normalizeOrder(data);
+      } else {
+        order = await getOrderById(id);
+      }
+    } catch {
+      order = await getOrderById(id);
+    }
     if (!order) {
       error = "Order not found.";
     }

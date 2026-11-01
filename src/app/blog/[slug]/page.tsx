@@ -14,6 +14,8 @@ interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const revalidate = 300; // Cache individual blog posts for 5 minutes
+
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const post = await getBlogPostBySlug(resolvedParams.slug);

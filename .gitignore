@@ -45,3 +45,6 @@ next-env.d.ts
 
 # customer before/after raw photos (uploaded to Supabase, not committed to git)
 /customer-photos/
+
+# Database backup dumps (never commit production data)
+/supabase/backups/
