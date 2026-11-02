@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     }
 
     // ── 4. Validate Server Credentials ──────────────────────────────────────
-    const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -96,6 +96,7 @@ export async function POST(request: Request) {
         razorpayOrderId: order.razorpay_order_id,
         amount: Math.round(order.total * 100),
         currency: "INR",
+        keyId,
       });
     }
 
@@ -147,6 +148,7 @@ export async function POST(request: Request) {
         razorpayOrderId: razorpayOrder.id,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
+        keyId,
       },
       {
         headers: { "X-RateLimit-Remaining": String(remaining) },

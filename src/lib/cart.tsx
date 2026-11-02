@@ -33,11 +33,32 @@ interface CartContextType extends CartState {
 
 const CartContext = createContext<CartContextType | null>(null);
 
+function normalizeCartItem(item: CartItem): CartItem {
+  if (!item) return item;
+  let image = item.image;
+  if (typeof image === "string") {
+    if (image.includes("supabase.co/storage") && image.endsWith(".png")) {
+      image = image.replace(/\.png$/i, ".webp");
+    }
+  }
+  return {
+    ...item,
+    image,
+  };
+}
+
 function getStoredCart(): CartItem[] {
   if (typeof window === "undefined") return [];
   try {
     const stored = localStorage.getItem(CART_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    const normalized = parsed.map(normalizeCartItem);
+    if (JSON.stringify(normalized) !== stored) {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(normalized));
+    }
+    return normalized;
   } catch {
     return [];
   }
@@ -141,16 +162,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const res = await fetch("/api/cart");
         if (!res.ok) return;
         const { items: dbRaw } = await res.json();
-        const dbItems: CartItem[] = (dbRaw ?? []).map((r: any) => ({
-          product_id: r.product_id,
-          name: r.name,
-          variant_name: r.variant_name,
-          price: r.price,
-          quantity: r.quantity,
-          image: r.image,
-          slug: r.slug,
-          is_combo: r.is_combo,
-        }));
+        const dbItems: CartItem[] = (dbRaw ?? []).map((r: any) =>
+          normalizeCartItem({
+            product_id: r.product_id,
+            name: r.name,
+            variant_name: r.variant_name,
+            price: r.price,
+            quantity: r.quantity,
+            image: r.image,
+            slug: r.slug,
+            is_combo: r.is_combo,
+          })
+        );
 
         // 2. Get current localStorage (guest) cart
         const guestItems = getStoredCart();

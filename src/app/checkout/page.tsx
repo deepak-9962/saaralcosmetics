@@ -15,6 +15,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { createOrder, getActiveProductIds } from "@/lib/supabase/data";
 import { INDIAN_STATES } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
+import ProductImage from "@/components/product/ProductImage";
 
 export default function CheckoutPage() {
   const { items, total, clearCart, removeItem, appliedPromo, removePromo, applyPromo, isValidatingPromo, discountedTotal } = useCart();
@@ -285,11 +286,11 @@ export default function CheckoutPage() {
         throw new Error(errorData.error || "Failed to initiate Razorpay order.");
       }
 
-      const { razorpayOrderId } = await razorpayOrderResponse.json();
+      const { razorpayOrderId, keyId: serverKeyId } = await razorpayOrderResponse.json();
 
       // 4. Trigger the custom-styled Razorpay modal
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
+        key: serverKeyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
         amount: grandTotal * 100,
         currency: "INR",
         name: "Saaral Cosmetics",
@@ -619,13 +620,12 @@ export default function CheckoutPage() {
               <div className="flex flex-col gap-4 mb-6">
                 {items.map((item) => (
                   <div key={item.product_id} className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-lg bg-surface-container overflow-hidden flex-shrink-0">
-                      <Image
+                    <div className="w-16 h-16 rounded-lg bg-surface-container overflow-hidden flex-shrink-0 relative">
+                      <ProductImage
                         src={item.image}
                         alt={item.name}
-                        width={64}
-                        height={64}
-                        className="w-full h-full object-cover"
+                        sizes="64px"
+                        className="w-full h-full"
                       />
                     </div>
                     <div className="flex-grow">
