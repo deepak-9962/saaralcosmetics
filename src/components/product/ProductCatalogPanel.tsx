@@ -320,8 +320,8 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
         >
           <div className="max-w-[1280px] mx-auto px-4 md:px-[72px]">
 
-            {/* ── Row 1: Filter + Sort ── */}
-            <div className="flex items-center gap-2 h-[48px] md:h-[52px]">
+            {/* ── Row 1: Filter + Sort + Active Filter Badges ── */}
+            <div className="flex items-center gap-2 h-[48px] md:h-[52px] overflow-x-auto no-scrollbar">
 
               {/* FILTER button with badge */}
               <button
@@ -426,15 +426,100 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* Active collection filter "×" chip */}
+              {collectionParam && (
+                <>
+                  <div className="shrink-0 w-px h-5" style={{ background: "rgba(201,167,77,0.2)" }} />
+                  <button
+                    onClick={() => {
+                      const p = new URLSearchParams(searchParams.toString());
+                      p.delete("collection");
+                      router.push(`/products${p.toString() ? `?${p.toString()}` : ""}`, { scroll: false });
+                    }}
+                    className="shrink-0 flex items-center gap-1.5 h-8 px-3 rounded-full font-body text-[11px] font-semibold transition-all duration-200 cursor-pointer"
+                    style={{
+                      background: "rgba(139,58,94,0.10)",
+                      border: "1.5px solid rgba(139,58,94,0.28)",
+                      color: "#8B3A5E",
+                    }}
+                  >
+                    <span>
+                      {collectionParam === "new-launches"
+                        ? "New Launches"
+                        : collectionParam === "bestsellers"
+                        ? "BestSellers"
+                        : collectionParam === "gen-z-favourites"
+                        ? "Gen Z Favourites"
+                        : collectionParam}
+                    </span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </>
+              )}
+
+              {/* Active price filter "×" chip */}
+              {(priceFilter !== "all-prices" || Boolean(maxPriceParam)) && (
+                <>
+                  {!collectionParam && <div className="shrink-0 w-px h-5" style={{ background: "rgba(201,167,77,0.2)" }} />}
+                  <button
+                    onClick={() => {
+                      const p = new URLSearchParams(searchParams.toString());
+                      p.delete("max_price");
+                      p.delete("price");
+                      setPriceFilter("all-prices");
+                      router.push(`/products${p.toString() ? `?${p.toString()}` : ""}`, { scroll: false });
+                    }}
+                    className="shrink-0 flex items-center gap-1.5 h-8 px-3 rounded-full font-body text-[11px] font-semibold transition-all duration-200 cursor-pointer"
+                    style={{
+                      background: "rgba(139,58,94,0.10)",
+                      border: "1.5px solid rgba(139,58,94,0.28)",
+                      color: "#8B3A5E",
+                    }}
+                  >
+                    <span>
+                      {maxPriceParam
+                        ? `Under ₹${maxPriceParam}`
+                        : priceFilter === "under-500"
+                        ? "Under ₹500"
+                        : priceFilter === "500-999"
+                        ? "₹500–₹999"
+                        : "₹1000+"}
+                    </span>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </>
+              )}
+
+              {/* Clear all if any filter is active */}
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={() => {
+                    setPriceFilter("all-prices");
+                    setSortMode("featured");
+                    router.push("/products", { scroll: false });
+                  }}
+                  className="shrink-0 font-body text-[11px] font-semibold tracking-[0.04em] underline underline-offset-2 cursor-pointer whitespace-nowrap hover:opacity-80 px-1"
+                  style={{ color: "#8B3A5E" }}
+                >
+                  Clear all
+                </button>
+              )}
             </div>
 
-            {/* ── Row 2: Category chips (full-width scrollable row) ── */}
+            {/* ── Row 2: Category chips (full-width smooth scrollable row) ── */}
             <div
-              className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2.5"
+              className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2"
               style={{ borderTop: "1px solid rgba(201,167,77,0.10)" }}
             >
               <LayoutGroup id="cat-chips">
-                <div className="flex items-center gap-2 pt-2">
+                <div className="flex items-center gap-2 shrink-0">
                   {allCategoryChips.map((cat) => {
                     const isActive = activeCategory === cat.slug;
                     return (
@@ -479,85 +564,6 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
                   })}
                 </div>
               </LayoutGroup>
-
-              {/* Active collection filter "×" chip */}
-              {collectionParam && (
-                <button
-                  onClick={() => {
-                    const p = new URLSearchParams(searchParams.toString());
-                    p.delete("collection");
-                    router.push(`/products${p.toString() ? `?${p.toString()}` : ""}`, { scroll: false });
-                  }}
-                  className="shrink-0 flex items-center gap-1.5 h-8 px-3 rounded-full font-body text-[11px] font-semibold transition-all duration-200 cursor-pointer mt-2"
-                  style={{
-                    background: "rgba(139,58,94,0.10)",
-                    border: "1.5px solid rgba(139,58,94,0.28)",
-                    color: "#8B3A5E",
-                  }}
-                >
-                  <span>
-                    {collectionParam === "new-launches"
-                      ? "New Launches"
-                      : collectionParam === "bestsellers"
-                      ? "BestSellers"
-                      : collectionParam === "gen-z-favourites"
-                      ? "Gen Z Favourites"
-                      : collectionParam}
-                  </span>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              )}
-
-              {/* Active price filter "×" chip */}
-              {(priceFilter !== "all-prices" || Boolean(maxPriceParam)) && (
-                <button
-                  onClick={() => {
-                    const p = new URLSearchParams(searchParams.toString());
-                    p.delete("max_price");
-                    p.delete("price");
-                    setPriceFilter("all-prices");
-                    router.push(`/products${p.toString() ? `?${p.toString()}` : ""}`, { scroll: false });
-                  }}
-                  className="shrink-0 flex items-center gap-1.5 h-8 px-3 rounded-full font-body text-[11px] font-semibold transition-all duration-200 cursor-pointer mt-2"
-                  style={{
-                    background: "rgba(139,58,94,0.10)",
-                    border: "1.5px solid rgba(139,58,94,0.28)",
-                    color: "#8B3A5E",
-                  }}
-                >
-                  <span>
-                    {maxPriceParam
-                      ? `Under ₹${maxPriceParam}`
-                      : priceFilter === "under-500"
-                      ? "Under ₹500"
-                      : priceFilter === "500-999"
-                      ? "₹500–₹999"
-                      : "₹1000+"}
-                  </span>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              )}
-
-              {/* Clear all if any filter is active */}
-              {activeFilterCount > 0 && (
-                <button
-                  onClick={() => {
-                    setPriceFilter("all-prices");
-                    setSortMode("featured");
-                    router.push("/products", { scroll: false });
-                  }}
-                  className="shrink-0 font-body text-[11px] font-semibold tracking-[0.04em] underline underline-offset-2 cursor-pointer whitespace-nowrap mt-2 hover:opacity-80"
-                  style={{ color: "#8B3A5E" }}
-                >
-                  Clear all
-                </button>
-              )}
             </div>
 
           </div>
