@@ -107,24 +107,22 @@ export default function DesktopBannerSlider({ slides = [] }: DesktopBannerSlider
   return (
     <section
       aria-label="Featured Collections Banner"
-      className="hidden md:block w-full"
-      style={{ background: "#FDFAF8", padding: "0 40px 32px" }}
+      className="w-full px-3 md:px-10 pb-4 md:pb-8"
+      style={{ background: "#FDFAF8" }}
     >
       <div
         role="region"
         aria-roledescription="carousel"
         aria-label="Saaral featured collection slides"
-        className="relative"
+        className="relative w-full rounded-2xl md:rounded-[20px] overflow-hidden select-none"
         style={{
           maxWidth: "1400px",
           margin: "0 auto",
           aspectRatio: "2103 / 748",
-          borderRadius: "20px",
           boxShadow: "0 4px 32px rgba(42,26,20,0.09)",
           cursor: "pointer",
           background: bg,
           transition: `background ${FADE_MS}ms ease`,
-          overflow: "hidden",
         }}
         onMouseEnter={stopTimer}
         onMouseLeave={startTimer}
@@ -171,7 +169,7 @@ export default function DesktopBannerSlider({ slides = [] }: DesktopBannerSlider
         {/* ── Dot indicators — bottom center (only if > 1 slide) ── */}
         {slides.length > 1 && (
           <div
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-[8px] z-10"
+            className="absolute bottom-2 md:bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 md:gap-2 z-10"
             role="tablist"
             aria-label="Banner slides"
           >
@@ -190,7 +188,7 @@ export default function DesktopBannerSlider({ slides = [] }: DesktopBannerSlider
                 className="rounded-full transition-all duration-500"
                 style={{
                   height: "3px",
-                  width: i === current ? "36px" : "10px",
+                  width: i === current ? "28px" : "8px",
                   background: i === current ? "#FFFFFF" : "rgba(255,255,255,0.5)",
                   border: "none",
                   padding: 0,
@@ -204,7 +202,7 @@ export default function DesktopBannerSlider({ slides = [] }: DesktopBannerSlider
 
         {/* ── Left/Right navigation arrows — bottom right (only if > 1 slide) ── */}
         {slides.length > 1 && (
-          <div className="absolute bottom-6 right-6 flex items-center gap-2.5 z-10">
+          <div className="absolute bottom-2.5 right-2.5 md:bottom-6 md:right-6 flex items-center gap-1.5 md:gap-2.5 z-10">
             {/* Prev arrow */}
             <button
               onClick={(e) => {
@@ -215,10 +213,8 @@ export default function DesktopBannerSlider({ slides = [] }: DesktopBannerSlider
                 startTimer();
               }}
               aria-label="Previous slide"
-              className="flex items-center justify-center rounded-full transition-all duration-200 active:scale-90 hover:scale-105"
+              className="flex items-center justify-center w-7 h-7 md:w-9 md:h-9 rounded-full transition-all duration-200 active:scale-90 hover:scale-105"
               style={{
-                width: "36px",
-                height: "36px",
                 background: "rgba(255,255,255,0.82)",
                 backdropFilter: "blur(8px)",
                 WebkitBackdropFilter: "blur(8px)",
@@ -242,10 +238,8 @@ export default function DesktopBannerSlider({ slides = [] }: DesktopBannerSlider
                 startTimer();
               }}
               aria-label="Next slide"
-              className="flex items-center justify-center rounded-full transition-all duration-200 active:scale-90 hover:scale-105"
+              className="flex items-center justify-center w-7 h-7 md:w-9 md:h-9 rounded-full transition-all duration-200 active:scale-90 hover:scale-105"
               style={{
-                width: "36px",
-                height: "36px",
                 background: "rgba(255,255,255,0.82)",
                 backdropFilter: "blur(8px)",
                 WebkitBackdropFilter: "blur(8px)",

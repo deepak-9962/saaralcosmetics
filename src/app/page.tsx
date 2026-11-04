@@ -8,7 +8,6 @@ import GradientBackground from "@/components/layout/GradientBackground";
 import CuratedRituals from "@/components/home/CuratedRituals";
 import GoldCurveDivider from "@/components/home/GoldCurveDivider";
 import LuxuryRibbon from "@/components/home/LuxuryRibbon";
-import MobileHeroBanner from "@/components/home/MobileHeroBanner";
 import MobileCategoryScroll from "@/components/home/MobileCategoryScroll";
 import MobilePromoGrid from "@/components/home/MobilePromoGrid";
 import MobileTrustBar from "@/components/home/MobileTrustBar";
@@ -160,8 +159,10 @@ export default async function HomePage() {
         {/* ── MOBILE-ONLY: 1. Category Discovery Scroll — FIRST below nav ── */}
         <MobileCategoryScroll categories={homepageCategories} />
 
-        {/* ── MOBILE-ONLY: 2. Hero Banner Slider — card style ── */}
-        <MobileHeroBanner slides={heroSlides} />
+        {/* ── MOBILE-ONLY: 2. Hero Banner Slider (same as desktop) ── */}
+        <div className="block md:hidden">
+          <DesktopBannerSlider slides={heroSlides} />
+        </div>
 
         {/* ── MOBILE-ONLY: 3. Social Proof Bar — stars + customers + India ── */}
         <MobileTrustBar />
@@ -173,7 +174,9 @@ export default async function HomePage() {
         <DesktopCategoryStrip categories={homepageCategories} />
 
         {/* ── DESKTOP ONLY: Large Banner Slider ── */}
-        <DesktopBannerSlider slides={heroSlides} />
+        <div className="hidden md:block">
+          <DesktopBannerSlider slides={heroSlides} />
+        </div>
 
         {/* ── LUXURY RIBBON ── */}
         <LuxuryRibbon />
