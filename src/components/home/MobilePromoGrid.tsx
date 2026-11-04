@@ -181,7 +181,7 @@ function PromoCard({ card }: PromoCardProps) {
             whiteSpace: "pre-line",
           }}
         >
-          {card.title}
+          {card.title?.replace(/\\n/g, "\n")}
         </h3>
         {card.badge_text && (
           <span

@@ -487,7 +487,7 @@ export default function PromoCardsManager() {
                   >
                     <RenderBotanicalIcon accent={card.botanical_accent} color={card.accent_color} opacity={0.35} />
                     <span className="font-display text-[10px] font-bold text-[#2A1A14] text-center leading-tight whitespace-pre-line z-10">
-                      {card.title}
+                      {card.title?.replace(/\\n/g, "\n")}
                     </span>
                   </div>
 
@@ -495,7 +495,7 @@ export default function PromoCardsManager() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <h4 className="font-display text-[14px] font-bold text-on-surface truncate">
-                        {card.title.replace(/\n/g, " ")}
+                        {card.title?.replace(/\\n|\n/g, " ")}
                       </h4>
                       {card.badge_text && (
                         <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold">
@@ -603,7 +603,7 @@ export default function PromoCardsManager() {
                       color={form.accent_color || "#8B6A3A"}
                     />
                     <h4 className="font-display text-[14px] font-bold text-[#2A1A14] leading-[1.2] relative z-10 whitespace-pre-line">
-                      {form.title || "Card Title"}
+                      {(form.title || "Card Title").replace(/\\n/g, "\n")}
                     </h4>
                     {form.badge_text && (
                       <span
