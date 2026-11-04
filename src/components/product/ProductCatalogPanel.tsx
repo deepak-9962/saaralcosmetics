@@ -147,11 +147,12 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
         oil: "opacity",
         balm: "healing",
         combos: "auto_awesome_motion",
+        gel: "sanitizer",
       };
       categories.forEach((cat) => {
         list.push({
           slug: cat.slug,
-          label: cat.name,
+          label: cat.name === "GEL" ? "Gel" : cat.name,
           icon: iconMap[cat.slug] || "category",
         });
       });
