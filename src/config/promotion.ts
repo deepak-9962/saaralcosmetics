@@ -33,11 +33,11 @@ export interface PromotionCampaign {
 
 export const CURRENT_PROMOTION: PromotionCampaign = {
   id: "saaral_festive_sale_50_2026",
-  enabled: true,
+  enabled: false,
   message: "FLAT 50% OFF — SALE ENDS IN",
   endDate: "2026-11-02T23:59:59+05:30", // Configured in Indian Standard Time (IST)
   targetUrl: "/products",
   expiredMessage: "THIS OFFER HAS ENDED",
-  onExpire: "show-expired",
+  onExpire: "hide",
   allowDismiss: false,
 };

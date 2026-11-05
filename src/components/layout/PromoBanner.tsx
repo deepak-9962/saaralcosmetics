@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import type { PromoBannerCode } from "@/lib/types";
-import { CURRENT_PROMOTION } from "@/config/promotion";
 
 interface TimeLeft {
   days: number;
@@ -79,9 +78,9 @@ export default function PromoBanner() {
 
   const current = codes[activeIndex] || codes[0];
 
-  // Active target date: promo expiry or promotional campaign fallback
+  // Active target date: promo expiry
   const targetEndDate = useMemo(() => {
-    return current?.expires_at || CURRENT_PROMOTION.endDate;
+    return current?.expires_at || null;
   }, [current?.expires_at]);
 
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(() => calculateTimeLeft(targetEndDate));
@@ -127,8 +126,8 @@ export default function PromoBanner() {
     }
   };
 
-  // If no codes are active in banner, check if fallback promotion is enabled
-  if (codes.length === 0 && !CURRENT_PROMOTION.enabled) {
+  // If no promo codes are active in banner, hide the banner completely
+  if (codes.length === 0) {
     return null;
   }
 
@@ -162,7 +161,7 @@ export default function PromoBanner() {
       <div className="max-w-[1280px] mx-auto px-3 sm:px-6 py-2 md:py-2.5 flex items-center justify-center min-h-[44px] md:min-h-[48px]">
         <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 md:gap-5 text-center">
           {/* ── Promo Code Offer Segment ── */}
-          {promoCode ? (
+          {promoCode && (
             <div className="flex items-center flex-wrap justify-center gap-1.5 sm:gap-2">
               {descHasCode ? (
                 <p className="font-body text-[11.5px] sm:text-[12.5px] md:text-[13.5px] font-bold tracking-[0.06em] uppercase text-white drop-shadow-xs">
@@ -211,17 +210,11 @@ export default function PromoBanner() {
                   </span>
                 </>
               )}
-
-
             </div>
-          ) : (
-            <p className="font-body text-[11.5px] sm:text-[12.5px] md:text-[13.5px] font-bold tracking-[0.06em] uppercase text-white drop-shadow-xs">
-              {CURRENT_PROMOTION.message}
-            </p>
           )}
 
           {/* ── Divider & Countdown Timer Segment ── */}
-          {!timeLeft.isExpired && (
+          {!timeLeft.isExpired && targetEndDate && (
             <div className="flex items-center gap-2 sm:gap-3">
               <span className="hidden sm:inline-block text-white/60 text-[12px]">|</span>
               <span className="font-body text-[10px] sm:text-[11px] md:text-[12px] font-bold tracking-[0.08em] uppercase text-white/90">
