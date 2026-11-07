@@ -88,6 +88,7 @@ export type Database = {
           description: string | null;
           ingredients: string | null;
           how_to_use: string | null;
+          other_info: Json | null;
           images: string[];
           /** @deprecated Use product_images table instead. */
           image_path: string | null;
@@ -108,6 +109,7 @@ export type Database = {
           description?: string | null;
           ingredients?: string | null;
           how_to_use?: string | null;
+          other_info?: Json | null;
           images?: string[];
           /** @deprecated Use product_images table instead. */
           image_path?: string | null;
@@ -584,6 +586,22 @@ export type Database = {
             referencedColumns: ["id"];
           }
         ];
+      };
+      store_settings: {
+        Row: {
+          id: string;
+          payments_enabled: boolean;
+          payments_disabled_message: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          payments_enabled?: boolean;
+          payments_disabled_message?: string | null;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["store_settings"]["Insert"]>;
+        Relationships: [];
       };
     };
     Views: {

@@ -6,8 +6,9 @@ import Link from "next/link";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
-import type { Product } from "@/lib/types";
+import type { Product, ProductSpecification } from "@/lib/types";
 import CategorySelector from "@/components/admin/CategorySelector";
+import ProductOtherInfoEditor from "@/components/admin/ProductOtherInfoEditor";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -23,6 +24,7 @@ type ProductFormState = {
   how_to_use: string;
   stock: string;
   is_active: boolean;
+  other_info: ProductSpecification[];
 };
 
 type ImageItem = {
@@ -45,6 +47,7 @@ const initialState: ProductFormState = {
   how_to_use: "",
   stock: "0",
   is_active: true,
+  other_info: [],
 };
 
 /** Allowed MIME types — mirrors the bucket's allowed_mime_types */
@@ -194,6 +197,7 @@ export default function AdminAddProductPage() {
       fd.append("description", form.description.trim());
       fd.append("ingredients", form.ingredients.trim());
       fd.append("how_to_use", form.how_to_use.trim());
+      fd.append("other_info", JSON.stringify(form.other_info || []));
       fd.append("stock", String(parsedStock));
       fd.append("is_active", String(form.is_active));
 
@@ -552,6 +556,16 @@ export default function AdminAddProductPage() {
               className={inputClass}
             />
           </div>
+        </section>
+
+        {/* ── Specifications / Other Information ───────────────────────── */}
+        <section className="lg:col-span-2 bg-surface p-6 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow space-y-5">
+          <ProductOtherInfoEditor
+            value={form.other_info}
+            onChange={(items) =>
+              setForm((prev) => ({ ...prev, other_info: items }))
+            }
+          />
         </section>
 
         {/* ── Global form error ──────────────────────────────────────────── */}

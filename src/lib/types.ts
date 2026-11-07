@@ -21,6 +21,11 @@ export interface CategoryInput {
   is_active?: boolean;
 }
 
+export interface ProductSpecification {
+  label: string;
+  value: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -33,12 +38,21 @@ export interface Product {
   description: string | null;
   ingredients: string | null;
   how_to_use: string | null;
+  /** Custom specifications / "Other Information" key-value list */
+  other_info?: ProductSpecification[] | null;
   images: string[];
   /** @deprecated Use product_images query instead. Kept for backward-compat fallback. */
   image_path?: string | null;
   stock: number;
   is_active: boolean;
   created_at: string;
+  updated_at: string;
+}
+
+export interface StoreSettings {
+  id: string;
+  payments_enabled: boolean;
+  payments_disabled_message: string;
   updated_at: string;
 }
 

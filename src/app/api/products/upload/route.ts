@@ -148,6 +148,14 @@ export async function POST(request: NextRequest) {
         if (cat) resolvedCategoryId = cat.id;
       }
 
+      const otherInfoRaw = formData.get("other_info") as string | null;
+      let otherInfo = [];
+      if (otherInfoRaw) {
+        try {
+          otherInfo = JSON.parse(otherInfoRaw);
+        } catch {}
+      }
+
       const { data: newProduct, error: insertError } = await supabase
         .from("products")
         .insert({
@@ -161,6 +169,7 @@ export async function POST(request: NextRequest) {
           description: description || null,
           ingredients: ingredients || null,
           how_to_use: howToUse || null,
+          other_info: otherInfo,
           images: [],     // will be updated after all uploads succeed
           image_path: null,
           stock,

@@ -27,7 +27,7 @@ import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/utils";
 import { getActiveProductIds, listProducts, getCombosByIds } from "@/lib/supabase/data";
 import { MOCK_PRODUCTS } from "@/lib/products";
-import type { Product, ComboWithProducts } from "@/lib/types";
+import type { Product, ComboWithProducts, StoreSettings } from "@/lib/types";
 import ComboIncludedItems from "@/components/cart/ComboIncludedItems";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -321,8 +321,27 @@ export default function CartPage() {
   const [combosMap, setCombosMap] = useState<Map<string, ComboWithProducts>>(new Map());
   const [loadingCombos, setLoadingCombos] = useState(false);
   const [expandedComboIds, setExpandedComboIds] = useState<Set<string>>(new Set());
+  const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
   const validatedRef = useRef(false);
-  const isCheckoutDisabled = process.env.NEXT_PUBLIC_CHECKOUT_MODE === "disabled";
+
+  useEffect(() => {
+    fetch("/api/store-settings", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data.payments_enabled === "boolean") {
+          setStoreSettings(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const isCheckoutDisabled =
+    process.env.NEXT_PUBLIC_CHECKOUT_MODE === "disabled" ||
+    (storeSettings !== null && !storeSettings.payments_enabled);
+
+  const disabledMessage =
+    storeSettings?.payments_disabled_message ||
+    "Online checkout is temporarily paused. You can place your order directly via WhatsApp!";
 
   const toggleComboExpanded = (comboId: string) => {
     setExpandedComboIds((prev) => {
@@ -340,6 +359,15 @@ export default function CartPage() {
   const amountNeeded = Math.max(0, FREE_SHIPPING_THRESHOLD - discountedTotal);
   const freeShippingProgress = Math.min(100, (discountedTotal / FREE_SHIPPING_THRESHOLD) * 100);
   const grandTotal = discountedTotal + shippingCharge;
+
+  const getWhatsAppOrderUrl = () => {
+    const lines = items.map(
+      (item) =>
+        `• ${item.name}${item.variant_name ? ` (${item.variant_name})` : ""} x ${item.quantity} = ${formatPrice(item.price * item.quantity)}`
+    );
+    const text = `Hi Saaral Cosmetics! I would like to order:\n\n${lines.join("\n")}\n\n*Estimated Total:* ${formatPrice(grandTotal)}\n\nPlease assist me with placing this order!`;
+    return `https://wa.me/918428251423?text=${encodeURIComponent(text)}`;
+  };
 
   // Load combo details for any combo items in cart
   const itemIdsKey = items.map((i) => i.product_id).sort().join(",");
@@ -646,15 +674,24 @@ export default function CartPage() {
 
                   {/* CTA */}
                   {isCheckoutDisabled ? (
-                    <div className="space-y-2">
-                      <div className="flex items-start gap-2 bg-[#f9f9f9] border border-[#ebebeb] rounded-[14px] p-3">
-                        <ShieldCheck size={16} strokeWidth={1.8} className="text-[#aaa] mt-0.5 shrink-0" />
-                        <p className="font-body text-[12px] text-[#888] leading-relaxed">
-                          Online checkout is temporarily paused while we integrate our secure payment gateway.
+                    <div className="space-y-2.5">
+                      <div className="flex items-start gap-2 bg-amber-50 border border-amber-200/80 rounded-[14px] p-3 text-amber-900">
+                        <span className="material-symbols-outlined text-[18px] text-amber-700 mt-0.5 shrink-0">pause_circle</span>
+                        <p className="font-body text-[12px] leading-relaxed">
+                          {disabledMessage}
                         </p>
                       </div>
-                      <div className="w-full py-4 bg-[#e8e8e8] text-[#aaa] font-body text-[13px] font-semibold rounded-[14px] flex items-center justify-center cursor-not-allowed">
-                        Checkout Unavailable
+                      <a
+                        href={getWhatsAppOrderUrl()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-body text-[13px] font-semibold rounded-[14px] flex items-center justify-center gap-2 shadow-sm transition-all"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">chat</span>
+                        Order via WhatsApp
+                      </a>
+                      <div className="w-full py-2.5 bg-[#f0f0f0] text-[#888] font-body text-[11px] font-medium rounded-[10px] flex items-center justify-center cursor-not-allowed">
+                        Online Checkout Temporarily Paused
                       </div>
                     </div>
                   ) : (
@@ -879,21 +916,30 @@ export default function CartPage() {
 
                 {/* Checkout CTA */}
                 {isCheckoutDisabled ? (
-                  <>
-                    <div className="mb-4 p-4 rounded-xl bg-primary/5 border border-primary/20 flex gap-3 items-start">
-                      <span className="material-symbols-outlined text-[20px] text-primary mt-0.5 animate-pulse">info</span>
-                      <p className="font-body text-[13px] leading-[1.6] text-on-surface-variant text-left">
-                        Online checkout is temporarily paused as we integrate our secure payment gateway. We will be live soon!
+                  <div className="space-y-3">
+                    <div className="p-4 rounded-xl bg-amber-50 border border-amber-200/80 flex gap-3 items-start text-amber-900">
+                      <span className="material-symbols-outlined text-[20px] text-amber-700 mt-0.5 shrink-0">pause_circle</span>
+                      <p className="font-body text-[13px] leading-[1.6] text-amber-900 text-left">
+                        {disabledMessage}
                       </p>
                     </div>
+                    <a
+                      href={getWhatsAppOrderUrl()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-body text-[13px] leading-[1.0] tracking-[0.05em] font-semibold rounded-lg transition-all duration-200 flex justify-center items-center gap-2 shadow-sm"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">chat</span>
+                      Order via WhatsApp
+                    </a>
                     <button
                       type="button"
                       disabled
-                      className="w-full py-4 bg-outline-variant/30 text-on-surface-variant/50 font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium rounded-lg cursor-not-allowed flex justify-center items-center gap-2 border border-outline-variant/20"
+                      className="w-full py-3 bg-outline-variant/30 text-on-surface-variant/50 font-body text-[11px] leading-[1.0] tracking-[0.1em] font-medium rounded-lg cursor-not-allowed flex justify-center items-center gap-2 border border-outline-variant/20"
                     >
-                      Checkout Disabled
+                      Online Checkout Paused
                     </button>
-                  </>
+                  </div>
                 ) : (
                   <Link
                     href="/checkout"

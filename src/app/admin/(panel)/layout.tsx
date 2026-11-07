@@ -6,7 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import GradientBackground from "@/components/layout/GradientBackground";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { subscribeToOrders } from "@/lib/supabase/data";
+import { subscribeToOrders, getStoreSettings, updateStoreSettings } from "@/lib/supabase/data";
+import type { StoreSettings } from "@/lib/types";
 
 const navItems = [
   { label: "Dashboard", href: "/admin/dashboard", icon: "dashboard" },
@@ -122,6 +123,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [mobileOpen, setMobileOpen] = useState(false);
   const [newOrderCount, setNewOrderCount] = useState(0);
   const newOrderCountRef = useRef(0);
+  const [settings, setSettings] = useState<StoreSettings | null>(null);
 
   useEffect(() => {
     async function verifyAdminSession() {
@@ -135,12 +137,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (error) { setAuthError(error.message); return; }
         if (!user) { router.replace("/admin"); return; }
         setIsAuthorized(true);
+
+        // Load store settings
+        const s = await getStoreSettings();
+        setSettings(s);
       } catch (sessionError) {
         setAuthError(sessionError instanceof Error ? sessionError.message : "Failed to verify session.");
       }
     }
     verifyAdminSession();
   }, [router]);
+
+  const handleQuickEnablePayments = async () => {
+    try {
+      const updated = await updateStoreSettings({ payments_enabled: true });
+      setSettings(updated);
+    } catch (e) {
+      console.error("Failed to enable payments:", e);
+    }
+  };
 
   // Realtime: listen for new orders and bump badge count
   useEffect(() => {
@@ -249,6 +264,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             )}
           </button>
         </header>
+        {settings && !settings.payments_enabled && (
+          <div className="bg-amber-500 text-stone-950 px-4 py-2.5 font-body text-[13px] font-medium flex items-center justify-between gap-3 sticky top-0 z-50 shadow-md">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[20px] text-stone-950">warning</span>
+              <span>
+                <strong>Store Alert:</strong> Payment flow is currently <strong>PAUSED</strong>. Customers cannot checkout or place orders online.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleQuickEnablePayments}
+              className="px-3.5 py-1 rounded-lg bg-stone-950 text-white hover:bg-stone-850 active:scale-95 text-[12px] font-semibold tracking-wide transition-all whitespace-nowrap"
+            >
+              Resume Payments
+            </button>
+          </div>
+        )}
         <div className="relative z-10">{children}</div>
       </main>
     </div>

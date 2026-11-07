@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import PromoBanner from "@/components/layout/PromoBanner";
 import SearchDrawer from "@/components/layout/SearchDrawer";
+import type { StoreSettings } from "@/lib/types";
 
 interface NavItem {
   label: string;
@@ -35,6 +36,7 @@ export default function TopNavBar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
+  const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
 
   const isAdminRoute = pathname.startsWith("/admin");
   const showPromoBar = !isAdminRoute;
@@ -42,7 +44,17 @@ export default function TopNavBar() {
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    if (!pathname.startsWith("/admin")) {
+      fetch("/api/store-settings", { cache: "no-store" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && typeof data.payments_enabled === "boolean") {
+            setStoreSettings(data);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [pathname]);
 
   // Close account dropdown when clicking outside
   useEffect(() => {
@@ -120,6 +132,23 @@ export default function TopNavBar() {
       }}
     >
       {showPromoBar && <PromoBanner />}
+
+      {storeSettings && !storeSettings.payments_enabled && (
+        <div className="bg-gradient-to-r from-amber-600 to-amber-700 text-white px-4 py-2 font-body text-[12px] md:text-[13px] font-medium flex items-center justify-center gap-2 shadow-inner border-b border-amber-800/20 text-center">
+          <span className="material-symbols-outlined text-[16px] shrink-0">info</span>
+          <span>
+            {storeSettings.payments_disabled_message || "Online checkout is temporarily paused for maintenance."}
+          </span>
+          <a
+            href="https://wa.me/918428251423?text=Hi%20Saaral%2C%20I%20would%20like%20to%20place%20an%20order."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline font-bold text-amber-100 hover:text-white shrink-0 ml-1 inline-flex items-center gap-1"
+          >
+            Order on WhatsApp →
+          </a>
+        </div>
+      )}
 
       <div className="relative flex justify-between items-center h-[60px] md:h-[80px] lg:h-[86px] px-4 md:px-6 lg:px-12 max-w-[1280px] mx-auto">
         {/* LEFT — Hamburger (mobile) / Logo (desktop & tablet) */}

@@ -103,6 +103,25 @@ export async function POST(request: NextRequest) {
 
   // ── 4. Verify Products, Prices & Stock Directly from DB ────────
   const supabase = getSupabaseServiceClient();
+
+  // Guard: Check if payment flow has been toggled off by admin
+  const { data: settings } = await (supabase as any)
+    .from("store_settings")
+    .select("payments_enabled, payments_disabled_message")
+    .eq("id", "default")
+    .maybeSingle();
+
+  if (settings && settings.payments_enabled === false) {
+    return NextResponse.json(
+      {
+        error:
+          settings.payments_disabled_message ||
+          "Online ordering and payments are temporarily paused for maintenance. Please contact us on WhatsApp.",
+      },
+      { status: 503 }
+    );
+  }
+
   const productIds = Array.from(new Set(items.map((i) => i.productId)));
 
   const { data: dbProducts, error: dbError } = await (supabase as any)

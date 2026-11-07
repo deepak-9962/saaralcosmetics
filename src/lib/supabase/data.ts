@@ -32,6 +32,8 @@ import type {
   HomepageTestimonialInput,
   HomepagePromoCard,
   HomepagePromoCardInput,
+  ProductSpecification,
+  StoreSettings,
 } from "@/lib/types";
 import { getSupabaseBrowserClient } from "./client";
 import type { Database, Json } from "./database.types";
@@ -135,6 +137,7 @@ export function normalizeProduct(row: ProductRow): Product {
     ingredients: row.ingredients,
     how_to_use: row.how_to_use,
     images: normalizeProductImages(row.images, category),
+    other_info: Array.isArray((row as any).other_info) ? (row as any).other_info : [],
     // image_path stores the Supabase Storage bucket-relative path (used for deletion)
     image_path: (row as typeof row & { image_path?: string | null }).image_path ?? null,
     stock: row.stock,
@@ -456,6 +459,7 @@ export interface CreateProductInput {
   description: string | null;
   ingredients: string | null;
   how_to_use: string | null;
+  other_info?: ProductSpecification[] | null;
   images: string[];
   stock: number;
   is_active: boolean;
@@ -485,6 +489,7 @@ export async function createProduct(input: CreateProductInput): Promise<Product>
     description: input.description,
     ingredients: input.ingredients,
     how_to_use: input.how_to_use,
+    other_info: (input.other_info || []) as any,
     images: input.images,
     stock: input.stock,
     is_active: input.is_active,
@@ -2725,4 +2730,62 @@ export async function resetHomepagePromoCardsToDefault(): Promise<HomepagePromoC
   saveLocalPromoCards(DEFAULT_HOMEPAGE_PROMO_CARDS);
   return DEFAULT_HOMEPAGE_PROMO_CARDS;
 }
+
+// ============================================================
+// STORE SETTINGS & PAYMENT FLOW CONTROLS
+// ============================================================
+
+export const DEFAULT_STORE_SETTINGS: StoreSettings = {
+  id: "default",
+  payments_enabled: true,
+  payments_disabled_message:
+    "Online payments are temporarily paused for maintenance. You can still browse and add items to your cart, or contact us directly on WhatsApp to place orders.",
+  updated_at: new Date().toISOString(),
+};
+
+export async function getStoreSettings(): Promise<StoreSettings> {
+  const supabase = getSupabaseBrowserClient() as any;
+  try {
+    const { data, error } = await supabase
+      .from("store_settings")
+      .select("*")
+      .eq("id", "default")
+      .maybeSingle();
+
+    if (error || !data) {
+      return DEFAULT_STORE_SETTINGS;
+    }
+
+    return {
+      id: data.id,
+      payments_enabled: data.payments_enabled ?? true,
+      payments_disabled_message:
+        data.payments_disabled_message || DEFAULT_STORE_SETTINGS.payments_disabled_message,
+      updated_at: data.updated_at,
+    };
+  } catch {
+    return DEFAULT_STORE_SETTINGS;
+  }
+}
+
+export async function updateStoreSettings(
+  input: Partial<Pick<StoreSettings, "payments_enabled" | "payments_disabled_message">>
+): Promise<StoreSettings> {
+  const supabase = getSupabaseBrowserClient() as any;
+  const payload = {
+    ...input,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data, error } = await supabase
+    .from("store_settings")
+    .update(payload)
+    .eq("id", "default")
+    .select("*")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 

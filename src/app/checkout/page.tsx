@@ -13,7 +13,7 @@ import { useCart } from "@/lib/cart";
 import { useAuth } from "@/lib/auth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { createOrder, getActiveProductIds } from "@/lib/supabase/data";
-import { INDIAN_STATES } from "@/lib/types";
+import { INDIAN_STATES, StoreSettings } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 import ProductImage from "@/components/product/ProductImage";
 
@@ -33,6 +33,32 @@ export default function CheckoutPage() {
   const [passkeyInput, setPasskeyInput] = useState<string>("");
   const [passkeyError, setPasskeyError] = useState<string | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
+  const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
+
+  useEffect(() => {
+    fetch("/api/store-settings", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data.payments_enabled === "boolean") {
+          setStoreSettings(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const isPaymentsPaused = storeSettings !== null && !storeSettings.payments_enabled;
+
+  const getWhatsAppOrderUrl = () => {
+    const lines = items.map(
+      (item) =>
+        `• ${item.name}${item.variant_name ? ` (${item.variant_name})` : ""} x ${item.quantity} = ${formatPrice(item.price * item.quantity)}`
+    );
+    const addressStr = formData.name
+      ? `\n*Deliver to:*\n${formData.name}\n${formData.phone}\n${formData.address1}${formData.address2 ? `, ${formData.address2}` : ""}\n${formData.city}, ${formData.state} - ${formData.pincode}`
+      : "";
+    const text = `Hi Saaral Cosmetics! I would like to order:\n\n${lines.join("\n")}\n\n*Total Amount:* ${formatPrice(grandTotal)}${addressStr}\n\nPlease help me complete this order!`;
+    return `https://wa.me/918428251423?text=${encodeURIComponent(text)}`;
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -173,6 +199,11 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
+
+    if (isPaymentsPaused) {
+      setSubmitError(storeSettings?.payments_disabled_message || "Online payments are currently paused. Please order via WhatsApp.");
+      return;
+    }
 
     if (checkoutMode === "disabled") {
       setSubmitError("Online checkout is temporarily paused.");
@@ -540,6 +571,35 @@ export default function CheckoutPage() {
           Checkout
         </motion.h1>
 
+        {isPaymentsPaused && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-5 rounded-2xl bg-amber-50 border border-amber-300 ring-1 ring-amber-400/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+          >
+            <div className="flex items-start gap-3">
+              <span className="material-symbols-outlined text-[24px] text-amber-700 mt-0.5 shrink-0">pause_circle</span>
+              <div>
+                <p className="font-display text-[16px] font-semibold text-amber-950">
+                  Online Payments Temporarily Paused
+                </p>
+                <p className="font-body text-[13px] text-amber-900 mt-0.5 leading-relaxed">
+                  {storeSettings?.payments_disabled_message || "Online checkout is temporarily paused for maintenance. You can place your order directly via WhatsApp!"}
+                </p>
+              </div>
+            </div>
+            <a
+              href={getWhatsAppOrderUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-body text-[13px] font-semibold flex items-center gap-2 shadow-sm shrink-0 whitespace-nowrap active:scale-95 transition-all"
+            >
+              <span className="material-symbols-outlined text-[18px]">chat</span>
+              Order via WhatsApp
+            </a>
+          </motion.div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-[var(--spacing-stack-lg)] items-start">
             {/* Form Fields */}
@@ -737,25 +797,46 @@ export default function CheckoutPage() {
                  </p>
                )}
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full mt-6 bg-primary text-on-primary font-body text-[16px] md:text-[18px] leading-[1.6] py-4 rounded-xl hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 custom-shadow disabled:opacity-50"
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="material-symbols-outlined animate-spin">
-                      progress_activity
-                    </span>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined">payments</span>
-                    Pay Now
-                  </>
-                )}
-              </button>
+              {isPaymentsPaused ? (
+                <div className="mt-6 space-y-3">
+                  <a
+                    href={getWhatsAppOrderUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-body text-[15px] font-semibold py-4 rounded-xl active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 shadow-sm text-center"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">chat</span>
+                    Place Order via WhatsApp
+                  </a>
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full bg-[#f0f0f0] text-[#888] font-body text-[13px] font-medium py-3 rounded-xl cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    Online Payments Paused
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full mt-6 bg-primary text-on-primary font-body text-[16px] md:text-[18px] leading-[1.6] py-4 rounded-xl hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 custom-shadow disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span className="material-symbols-outlined animate-spin">
+                        progress_activity
+                      </span>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined">payments</span>
+                      Pay Now
+                    </>
+                  )}
+                </button>
+              )}
 
               <p className="text-center font-body text-[14px] leading-[1.6] text-on-surface-variant mt-4 flex items-center justify-center gap-2">
                 <span className="material-symbols-outlined text-[16px]">

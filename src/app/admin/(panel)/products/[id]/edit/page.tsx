@@ -6,8 +6,9 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import { getProductById, updateProduct } from "@/lib/supabase/data";
-import type { Product } from "@/lib/types";
+import type { Product, ProductSpecification } from "@/lib/types";
 import CategorySelector from "@/components/admin/CategorySelector";
+import ProductOtherInfoEditor from "@/components/admin/ProductOtherInfoEditor";
 
 type ProductFormState = {
   name: string;
@@ -22,6 +23,7 @@ type ProductFormState = {
   images: string;
   stock: string;
   is_active: boolean;
+  other_info: ProductSpecification[];
 };
 
 export default function AdminEditProductPage() {
@@ -58,6 +60,7 @@ export default function AdminEditProductPage() {
           images: product.images.join(", "),
           stock: product.stock.toString(),
           is_active: product.is_active,
+          other_info: product.other_info || [],
         });
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load product.");
@@ -110,6 +113,7 @@ export default function AdminEditProductPage() {
         images: imageList,
         stock: parsedStock,
         is_active: form.is_active,
+        other_info: form.other_info,
       });
       toast.success("Product updated!");
       router.push("/admin/products");
@@ -287,6 +291,16 @@ export default function AdminEditProductPage() {
               className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 font-body text-[14px] text-on-surface focus:outline-none focus:border-tertiary-container resize-none transition-all"
             />
           </div>
+        </section>
+
+        {/* Other Information / Specifications */}
+        <section className="lg:col-span-2 bg-surface p-6 md:p-8 rounded-xl border border-outline-variant/50 custom-shadow space-y-5">
+          <ProductOtherInfoEditor
+            value={form.other_info}
+            onChange={(items) =>
+              setForm((prev) => (prev ? { ...prev, other_info: items } : null))
+            }
+          />
         </section>
 
         {error && (

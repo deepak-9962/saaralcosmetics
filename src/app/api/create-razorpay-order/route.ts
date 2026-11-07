@@ -67,6 +67,24 @@ export async function POST(request: Request) {
     // NEVER trust the amount from the browser. Always re-fetch from DB.
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
+    // Guard: Check if payment flow has been toggled off by admin
+    const { data: settings } = await supabase
+      .from("store_settings")
+      .select("payments_enabled, payments_disabled_message")
+      .eq("id", "default")
+      .maybeSingle();
+
+    if (settings && settings.payments_enabled === false) {
+      return NextResponse.json(
+        {
+          error:
+            settings.payments_disabled_message ||
+            "Online payments are temporarily paused for maintenance. Please try again later or contact us on WhatsApp.",
+        },
+        { status: 503 }
+      );
+    }
+
     const { data: order, error: fetchError } = await supabase
       .from("orders")
       .select("id, total, payment_status, razorpay_order_id")

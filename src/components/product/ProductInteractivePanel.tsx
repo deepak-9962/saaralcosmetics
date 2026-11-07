@@ -19,6 +19,7 @@ import { useWishlist } from "@/lib/wishlist";
 import { formatPrice } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 import ProductGallery, { type GalleryImage } from "@/components/product/ProductGallery";
+import ProductOtherInfoAccordion from "@/components/product/ProductOtherInfoAccordion";
 import { getProductWithImages } from "@/lib/supabase/data";
 import { useProductRatings } from "@/lib/useProductRatings";
 
@@ -579,6 +580,11 @@ export default function ProductInteractivePanel({
             </section>
           </div>
         </section>
+      )}
+
+      {/* Other Information Accordion */}
+      {product.other_info && product.other_info.length > 0 && (
+        <ProductOtherInfoAccordion items={product.other_info} />
       )}
 
       {/* Mobile Floating Action Bar (Sticky at bottom on small screens) */}

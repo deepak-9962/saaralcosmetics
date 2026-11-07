@@ -3,9 +3,19 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { listOrders, listAllProductsForAdmin, listCustomers, subscribeToOrders, subscribeToProducts, subscribeToCustomers } from "@/lib/supabase/data";
+import toast from "react-hot-toast";
+import {
+  listOrders,
+  listAllProductsForAdmin,
+  listCustomers,
+  subscribeToOrders,
+  subscribeToProducts,
+  subscribeToCustomers,
+  getStoreSettings,
+  updateStoreSettings,
+} from "@/lib/supabase/data";
 import { formatPrice } from "@/lib/utils";
-import type { Order, Product } from "@/lib/types";
+import type { Order, Product, StoreSettings } from "@/lib/types";
 import type { Customer } from "@/lib/supabase/data";
 
 const ORDER_STATUSES: Array<{
@@ -37,24 +47,77 @@ export default function AdminDashboardPage() {
   const [isLive, setIsLive] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Store settings / payment flow control
+  const [settings, setSettings] = useState<StoreSettings | null>(null);
+  const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
+  const [disabledMsgInput, setDisabledMsgInput] = useState("");
+  const [isSavingMsg, setIsSavingMsg] = useState(false);
+
   // Initial load
   useEffect(() => {
     async function loadAll() {
       try {
-        const [o, p, c] = await Promise.all([
+        const [o, p, c, s] = await Promise.all([
           listOrders(),
           listAllProductsForAdmin(),
           listCustomers(),
+          getStoreSettings(),
         ]);
         setOrders(o);
         setProducts(p);
         setCustomers(c);
+        setSettings(s);
+        setDisabledMsgInput(s.payments_disabled_message || "");
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load data.");
       }
     }
     loadAll();
   }, []);
+
+  const handleTogglePaymentFlow = async () => {
+    if (!settings) return;
+    const targetState = !settings.payments_enabled;
+    const confirmPrompt = targetState
+      ? "Turn ON payment flow? Customers will immediately be able to pay and place orders."
+      : "Turn OFF payment flow? Customers will not be able to pay or checkout online. A paused notice will be displayed storefront-wide.";
+
+    if (!window.confirm(confirmPrompt)) return;
+
+    setIsUpdatingSettings(true);
+    try {
+      const updated = await updateStoreSettings({
+        payments_enabled: targetState,
+      });
+      setSettings(updated);
+      toast.success(
+        targetState
+          ? "Payment flow is now ACTIVE! Customers can place orders."
+          : "Payment flow is now PAUSED! Online checkout blocked.",
+        { icon: targetState ? "✅" : "⏸️" }
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update payment status.");
+    } finally {
+      setIsUpdatingSettings(false);
+    }
+  };
+
+  const handleSaveDisabledMessage = async () => {
+    if (!settings) return;
+    setIsSavingMsg(true);
+    try {
+      const updated = await updateStoreSettings({
+        payments_disabled_message: disabledMsgInput.trim(),
+      });
+      setSettings(updated);
+      toast.success("Customer maintenance message updated!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save message.");
+    } finally {
+      setIsSavingMsg(false);
+    }
+  };
 
   // Realtime subscriptions
   useEffect(() => {
@@ -186,6 +249,123 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </motion.header>
+
+      {/* Payment Flow Control Master Card */}
+      {settings && (
+        <motion.section
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`rounded-2xl border p-5 md:p-6 transition-all ${
+            settings.payments_enabled
+              ? "bg-emerald-50/50 border-emerald-200"
+              : "bg-amber-50/90 border-amber-300 ring-2 ring-amber-400/40"
+          }`}
+        >
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div
+                className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  settings.payments_enabled
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-amber-200 text-amber-900"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[28px]">
+                  {settings.payments_enabled ? "payments" : "pause_circle"}
+                </span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h2 className="font-display text-[20px] leading-[1.3] text-on-surface font-semibold">
+                    Customer Payment Flow
+                  </h2>
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-body font-semibold ${
+                      settings.payments_enabled
+                        ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                        : "bg-amber-200 text-amber-900 border border-amber-400 animate-pulse"
+                    }`}
+                  >
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        settings.payments_enabled ? "bg-emerald-600" : "bg-amber-700"
+                      }`}
+                    />
+                    {settings.payments_enabled ? "Active — Accepting Orders" : "PAUSED — Checkout Disabled"}
+                  </span>
+                </div>
+                <p className="font-body text-[14px] leading-[1.5] text-on-surface-variant mt-1">
+                  {settings.payments_enabled
+                    ? "Online checkout and Razorpay payments are live storefront-wide. Customers can place orders normally."
+                    : "Online payments are currently turned off. Checkout is blocked for customers with clear maintenance indications."}
+                </p>
+              </div>
+            </div>
+
+            {/* Action Toggle Button */}
+            <div className="flex items-center gap-3 self-start md:self-auto flex-shrink-0">
+              <button
+                type="button"
+                onClick={handleTogglePaymentFlow}
+                disabled={isUpdatingSettings}
+                className={`px-5 py-2.5 rounded-xl font-body text-[14px] font-semibold transition-all duration-200 flex items-center gap-2 shadow-sm ${
+                  settings.payments_enabled
+                    ? "bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 hover:border-rose-400"
+                    : "bg-emerald-700 hover:bg-emerald-800 text-white active:scale-95 shadow-md"
+                } disabled:opacity-50`}
+              >
+                {isUpdatingSettings ? (
+                  <>
+                    <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                    Updating...
+                  </>
+                ) : settings.payments_enabled ? (
+                  <>
+                    <span className="material-symbols-outlined text-[18px]">pause_circle</span>
+                    Turn Payments OFF
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[18px]">play_circle</span>
+                    Turn Payments ON
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Maintenance Message Customization */}
+          <div className="mt-4 pt-4 border-t border-black/10">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div className="flex-1">
+                <label className="block font-body text-[12px] font-medium text-on-surface-variant mb-1">
+                  Customer Maintenance Message (shown across store when paused):
+                </label>
+                <input
+                  type="text"
+                  value={disabledMsgInput}
+                  onChange={(e) => setDisabledMsgInput(e.target.value)}
+                  placeholder="e.g. Online payments are temporarily paused for maintenance."
+                  className="w-full px-3.5 py-2 rounded-lg bg-white border border-outline-variant font-body text-[13px] text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleSaveDisabledMessage}
+                disabled={isSavingMsg || disabledMsgInput === settings.payments_disabled_message}
+                className="self-end sm:self-auto mt-auto px-4 py-2 rounded-lg bg-surface-container-highest hover:bg-primary hover:text-white text-on-surface font-body text-[12px] font-medium border border-outline-variant transition-colors disabled:opacity-40 flex items-center gap-1.5"
+              >
+                {isSavingMsg ? (
+                  <span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                ) : (
+                  <span className="material-symbols-outlined text-[16px]">save</span>
+                )}
+                Save Notice
+              </button>
+            </div>
+          </div>
+        </motion.section>
+      )}
 
       {error && <p className="font-body text-[14px] leading-[1.6] text-error border border-red-200 bg-red-50 rounded-lg p-3">{error}</p>}
 
