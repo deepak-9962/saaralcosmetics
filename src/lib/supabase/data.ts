@@ -95,6 +95,13 @@ function normalizeProductImages(images: string[] | null | undefined, category: s
       } catch {
         return true;
       }
+    })
+    .map((image) => {
+      // Auto-heal legacy .png URLs from Supabase storage if stored as .webp
+      if (image.includes("/product-images/") && image.endsWith(".png")) {
+        return image.replace(/\.png$/, ".webp");
+      }
+      return image;
     });
 
   if (cleanedImages.length > 0) {
@@ -869,15 +876,21 @@ export async function getProductWithImages(
 
   const product = normalizeProduct(productResult.data);
 
-  const images: ProductImage[] = (imagesResult.data ?? []).map((row: any) => ({
-    id: row.id,
-    product_id: row.product_id,
-    image_url: row.image_url,
-    image_path: row.image_path,
-    display_order: row.display_order,
-    alt_text: row.alt_text,
-    created_at: row.created_at,
-  }));
+  const images: ProductImage[] = (imagesResult.data ?? []).map((row: any) => {
+    let finalUrl = row.image_url;
+    if (typeof finalUrl === "string" && finalUrl.includes("/product-images/") && finalUrl.endsWith(".png")) {
+      finalUrl = finalUrl.replace(/\.png$/, ".webp");
+    }
+    return {
+      id: row.id,
+      product_id: row.product_id,
+      image_url: finalUrl,
+      image_path: row.image_path,
+      display_order: row.display_order,
+      alt_text: row.alt_text,
+      created_at: row.created_at,
+    };
+  });
 
   return { ...product, product_images: images };
 }

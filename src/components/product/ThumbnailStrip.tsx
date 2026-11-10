@@ -51,6 +51,20 @@ export default function ThumbnailStrip({
   // Whether the prev/next scroll arrows should be enabled
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [failedThumbUrls, setFailedThumbUrls] = useState<Record<string, string>>({});
+
+  const getThumbSrc = (url: string) => {
+    if (failedThumbUrls[url]) return failedThumbUrls[url];
+    return url;
+  };
+
+  const handleThumbError = (badUrl: string) => {
+    if (badUrl.includes("/product-images/") && badUrl.endsWith(".png")) {
+      setFailedThumbUrls((prev) => ({ ...prev, [badUrl]: badUrl.replace(/\.png$/, ".webp") }));
+      return;
+    }
+    setFailedThumbUrls((prev) => ({ ...prev, [badUrl]: "/images/cat-face-cream.webp" }));
+  };
 
   // ── Recalculate progress bar + arrow states from current scroll position ───
   const updateScrollState = useCallback(() => {
@@ -119,9 +133,10 @@ export default function ThumbnailStrip({
             style={{ background: "linear-gradient(145deg, #F4E4DA 0%, #EDD5C8 100%)" }}
           >
             <Image
-              src={img.url}
+              src={getThumbSrc(img.url)}
               alt={img.alt}
               fill
+              onError={() => handleThumbError(img.url)}
               className="object-cover"
               sizes="96px"
             />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import ThumbnailStrip, { type GalleryImage } from "./ThumbnailStrip";
@@ -18,9 +18,36 @@ export default function ProductGallery({ images, badges }: ProductGalleryProps) 
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [failedUrls, setFailedUrls] = useState<Record<string, string>>({});
 
   // Guard: clamp activeIndex if images array shrinks
   const safeIndex = Math.min(activeIndex, Math.max(0, images.length - 1));
+
+  const currentImage = images[safeIndex];
+
+  const currentImageUrl = useMemo(() => {
+    if (!currentImage?.url) return "/images/cat-face-cream.webp";
+    if (failedUrls[currentImage.url]) {
+      return failedUrls[currentImage.url];
+    }
+    return currentImage.url;
+  }, [currentImage?.url, failedUrls]);
+
+  const handleImageError = () => {
+    if (!currentImage?.url) return;
+    const original = currentImage.url;
+    if (original.includes("/product-images/") && original.endsWith(".png")) {
+      // Try webp variant if raw png fails
+      setFailedUrls((prev) => ({ ...prev, [original]: original.replace(/\.png$/, ".webp") }));
+      return;
+    }
+    // Fallback to first non-failing image or standard fallback
+    const fallback = images.find((img) => img.url !== original && !failedUrls[img.url]);
+    setFailedUrls((prev) => ({
+      ...prev,
+      [original]: fallback ? fallback.url : "/images/cat-face-cream.webp",
+    }));
+  };
 
   // ── Go to previous image (wraps from 0 → last) ────────────────────────────
   const goToPrev = useCallback(() => {
@@ -82,8 +109,6 @@ export default function ProductGallery({ images, badges }: ProductGalleryProps) 
     );
   }
 
-  const currentImage = images[safeIndex];
-
   return (
     <>
       <div className="flex flex-col gap-4 w-full">
@@ -96,11 +121,12 @@ export default function ProductGallery({ images, badges }: ProductGalleryProps) 
         >
           {/* Main image with crossfade transition */}
           <Image
-            src={currentImage.url}
+            src={currentImageUrl}
             alt={currentImage.alt}
             fill
             priority={safeIndex === 0}
             fetchPriority={safeIndex === 0 ? "high" : "auto"}
+            onError={handleImageError}
             className={[
               "object-cover transition-opacity duration-200 pointer-events-none",
               isTransitioning ? "opacity-0" : "opacity-100",
