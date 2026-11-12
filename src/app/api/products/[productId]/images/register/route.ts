@@ -88,12 +88,41 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Product not found." }, { status: 404 });
     }
 
-    // Insert product_images rows
-    const rows = images.map((img) => ({
+    // Fetch existing images to guarantee collision-free ordering
+    const { data: existingImages } = await supabase
+      .from("product_images")
+      .select("id, display_order")
+      .eq("product_id", productId)
+      .order("display_order", { ascending: true });
+
+    const currentList = existingImages ?? [];
+
+    // Normalize any existing non-contiguous display orders first (e.g. if an earlier image was deleted)
+    const needsReorder = currentList.some((img: any, idx: number) => img.display_order !== idx);
+    if (needsReorder) {
+      for (let i = 0; i < currentList.length; i++) {
+        await supabase
+          .from("product_images")
+          .update({ display_order: 1000 + i })
+          .eq("id", currentList[i].id);
+      }
+      for (let i = 0; i < currentList.length; i++) {
+        await supabase
+          .from("product_images")
+          .update({ display_order: i })
+          .eq("id", currentList[i].id);
+      }
+    }
+
+    // Append new images sequentially starting from the end of existing images
+    const startOrder = currentList.length;
+
+    // Insert product_images rows with collision-proof display_order
+    const rows = images.map((img, i) => ({
       product_id: productId,
       image_url: img.publicUrl,
       image_path: img.storagePath,
-      display_order: img.displayOrder,
+      display_order: startOrder + i,
       alt_text: product.name ?? null,
     }));
 

@@ -167,13 +167,31 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Step 3: Update products.images[] to remove the deleted URL
+    // Step 3: Re-compact remaining images so display_order is 0, 1, 2... with no gaps!
     const { data: remaining } = await supabase
       .from("product_images")
-      .select("image_url")
+      .select("id, image_url, display_order")
       .eq("product_id", productId)
       .order("display_order", { ascending: true });
 
+    if (remaining && remaining.length > 0) {
+      // Phase 1: offset to 1000 + i to avoid unique constraint collision
+      for (let i = 0; i < remaining.length; i++) {
+        await supabase
+          .from("product_images")
+          .update({ display_order: 1000 + i })
+          .eq("id", remaining[i].id);
+      }
+      // Phase 2: set final sequential 0, 1, 2...
+      for (let i = 0; i < remaining.length; i++) {
+        await supabase
+          .from("product_images")
+          .update({ display_order: i })
+          .eq("id", remaining[i].id);
+      }
+    }
+
+    // Step 4: Update products.images[] with the compacted URL order
     const remainingUrls = (remaining ?? []).map((r: any) => r.image_url);
 
     await supabase

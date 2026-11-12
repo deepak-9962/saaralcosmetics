@@ -197,8 +197,12 @@ export default function ProductImagesPage() {
 
     const supabase = getSupabaseBrowserClient();
 
-    // Determine starting display_order (append after existing images)
-    let startOrder = images.length;
+    // Determine starting display_order (append safely after existing images)
+    const maxExistingOrder =
+      images.length > 0
+        ? Math.max(...images.map((img) => img.display_order ?? 0))
+        : -1;
+    const startOrder = Math.max(images.length, maxExistingOrder + 1);
 
     const uploadedImages: { storagePath: string; publicUrl: string }[] = [];
 
