@@ -470,10 +470,33 @@ export default function HeroSlidesManager() {
                 />
               </div>
 
+              {/* Format Guide Box */}
+              <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-[13px] text-amber-950 space-y-2">
+                <div className="flex items-center gap-2 font-semibold text-amber-900">
+                  <span className="material-symbols-outlined text-[18px]">aspect_ratio</span>
+                  Homepage Banner Dimensions & Guidelines
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-[12px]">
+                  <div className="bg-white/80 p-2.5 rounded-xl border border-amber-200/60">
+                    <span className="font-bold text-amber-900 block">🖥️ Desktop Format:</span>
+                    <span className="font-mono text-primary font-semibold">2103 × 748 px</span> (Aspect ~2.81:1 / 21:9)
+                    <p className="text-on-surface-variant text-[11px] mt-0.5">Ultra-wide banner for laptops and desktops.</p>
+                  </div>
+                  <div className="bg-white/80 p-2.5 rounded-xl border border-amber-200/60">
+                    <span className="font-bold text-amber-900 block">📱 Mobile Format:</span>
+                    <span className="font-mono text-primary font-semibold">1672 × 941 px</span> (Aspect 16:9)
+                    <p className="text-on-surface-variant text-[11px] mt-0.5">Tall banner for mobile phones. Optional.</p>
+                  </div>
+                </div>
+                <p className="text-amber-800 text-[11px] leading-relaxed">
+                  💡 <strong>Upload Choice:</strong> You can upload both for pixel-perfect display, or upload just the Desktop banner and the storefront will automatically use it on mobile.
+                </p>
+              </div>
+
               {/* Desktop Image Upload & URL */}
               <div>
                 <label className="block font-body text-[12px] font-semibold tracking-wider uppercase text-on-surface-variant mb-1.5">
-                  Desktop Banner Image (Aspect ~21:9 or ~1400x500) *
+                  Desktop Banner Image (Recommended: 2103 × 748 px) *
                 </label>
                 <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                   <input
@@ -501,7 +524,7 @@ export default function HeroSlidesManager() {
                   </button>
                 </div>
                 {form.image_url && (
-                  <div className="mt-2 relative w-full h-32 rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-high">
+                  <div className="mt-2 relative w-full aspect-[2103/748] max-h-36 rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-high">
                     <Image
                       src={form.image_url}
                       alt="Desktop Banner Preview"
@@ -516,7 +539,7 @@ export default function HeroSlidesManager() {
               {/* Mobile Image Upload & URL */}
               <div>
                 <label className="block font-body text-[12px] font-semibold tracking-wider uppercase text-on-surface-variant mb-1.5">
-                  Mobile Banner Image (Aspect ~16:9, Optional - falls back to desktop)
+                  Mobile Banner Image (Recommended: 1672 × 941 px, Optional)
                 </label>
                 <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                   <input
@@ -543,7 +566,7 @@ export default function HeroSlidesManager() {
                   </button>
                 </div>
                 {form.mobile_image_url && (
-                  <div className="mt-2 relative w-48 h-28 rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-high">
+                  <div className="mt-2 relative w-48 aspect-[16/9] rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-high">
                     <Image
                       src={form.mobile_image_url}
                       alt="Mobile Banner Preview"

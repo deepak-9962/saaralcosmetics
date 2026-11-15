@@ -114,11 +114,10 @@ export default function DesktopBannerSlider({ slides = [] }: DesktopBannerSlider
         role="region"
         aria-roledescription="carousel"
         aria-label="Saaral featured collection slides"
-        className="relative w-full rounded-2xl md:rounded-[20px] overflow-hidden select-none"
+        className="relative w-full rounded-2xl md:rounded-[20px] overflow-hidden select-none aspect-[16/9] md:aspect-[2103/748]"
         style={{
           maxWidth: "1400px",
           margin: "0 auto",
-          aspectRatio: "2103 / 748",
           boxShadow: "0 4px 32px rgba(42,26,20,0.09)",
           cursor: "pointer",
           background: bg,
@@ -147,17 +146,35 @@ export default function DesktopBannerSlider({ slides = [] }: DesktopBannerSlider
               pointerEvents: i === current ? "auto" : "none",
             }}
           >
+            {/* Desktop Banner (displayed on desktop or when mobile image is not provided) */}
             <Image
               src={sl.image_url}
               alt={sl.title}
               fill
-              className="object-cover object-center select-none"
+              className={`object-cover object-center select-none ${
+                sl.mobile_image_url ? "hidden md:block" : "block"
+              }`}
               priority={i === 0}
               loading={i === 0 ? "eager" : "lazy"}
               fetchPriority={i === 0 ? "high" : "auto"}
-              sizes="(min-width: 1400px) 1400px, 90vw"
+              sizes="(min-width: 768px) 1400px, 100vw"
               draggable={false}
             />
+
+            {/* Mobile Banner (displayed on mobile screens when dedicated mobile image is provided) */}
+            {sl.mobile_image_url && (
+              <Image
+                src={sl.mobile_image_url}
+                alt={sl.title}
+                fill
+                className="block md:hidden object-cover object-center select-none"
+                priority={i === 0}
+                loading={i === 0 ? "eager" : "lazy"}
+                fetchPriority={i === 0 ? "high" : "auto"}
+                sizes="100vw"
+                draggable={false}
+              />
+            )}
           </Link>
         ))}
 
