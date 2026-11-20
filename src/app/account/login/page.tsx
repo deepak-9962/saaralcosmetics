@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import GradientBackground from "@/components/layout/GradientBackground";
+import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 function LoginForm() {
@@ -24,8 +25,17 @@ function LoginForm() {
 
   // Show any error from the auth callback URL param
   useEffect(() => {
-    if (searchParams.get("error") === "auth_callback_failed") {
-      setError("Authentication failed. Please try again.");
+    const errParam = searchParams.get("error");
+    if (errParam) {
+      if (errParam === "auth_callback_failed") {
+        setError("Authentication failed or was cancelled. Please try again.");
+      } else {
+        try {
+          setError(decodeURIComponent(errParam));
+        } catch {
+          setError(errParam);
+        }
+      }
     }
   }, [searchParams]);
 
@@ -49,8 +59,7 @@ function LoginForm() {
       });
 
       if (signInError) {
-        // Supabase returns "Invalid login credentials" for both wrong email and wrong
-        // password — we surface a friendly, intentionally vague message
+        // Supabase returns "Invalid login credentials" for both wrong email and wrong password
         setError("Incorrect email or password. Please try again.");
         setIsLoading(false);
         return;
@@ -98,6 +107,27 @@ function LoginForm() {
               <p className="mt-1.5 font-body text-[14px] text-on-surface-variant">
                 Access your orders, wishlist & saved details
               </p>
+            </div>
+
+            {searchParams.get("registered") === "1" && (
+              <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 font-body text-[13px] text-primary">
+                Account created successfully. Please sign in below.
+              </div>
+            )}
+
+            {/* Google Authentication */}
+            <GoogleAuthButton
+              label="Continue with Google"
+              nextUrl={next}
+              onError={(msg) => setError(msg)}
+            />
+
+            {/* Divider */}
+            <div className="relative my-6 flex items-center justify-center">
+              <div className="w-full border-t border-outline-variant/30" />
+              <span className="absolute bg-[#FFF9F7] px-3 font-body text-[12px] font-medium uppercase tracking-wider text-outline/60">
+                OR
+              </span>
             </div>
 
             <form onSubmit={handleLogin} className="flex flex-col gap-4" noValidate>

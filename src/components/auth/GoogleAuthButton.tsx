@@ -1,0 +1,84 @@
+"use client";
+
+import { useState } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+
+interface GoogleAuthButtonProps {
+  label?: string;
+  nextUrl?: string;
+  onError?: (message: string) => void;
+}
+
+export default function GoogleAuthButton({
+  label = "Continue with Google",
+  nextUrl = "/account/dashboard",
+  onError,
+}: GoogleAuthButtonProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      const supabase = getSupabaseBrowserClient();
+      const origin = window.location.origin;
+      const redirectUrl = `${origin}/auth/callback?next=${encodeURIComponent(nextUrl)}`;
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
+      });
+
+      if (error) {
+        console.error("[GoogleAuth] OAuth initiation error:", error.message);
+        onError?.(error.message || "Failed to initiate Google authentication");
+        setIsLoading(false);
+      }
+    } catch (err: unknown) {
+      console.error("[GoogleAuth] Unexpected error:", err);
+      const message =
+        err instanceof Error ? err.message : "Something went wrong with Google authentication";
+      onError?.(message);
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleGoogleSignIn}
+      disabled={isLoading}
+      className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-outline-variant/60 bg-white hover:bg-surface-container-low text-on-surface font-body font-medium text-[15px] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-sm transition-all duration-200 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+      aria-label={label}
+    >
+      {isLoading ? (
+        <div className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      ) : (
+        <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            fill="#4285F4"
+            d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3.03h3.88c2.27-2.09 3.66-5.17 3.66-9.12z"
+          />
+          <path
+            fill="#34A853"
+            d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.03c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.13C3.26 21.4 7.36 24 12 24z"
+          />
+          <path
+            fill="#FBBC05"
+            d="M5.28 14.29c-.25-.72-.38-1.49-.38-2.29s.13-1.57.38-2.29V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.13z"
+          />
+          <path
+            fill="#EA4335"
+            d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.6 1.24 6.58l4.04 3.13c.95-2.83 3.6-4.96 6.72-4.96z"
+          />
+        </svg>
+      )}
+      <span>{isLoading ? "Connecting to Google..." : label}</span>
+    </button>
+  );
+}

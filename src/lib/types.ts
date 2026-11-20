@@ -256,7 +256,7 @@ export interface BlogPostInput {
 // ============================================
 
 export type DiscountType = 'percentage' | 'flat';
-export type AppliesTo = 'all' | 'category' | 'product';
+export type AppliesTo = 'all' | 'category' | 'product' | 'combo';
 
 export interface PromoCode {
   id: string;
@@ -269,7 +269,10 @@ export interface PromoCode {
   usage_limit_per_user: number | null;
   times_used: number;
   applies_to: AppliesTo;
+  /** @deprecated Use applies_to_ids instead (kept for backward compat) */
   applies_to_id: string | null;
+  /** Array of category slugs, product UUIDs, or combo UUIDs this code applies to */
+  applies_to_ids: string[];
   starts_at: string | null;
   expires_at: string | null;
   is_active: boolean;

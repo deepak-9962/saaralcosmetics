@@ -31,6 +31,52 @@ function getServiceClient() {
   );
 }
 
+function computeQualifyingSubtotal(
+  promo: {
+    applies_to: string;
+    applies_to_id: string | null;
+    applies_to_ids: string[] | null;
+  },
+  cartItems: CartItem[],
+  cartSubtotal: number
+): number | null {
+  const rawIds: string[] = [];
+  if (promo.applies_to_ids && promo.applies_to_ids.length > 0) {
+    rawIds.push(...promo.applies_to_ids);
+  } else if (promo.applies_to_id) {
+    rawIds.push(promo.applies_to_id);
+  }
+  const targetIds = rawIds.filter(Boolean);
+
+  if (promo.applies_to === "all") return cartSubtotal;
+
+  if (promo.applies_to === "product") {
+    if (targetIds.length === 0) return cartSubtotal;
+    const qualifying = cartItems.filter((item) => targetIds.includes(item.product_id));
+    const qty = qualifying.reduce((s, i) => s + i.price * i.quantity, 0);
+    return qty === 0 ? null : qty;
+  }
+
+  if (promo.applies_to === "combo") {
+    if (targetIds.length === 0) {
+      const combos = cartItems.filter((item) => item.is_combo);
+      const qty = combos.reduce((s, i) => s + i.price * i.quantity, 0);
+      return qty === 0 ? null : qty;
+    }
+    const qualifying = cartItems.filter(
+      (item) => item.is_combo && targetIds.includes(item.product_id)
+    );
+    const qty = qualifying.reduce((s, i) => s + i.price * i.quantity, 0);
+    return qty === 0 ? null : qty;
+  }
+
+  if (promo.applies_to === "category") {
+    return cartSubtotal;
+  }
+
+  return cartSubtotal;
+}
+
 export async function POST(request: NextRequest) {
   try {
     let body: unknown;
@@ -88,24 +134,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Usage limit reached." }, { status: 409 });
     }
 
-    // ── 2. Compute discount (same logic as /validate) ────────────────────────
+    // ── 2. Compute discount (multi-target aware) ─────────────────────────────
     const minOrderValue = promo.min_order_value ?? 0;
     if (cartSubtotal < minOrderValue) {
       return NextResponse.json({ error: "Min order value not met." }, { status: 409 });
     }
 
-    let qualifyingSubtotal = cartSubtotal;
-    if (promo.applies_to === "product" && promo.applies_to_id) {
-      const qualifying = (cartItems as CartItem[]).filter(
-        (item) => item.product_id === promo.applies_to_id
-      );
-      qualifyingSubtotal = qualifying.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      );
-      if (qualifyingSubtotal === 0) {
-        return NextResponse.json({ error: "Qualifying product not in cart." }, { status: 409 });
-      }
+    const qualifyingSubtotal = computeQualifyingSubtotal(
+      promo,
+      cartItems as CartItem[],
+      cartSubtotal
+    );
+
+    if (qualifyingSubtotal === null) {
+      return NextResponse.json({ error: "Qualifying items not in cart." }, { status: 409 });
     }
 
     let discount_amount: number;

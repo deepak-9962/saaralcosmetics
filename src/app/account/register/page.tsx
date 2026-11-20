@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import TopNavBar from "@/components/layout/TopNavBar";
 import Footer from "@/components/layout/Footer";
 import GradientBackground from "@/components/layout/GradientBackground";
+import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -25,8 +26,11 @@ function passwordStrength(p: string): "weak" | "fair" | "strong" {
   return "weak";
 }
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") ?? "/account/dashboard";
+
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -80,12 +84,11 @@ export default function RegisterPage() {
             full_name: form.fullName.trim(),
             phone: form.phone.trim() || null,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
         },
       });
 
       if (signUpError) {
-        // Supabase returns "User already registered" if email exists
         if (signUpError.message.toLowerCase().includes("already")) {
           setError("An account with this email already exists. Please sign in instead.");
         } else {
@@ -95,19 +98,15 @@ export default function RegisterPage() {
         return;
       }
 
-      // If email confirmation is DISABLED in Supabase Dashboard (recommended),
-      // the user is now signed in. Redirect to dashboard.
-      // If confirmation is ENABLED, the user is NOT yet signed in and must confirm.
       const { data: { session } } = await supabase.auth.getSession();
 
       if (session) {
         toast.success("Account created! Welcome to Saaral Cosmetics.");
-        router.push("/account/dashboard");
+        router.push(next);
         router.refresh();
       } else {
-        // Confirmation email sent
         toast.success("Check your inbox — a confirmation link is on its way.", { duration: 6000 });
-        router.push("/account/login?registered=1");
+        router.push(`/account/login?registered=1&next=${encodeURIComponent(next)}`);
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -159,6 +158,21 @@ export default function RegisterPage() {
               <p className="mt-1.5 font-body text-[14px] text-on-surface-variant">
                 Join and enjoy a personalized Saaral experience
               </p>
+            </div>
+
+            {/* Google Authentication */}
+            <GoogleAuthButton
+              label="Continue with Google"
+              nextUrl={next}
+              onError={(msg) => setError(msg)}
+            />
+
+            {/* Divider */}
+            <div className="relative my-6 flex items-center justify-center">
+              <div className="w-full border-t border-outline-variant/30" />
+              <span className="absolute bg-[#FFF9F7] px-3 font-body text-[12px] font-medium uppercase tracking-wider text-outline/60">
+                OR
+              </span>
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
@@ -353,7 +367,7 @@ export default function RegisterPage() {
                 Already have an account?{" "}
               </span>
               <Link
-                href="/account/login"
+                href={`/account/login${next ? `?next=${encodeURIComponent(next)}` : ""}`}
                 className="font-body text-[14px] font-medium text-primary hover:text-primary/80 transition-colors"
               >
                 Sign in
@@ -369,5 +383,19 @@ export default function RegisterPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[100dvh] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        </div>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
   );
 }

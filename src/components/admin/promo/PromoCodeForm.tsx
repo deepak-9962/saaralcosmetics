@@ -3,25 +3,112 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { motion } from "framer-motion";
-import type { PromoCode } from "@/lib/types";
-import CategorySelector from "@/components/admin/CategorySelector";
+import { motion, AnimatePresence } from "framer-motion";
+import type { PromoCode, Category, Product } from "@/lib/types";
+import { listCategories } from "@/lib/supabase/data";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface PromoCodeFormProps {
-  /** If provided, we are editing an existing code */
   initialData?: PromoCode;
 }
 
+type AppliesTo = "all" | "category" | "product" | "combo";
+
 function toDateInputValue(iso: string | null | undefined): string {
   if (!iso) return "";
-  // Convert ISO to YYYY-MM-DD for <input type="date">
   return iso.slice(0, 10);
 }
 
+// ── Multi-select checkbox list ───────────────────────────────────────────────
+function MultiCheckList({
+  items,
+  selectedIds,
+  onToggle,
+  label,
+  emptyMsg = "No items found.",
+  loading = false,
+}: {
+  items: { id: string; label: string; badge?: string }[];
+  selectedIds: string[];
+  onToggle: (id: string) => void;
+  label: string;
+  emptyMsg?: string;
+  loading?: boolean;
+}) {
+  const [search, setSearch] = useState("");
+  const filtered = items.filter((it) =>
+    it.label.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="mt-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="font-body text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant">
+          {label}
+        </span>
+        {selectedIds.length > 0 && (
+          <span className="font-body text-[11px] text-primary font-medium">
+            {selectedIds.length} selected
+          </span>
+        )}
+      </div>
+      <input
+        type="text"
+        placeholder="Search…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-3 py-2 text-[13px] font-body text-on-surface placeholder:text-outline/50 focus:outline-none focus:border-primary transition-all"
+      />
+      <div className="max-h-56 overflow-y-auto rounded-xl border border-outline-variant/50 divide-y divide-outline-variant/20">
+        {loading && (
+          <div className="flex items-center gap-2 p-3 text-on-surface-variant font-body text-[13px]">
+            <span className="material-symbols-outlined animate-spin text-[16px]">
+              progress_activity
+            </span>
+            Loading…
+          </div>
+        )}
+        {!loading && filtered.length === 0 && (
+          <div className="p-3 text-on-surface-variant font-body text-[13px]">{emptyMsg}</div>
+        )}
+        {!loading &&
+          filtered.map((item) => {
+            const checked = selectedIds.includes(item.id);
+            return (
+              <label
+                key={item.id}
+                className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-surface-container-low ${
+                  checked ? "bg-primary/5" : ""
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => onToggle(item.id)}
+                  className="w-4 h-4 accent-primary shrink-0"
+                />
+                <span className="font-body text-[13px] text-on-surface flex-1 leading-tight">
+                  {item.label}
+                </span>
+                {item.badge && (
+                  <span className="font-body text-[10px] px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant border border-outline-variant/40">
+                    {item.badge}
+                  </span>
+                )}
+              </label>
+            );
+          })}
+      </div>
+    </div>
+  );
+}
+
+// ── Main form ────────────────────────────────────────────────────────────────
 export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
   const router = useRouter();
   const isEditing = !!initialData;
 
+  // ── Form state ─────────────────────────────────────────────────────────────
   const [code, setCode] = useState(initialData?.code ?? "");
   const [discountType, setDiscountType] = useState<"percentage" | "flat">(
     initialData?.discount_type ?? "percentage"
@@ -41,10 +128,17 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
   const [usageLimitPerUser, setUsageLimitPerUser] = useState(
     initialData?.usage_limit_per_user?.toString() ?? ""
   );
-  const [appliesTo, setAppliesTo] = useState<"all" | "category" | "product">(
-    initialData?.applies_to ?? "all"
+  const [appliesTo, setAppliesTo] = useState<AppliesTo>(
+    (initialData?.applies_to as AppliesTo) ?? "all"
   );
-  const [appliesToId, setAppliesToId] = useState(initialData?.applies_to_id ?? "");
+  // Multi-select: array of slugs (category) or UUIDs (product/combo)
+  const [appliesToIds, setAppliesToIds] = useState<string[]>(
+    initialData?.applies_to_ids?.length
+      ? initialData.applies_to_ids
+      : initialData?.applies_to_id
+      ? [initialData.applies_to_id]
+      : []
+  );
   const [startsAt, setStartsAt] = useState(toDateInputValue(initialData?.starts_at));
   const [expiresAt, setExpiresAt] = useState(toDateInputValue(initialData?.expires_at));
   const [isActive, setIsActive] = useState(initialData?.is_active ?? true);
@@ -52,6 +146,66 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
   const [description, setDescription] = useState(initialData?.description ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ── Data for multi-select pickers ─────────────────────────────────────────
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [combos, setCombos] = useState<{ id: string; name: string }[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+
+  // Reset selection when scope changes
+  useEffect(() => {
+    if (!isEditing) setAppliesToIds([]);
+  }, [appliesTo, isEditing]);
+
+  // Fetch categories when scope = category
+  useEffect(() => {
+    if (appliesTo !== "category") return;
+    setLoadingCategories(true);
+    listCategories(false)
+      .then(setCategories)
+      .catch(() => setCategories([]))
+      .finally(() => setLoadingCategories(false));
+  }, [appliesTo]);
+
+  // Fetch products/combos when scope = product or combo
+  useEffect(() => {
+    if (appliesTo !== "product" && appliesTo !== "combo") return;
+    setLoadingProducts(true);
+    const supabase = getSupabaseBrowserClient() as any;
+
+    if (appliesTo === "product") {
+      supabase
+        .from("products")
+        .select("id, name, variant_name, is_active, is_combo")
+        .eq("is_combo", false)
+        .order("name")
+        .then(({ data }: any) => {
+          setProducts((data ?? []) as Product[]);
+        })
+        .catch(() => setProducts([]))
+        .finally(() => setLoadingProducts(false));
+    } else {
+      // combos
+      supabase
+        .from("products")
+        .select("id, name, is_active")
+        .eq("is_combo", true)
+        .order("name")
+        .then(({ data }: any) => {
+          setCombos((data ?? []).map((r: any) => ({ id: r.id, name: r.name })));
+        })
+        .catch(() => setCombos([]))
+        .finally(() => setLoadingProducts(false));
+    }
+  }, [appliesTo]);
+
+  const toggleId = (id: string) => {
+    setAppliesToIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +223,10 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
       setError("Percentage discount cannot exceed 100%.");
       return;
     }
+    if (appliesTo !== "all" && appliesTo !== "category" && appliesToIds.length === 0) {
+      setError(`Please select at least one ${appliesTo} to apply this code to.`);
+      return;
+    }
 
     setIsSaving(true);
 
@@ -81,7 +239,7 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
       usage_limit_total: usageLimitTotal ? Number(usageLimitTotal) : null,
       usage_limit_per_user: usageLimitPerUser ? Number(usageLimitPerUser) : null,
       applies_to: appliesTo,
-      applies_to_id: appliesTo !== "all" && appliesToId ? appliesToId : null,
+      applies_to_ids: appliesTo === "all" ? [] : appliesToIds,
       starts_at: startsAt ? new Date(`${startsAt}T00:00:00`).toISOString() : null,
       expires_at: expiresAt ? new Date(`${expiresAt}T23:59:59`).toISOString() : null,
       is_active: isActive,
@@ -120,11 +278,37 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
     }
   };
 
-  // Shared input classes
   const inputClass =
     "w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all font-body text-[14px] leading-[1.6] text-on-surface placeholder:text-outline";
   const labelClass =
     "block font-body text-[11px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant mb-1.5 uppercase";
+
+  const scopeOptions: { value: AppliesTo; label: string; icon: string; desc: string }[] = [
+    {
+      value: "all",
+      label: "All Products",
+      icon: "inventory_2",
+      desc: "Applies to every item in cart",
+    },
+    {
+      value: "category",
+      label: "Categories",
+      icon: "category",
+      desc: "Pick one or more categories",
+    },
+    {
+      value: "product",
+      label: "Specific Products",
+      icon: "local_offer",
+      desc: "Pick one or more individual products",
+    },
+    {
+      value: "combo",
+      label: "Combos",
+      icon: "auto_awesome_motion",
+      desc: "Pick one or more combo packs",
+    },
+  ];
 
   return (
     <motion.form
@@ -257,52 +441,138 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
           </div>
         </div>
 
-        {/* Applies to */}
+        {/* ── Applies To — multi-target scope picker ─────────────────── */}
         <div>
           <label className={labelClass}>Applies To</label>
-          <div className="flex gap-3 flex-wrap">
-            {(["all", "category", "product"] as const).map((scope) => (
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {scopeOptions.map((opt) => (
               <button
-                key={scope}
+                key={opt.value}
                 type="button"
-                onClick={() => setAppliesTo(scope)}
-                className={`px-4 py-2 rounded-lg border font-body text-[12px] font-medium transition-all capitalize ${
-                  appliesTo === scope
-                    ? "bg-tertiary-container text-on-tertiary-container border-tertiary-container"
-                    : "bg-surface-container-lowest border-outline-variant text-on-surface-variant hover:border-primary/40"
+                onClick={() => setAppliesTo(opt.value)}
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-all ${
+                  appliesTo === opt.value
+                    ? "bg-tertiary-container/60 text-on-tertiary-container border-[#C9A74D]/60 shadow-sm"
+                    : "bg-surface-container-lowest border-outline-variant text-on-surface-variant hover:border-primary/40 hover:bg-surface-container-low"
                 }`}
               >
-                {scope === "all" ? "All Products" : scope === "category" ? "Category" : "Specific Product"}
+                <span
+                  className={`material-symbols-outlined text-[22px] ${
+                    appliesTo === opt.value ? "text-[#8A6A00]" : "text-on-surface-variant"
+                  }`}
+                >
+                  {opt.icon}
+                </span>
+                <span className="font-body text-[12px] font-semibold leading-tight">{opt.label}</span>
+                <span className="font-body text-[10px] text-on-surface-variant/70 leading-tight">
+                  {opt.desc}
+                </span>
               </button>
             ))}
           </div>
 
-          {appliesTo === "category" && (
-            <div className="mt-3">
-              <label className={labelClass}>Target Category</label>
-              <CategorySelector
-                value={appliesToId}
-                valueMode="slug"
-                onChange={(_cat, slug) => setAppliesToId(slug)}
-                placeholder="Select category…"
-                required
-              />
-            </div>
-          )}
+          {/* Category multi-select */}
+          <AnimatePresence>
+            {appliesTo === "category" && (
+              <motion.div
+                key="cat"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <MultiCheckList
+                  label="Select Categories (multiple allowed)"
+                  items={categories.map((c) => ({
+                    id: c.slug,
+                    label: c.name,
+                    badge: c.is_active ? undefined : "Inactive",
+                  }))}
+                  selectedIds={appliesToIds}
+                  onToggle={toggleId}
+                  emptyMsg="No categories found."
+                  loading={loadingCategories}
+                />
+              </motion.div>
+            )}
 
-          {appliesTo === "product" && (
-            <div className="mt-3">
-              <label className={labelClass}>Product ID (UUID)</label>
-              <input
-                type="text"
-                value={appliesToId}
-                onChange={(e) => setAppliesToId(e.target.value)}
-                placeholder="Paste product UUID"
-                className={inputClass}
-              />
-              <p className="mt-1 font-body text-[11px] text-on-surface-variant/60">
-                Find the UUID from the Products admin page.
-              </p>
+            {/* Product multi-select */}
+            {appliesTo === "product" && (
+              <motion.div
+                key="prod"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <MultiCheckList
+                  label="Select Products (multiple allowed)"
+                  items={products.map((p) => ({
+                    id: p.id,
+                    label: p.name + (p.variant_name ? ` — ${p.variant_name}` : ""),
+                    badge: p.is_active ? undefined : "Inactive",
+                  }))}
+                  selectedIds={appliesToIds}
+                  onToggle={toggleId}
+                  emptyMsg="No products found."
+                  loading={loadingProducts}
+                />
+              </motion.div>
+            )}
+
+            {/* Combo multi-select */}
+            {appliesTo === "combo" && (
+              <motion.div
+                key="combo"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <p className="mt-3 font-body text-[12px] text-on-surface-variant">
+                  Leave all unchecked to apply the discount to{" "}
+                  <strong>all combos</strong> in the cart.
+                </p>
+                <MultiCheckList
+                  label="Select Specific Combos (optional)"
+                  items={combos.map((c) => ({ id: c.id, label: c.name }))}
+                  selectedIds={appliesToIds}
+                  onToggle={toggleId}
+                  emptyMsg="No combos found."
+                  loading={loadingProducts}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Summary of selections */}
+          {appliesTo !== "all" && appliesToIds.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {appliesToIds.map((id) => {
+                const label =
+                  appliesTo === "category"
+                    ? categories.find((c) => c.slug === id)?.name ?? id
+                    : appliesTo === "product"
+                    ? (() => {
+                        const p = products.find((pr) => pr.id === id);
+                        return p ? p.name + (p.variant_name ? ` — ${p.variant_name}` : "") : id;
+                      })()
+                    : combos.find((c) => c.id === id)?.name ?? id;
+                return (
+                  <span
+                    key={id}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 font-body text-[11px] text-primary font-medium"
+                  >
+                    {label}
+                    <button
+                      type="button"
+                      onClick={() => toggleId(id)}
+                      className="ml-1 text-primary/60 hover:text-error transition-colors cursor-pointer"
+                      aria-label={`Remove ${label}`}
+                    >
+                      ×
+                    </button>
+                  </span>
+                );
+              })}
             </div>
           )}
         </div>

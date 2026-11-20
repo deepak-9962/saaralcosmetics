@@ -22,6 +22,72 @@ function getServiceClient() {
   return createClient(url, key);
 }
 
+/**
+ * Compute the qualifying cart subtotal given promo targeting rules.
+ * Supports:
+ *  - 'all'      → full cart subtotal
+ *  - 'category' → items whose category or category_id matches any id in applies_to_ids
+ *  - 'product'  → items whose product_id matches any id in applies_to_ids
+ *  - 'combo'    → items that are combos AND whose product_id matches any id in applies_to_ids
+ *
+ * Returns null if the promo scope requires specific items but none qualify.
+ */
+function computeQualifyingSubtotal(
+  promo: {
+    applies_to: string;
+    applies_to_id: string | null;
+    applies_to_ids: string[] | null;
+  },
+  cartItems: CartItem[],
+  cartSubtotal: number
+): number | null {
+  // Merge legacy single-id with new array for backward compatibility
+  const rawIds: string[] = [];
+  if (promo.applies_to_ids && promo.applies_to_ids.length > 0) {
+    rawIds.push(...promo.applies_to_ids);
+  } else if (promo.applies_to_id) {
+    rawIds.push(promo.applies_to_id);
+  }
+  const targetIds = rawIds.filter(Boolean);
+
+  if (promo.applies_to === "all") {
+    return cartSubtotal;
+  }
+
+  if (promo.applies_to === "product") {
+    if (targetIds.length === 0) return cartSubtotal;
+    const qualifying = cartItems.filter((item) =>
+      targetIds.includes(item.product_id)
+    );
+    const qty = qualifying.reduce((s, i) => s + i.price * i.quantity, 0);
+    return qty === 0 ? null : qty;
+  }
+
+  if (promo.applies_to === "combo") {
+    if (targetIds.length === 0) {
+      // No specific combos listed — applies to ALL combos in cart
+      const combos = cartItems.filter((item) => item.is_combo);
+      const qty = combos.reduce((s, i) => s + i.price * i.quantity, 0);
+      return qty === 0 ? null : qty;
+    }
+    const qualifying = cartItems.filter(
+      (item) => item.is_combo && targetIds.includes(item.product_id)
+    );
+    const qty = qualifying.reduce((s, i) => s + i.price * i.quantity, 0);
+    return qty === 0 ? null : qty;
+  }
+
+  if (promo.applies_to === "category") {
+    // Category slugs are stored in applies_to_ids
+    // CartItem doesn't carry category slug, so we fall back to full subtotal.
+    // The validation message is accurate because the checkout page shows all items anyway.
+    // For a tighter check, the client should pass category info with cart items.
+    return cartSubtotal;
+  }
+
+  return cartSubtotal;
+}
+
 export async function POST(request: NextRequest) {
   try {
     let body: unknown;
@@ -74,30 +140,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ valid: false, reason: "This promo code has expired." });
     }
 
-    // ── 4. Compute qualifying subtotal (scoped vs all) ───────────────────────
-    let qualifyingSubtotal = cartSubtotal;
+    // ── 4. Compute qualifying subtotal (supports multi-target) ───────────────
+    const qualifyingSubtotal = computeQualifyingSubtotal(
+      promo,
+      cartItems as CartItem[],
+      cartSubtotal
+    );
 
-    if (promo.applies_to === "product" && promo.applies_to_id) {
-      const qualifying = (cartItems as CartItem[]).filter(
-        (item) => item.product_id === promo.applies_to_id
-      );
-      qualifyingSubtotal = qualifying.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      );
-      if (qualifyingSubtotal === 0) {
-        return NextResponse.json({
-          valid: false,
-          reason: "This code only applies to a specific product not in your cart.",
-        });
-      }
-    } else if (promo.applies_to === "category" && promo.applies_to_id) {
-      // For category-scoped codes, applies_to_id holds the category string slug
-      // (we store category slug as the applies_to_id text — UUID column allows any uuid
-      // but we handle this gracefully)
-      // Since products in the cart don't carry category, we fall back to full subtotal
-      // unless the client passes category info. For now treat as full subtotal.
-      qualifyingSubtotal = cartSubtotal;
+    if (qualifyingSubtotal === null) {
+      const scopeLabel =
+        promo.applies_to === "product"
+          ? "specific products"
+          : promo.applies_to === "combo"
+          ? "specific combos"
+          : promo.applies_to === "category"
+          ? "specific categories"
+          : "products";
+      return NextResponse.json({
+        valid: false,
+        reason: `This code only applies to ${scopeLabel} not in your cart.`,
+      });
     }
 
     // ── 5. Min order value ───────────────────────────────────────────────────

@@ -57,7 +57,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   const allowed = [
     "code", "discount_type", "discount_value", "max_discount_cap",
     "min_order_value", "usage_limit_total", "usage_limit_per_user",
-    "applies_to", "applies_to_id", "starts_at", "expires_at",
+    "applies_to", "applies_to_id", "applies_to_ids", "starts_at", "expires_at",
     "is_active", "show_in_banner", "description",
   ] as const;
 
@@ -70,6 +70,19 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
   // Always uppercase code if provided
   if (typeof patch.code === "string") {
     patch.code = patch.code.trim().toUpperCase();
+  }
+  // Normalize applies_to_ids — always an array of strings
+  if (patch.applies_to_ids !== undefined) {
+    const idsArray: string[] = Array.isArray(patch.applies_to_ids)
+      ? (patch.applies_to_ids as unknown[]).map(String).filter(Boolean)
+      : [];
+    patch.applies_to_ids = idsArray;
+    // Keep legacy applies_to_id as first element for backward compat
+    if (idsArray.length > 0) {
+      patch.applies_to_id = idsArray[0];
+    } else {
+      patch.applies_to_id = null;
+    }
   }
 
   const { data, error } = await (supabase as any)

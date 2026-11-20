@@ -1,19 +1,12 @@
 /**
  * GET  /api/admin/promo-codes — list all promo codes
  * POST /api/admin/promo-codes — create a new promo code
- *
- * Authenticated: uses the service-role client (admin Supabase auth session
- * is verified by checking the Authorization header / session cookie).
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 
-function authGuard(request: NextRequest) {
-  // For admin API routes, we rely on Supabase Auth cookie verification.
-  // The panel layout already redirects unauthenticated users, but we
-  // add a server-side check here using the service-role client.
+function authGuard(_request: NextRequest) {
   return getSupabaseServiceClient();
 }
 
@@ -57,7 +50,7 @@ export async function POST(request: NextRequest) {
       usage_limit_total,
       usage_limit_per_user,
       applies_to,
-      applies_to_id,
+      applies_to_ids,
       starts_at,
       expires_at,
       is_active,
@@ -76,6 +69,16 @@ export async function POST(request: NextRequest) {
     if (!Number.isFinite(discountVal) || discountVal <= 0) {
       return NextResponse.json({ error: "discount_value must be a positive number." }, { status: 400 });
     }
+    const validScopes = ["all", "category", "product", "combo"];
+    const scope = (applies_to as string) ?? "all";
+    if (!validScopes.includes(scope)) {
+      return NextResponse.json({ error: "Invalid applies_to value." }, { status: 400 });
+    }
+
+    // Normalize applies_to_ids — always an array of strings
+    const idsArray: string[] = Array.isArray(applies_to_ids)
+      ? (applies_to_ids as unknown[]).map(String).filter(Boolean)
+      : [];
 
     const payload = {
       code: code.trim().toUpperCase(),
@@ -85,8 +88,10 @@ export async function POST(request: NextRequest) {
       min_order_value: min_order_value != null ? Number(min_order_value) : 0,
       usage_limit_total: usage_limit_total != null ? Number(usage_limit_total) : null,
       usage_limit_per_user: usage_limit_per_user != null ? Number(usage_limit_per_user) : null,
-      applies_to: (applies_to as string) ?? "all",
-      applies_to_id: applies_to_id ? String(applies_to_id) : null,
+      applies_to: scope,
+      // Keep legacy applies_to_id as first element for backward compat
+      applies_to_id: idsArray.length > 0 ? idsArray[0] : null,
+      applies_to_ids: idsArray,
       starts_at: starts_at ? String(starts_at) : null,
       expires_at: expires_at ? String(expires_at) : null,
       is_active: is_active !== false,
