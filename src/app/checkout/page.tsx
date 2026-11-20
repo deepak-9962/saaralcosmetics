@@ -15,7 +15,12 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { createOrder, getActiveProductIds } from "@/lib/supabase/data";
 import { INDIAN_STATES, StoreSettings } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
-import { calculateShippingCharge, getFreeShippingThreshold, isTamilNadu } from "@/lib/shipping";
+import {
+  calculateShippingCharge,
+  getFreeShippingThreshold,
+  isTamilNadu,
+  getStateFromPincode,
+} from "@/lib/shipping";
 import ProductImage from "@/components/product/ProductImage";
 
 export default function CheckoutPage() {
@@ -113,6 +118,7 @@ export default function CheckoutPage() {
     pincode: "",
   });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [autoDetectedState, setAutoDetectedState] = useState<string | null>(null);
 
   // Prefill authenticated customer details if available
   useEffect(() => {
@@ -129,7 +135,27 @@ export default function CheckoutPage() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    if (name === "pincode") {
+      const cleanPin = value.replace(/\D/g, "").slice(0, 6);
+      const detected = cleanPin.length === 6 ? getStateFromPincode(cleanPin) : null;
+      setFormData((prev) => ({
+        ...prev,
+        pincode: cleanPin,
+        state: detected ? detected : prev.state,
+      }));
+      if (detected) {
+        setAutoDetectedState(detected);
+        setTouched((prev) => ({ ...prev, state: true, pincode: true }));
+      } else {
+        setAutoDetectedState(null);
+      }
+      return;
+    }
+    if (name === "state") {
+      setAutoDetectedState(null);
+    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleBlur = (
@@ -400,10 +426,10 @@ export default function CheckoutPage() {
   };
 
   const isFreeShippingPromo = appliedPromo?.discount_type === "free_shipping";
-  const shippingCharge = calculateShippingCharge(discountedTotal, formData.state, isFreeShippingPromo);
+  const shippingCharge = calculateShippingCharge(discountedTotal, formData.state, isFreeShippingPromo, formData.pincode);
   const grandTotal = discountedTotal + shippingCharge;
-  const shippingThreshold = getFreeShippingThreshold(formData.state);
-  const isTN = isTamilNadu(formData.state);
+  const shippingThreshold = getFreeShippingThreshold(formData.state, formData.pincode);
+  const isTN = isTamilNadu(formData.state, formData.pincode);
 
   // Tri-state checkout gating UI
   if (checkoutMode === "disabled") {
@@ -665,6 +691,15 @@ export default function CheckoutPage() {
                     </div>
                     {renderInput({ name: "pincode", label: "Pincode *", required: true, pattern: "[0-9]{6}" })}
                   </div>
+                  {autoDetectedState && (
+                    <div className="flex items-center gap-2 text-[12px] font-medium text-emerald-700 bg-emerald-50/80 px-3.5 py-2 rounded-xl border border-emerald-200/60">
+                      <span className="material-symbols-outlined text-[16px] text-emerald-600">location_on</span>
+                      <span>
+                        Auto-detected <strong className="font-semibold">{autoDetectedState}</strong> from PIN code
+                        {autoDetectedState === "Tamil Nadu" ? " — ₹499 Free Shipping tier unlocked!" : ""}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </section>
             </motion.div>

@@ -17,6 +17,7 @@ import {
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { formatPrice } from "@/lib/utils";
+import { isTamilNaduPincode, getStateFromPincode } from "@/lib/shipping";
 import type { Product } from "@/lib/types";
 import ProductGallery, { type GalleryImage } from "@/components/product/ProductGallery";
 import ProductOtherInfoAccordion from "@/components/product/ProductOtherInfoAccordion";
@@ -182,10 +183,14 @@ export default function ProductInteractivePanel({
       month: "short",
       day: "numeric",
     });
+    const isTN = isTamilNaduPincode(cleanPin);
+    const stateName = getStateFromPincode(cleanPin);
     setPincodeResult({
       status: "valid",
-      message: `Expected Delivery by ${dateStr}`,
-      subtext: "Free shipping: ₹499+ in Tamil Nadu, ₹999+ all over India",
+      message: `Expected Delivery by ${dateStr}${stateName ? ` (${stateName})` : ""}`,
+      subtext: isTN
+        ? "Tamil Nadu Delivery • Free shipping on orders above ₹499"
+        : `${stateName ? `${stateName} Delivery • ` : ""}Free shipping on orders above ₹999`,
     });
   };
 

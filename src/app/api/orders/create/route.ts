@@ -231,7 +231,7 @@ export async function POST(request: NextRequest) {
   // Flat ₹60 shipping; Free shipping for orders >= ₹499 in Tamil Nadu, or >= ₹999 all over India, or free_shipping promo
   const isFreeShippingPromo = appliedDiscountType === "free_shipping";
   const eligibleAmount = Math.max(0, calculatedSubtotal - discountAmount);
-  const shippingCharge = calculateShippingCharge(eligibleAmount, customer.state, isFreeShippingPromo);
+  const shippingCharge = calculateShippingCharge(eligibleAmount, customer.state, isFreeShippingPromo, cleanPincode);
 
   // ── 7. Calculate Grand Total ───────────────────────────────────
   const grandTotal = Math.max(0, calculatedSubtotal - discountAmount + shippingCharge);
