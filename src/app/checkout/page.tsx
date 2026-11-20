@@ -15,6 +15,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { createOrder, getActiveProductIds } from "@/lib/supabase/data";
 import { INDIAN_STATES, StoreSettings } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
+import { calculateShippingCharge, getFreeShippingThreshold, isTamilNadu } from "@/lib/shipping";
 import ProductImage from "@/components/product/ProductImage";
 
 export default function CheckoutPage() {
@@ -398,8 +399,11 @@ export default function CheckoutPage() {
     }
   };
 
-  const shippingCharge = discountedTotal >= 999 ? 0 : 50;
+  const isFreeShippingPromo = appliedPromo?.discount_type === "free_shipping";
+  const shippingCharge = calculateShippingCharge(discountedTotal, formData.state, isFreeShippingPromo);
   const grandTotal = discountedTotal + shippingCharge;
+  const shippingThreshold = getFreeShippingThreshold(formData.state);
+  const isTN = isTamilNadu(formData.state);
 
   // Tri-state checkout gating UI
   if (checkoutMode === "disabled") {
@@ -768,13 +772,27 @@ export default function CheckoutPage() {
                   </div>
                 )}
                 <div className="flex justify-between font-body text-[16px] leading-[1.6] text-on-surface-variant">
-                  <span>Shipping</span>
-                  <span className="text-on-surface">
-                    {shippingCharge === 0
-                      ? "Free"
-                        : formatPrice(shippingCharge)}
+                  <div className="flex flex-col">
+                    <span>Shipping</span>
+                    {formData.state ? (
+                      <span className="font-body text-[11px] text-on-surface-variant/70">
+                        {isTN ? "Tamil Nadu (Free on ₹499+)" : "All-India (Free on ₹999+)"}
+                      </span>
+                    ) : (
+                      <span className="font-body text-[11px] text-on-surface-variant/70">
+                        Free on ₹499+ (TN) / ₹999+ (India)
+                      </span>
+                    )}
+                  </div>
+                  <span className={shippingCharge === 0 ? "text-emerald-700 font-semibold" : "text-on-surface"}>
+                    {shippingCharge === 0 ? "Free" : formatPrice(shippingCharge)}
                   </span>
                 </div>
+                {shippingCharge > 0 && (
+                  <p className="font-body text-[11px] leading-[1.4] text-primary/80 bg-primary/5 rounded-lg px-2.5 py-1.5 border border-primary/10">
+                    💡 Add {formatPrice(shippingThreshold - discountedTotal)} more for <span className="font-semibold">Free Shipping</span>{isTN ? " in Tamil Nadu" : " nationwide"}!
+                  </p>
+                )}
                 <div className="h-px bg-outline-variant/30 w-full my-3" />
                 <div className="flex flex-col gap-1">
                   <div className="flex justify-between">

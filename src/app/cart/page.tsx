@@ -28,11 +28,16 @@ import { formatPrice } from "@/lib/utils";
 import { getActiveProductIds, listProducts, getCombosByIds } from "@/lib/supabase/data";
 import { MOCK_PRODUCTS } from "@/lib/products";
 import type { Product, ComboWithProducts, StoreSettings } from "@/lib/types";
+import {
+  FLAT_SHIPPING_FEE,
+  TN_FREE_SHIPPING_THRESHOLD,
+  NATIONAL_FREE_SHIPPING_THRESHOLD,
+} from "@/lib/shipping";
 import ComboIncludedItems from "@/components/cart/ComboIncludedItems";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const FREE_SHIPPING_THRESHOLD = 999;
-const SHIPPING_CHARGE = 50;
+const FREE_SHIPPING_THRESHOLD = NATIONAL_FREE_SHIPPING_THRESHOLD;
+const SHIPPING_CHARGE = FLAT_SHIPPING_FEE;
 
 // ─── Animation variants ───────────────────────────────────────────────────────
 const cardVariants: Variants = {
@@ -296,7 +301,7 @@ function RecommendedSection({
 /** Mobile trust badges */
 function TrustBadges() {
   const badges = [
-    { icon: <Truck size={14} strokeWidth={1.6} />, label: "Free above ₹999" },
+    { icon: <Truck size={14} strokeWidth={1.6} />, label: "Free above ₹499*" },
     { icon: <RotateCcw size={14} strokeWidth={1.6} />, label: "Easy returns" },
     { icon: <ShieldCheck size={14} strokeWidth={1.6} />, label: "100% natural" },
   ];
@@ -355,9 +360,16 @@ export default function CartPage() {
     });
   };
 
-  const shippingCharge = discountedTotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_CHARGE;
+  const isFreeShippingPromo = appliedPromo?.discount_type === "free_shipping";
+  const shippingCharge = isFreeShippingPromo
+    ? 0
+    : discountedTotal >= FREE_SHIPPING_THRESHOLD
+    ? 0
+    : SHIPPING_CHARGE;
   const amountNeeded = Math.max(0, FREE_SHIPPING_THRESHOLD - discountedTotal);
+  const tnAmountNeeded = Math.max(0, TN_FREE_SHIPPING_THRESHOLD - discountedTotal);
   const freeShippingProgress = Math.min(100, (discountedTotal / FREE_SHIPPING_THRESHOLD) * 100);
+  const tnFreeShippingProgress = Math.min(100, (discountedTotal / TN_FREE_SHIPPING_THRESHOLD) * 100);
   const grandTotal = discountedTotal + shippingCharge;
 
   const getWhatsAppOrderUrl = () => {
@@ -613,21 +625,25 @@ export default function CartPage() {
                 <TrustBadges />
 
                 {/* Free shipping nudge */}
-                {amountNeeded > 0 ? (
-                  <div className="bg-white rounded-[20px] border border-[#ebebeb] px-4 py-3.5 space-y-2.5">
+                {discountedTotal >= FREE_SHIPPING_THRESHOLD || isFreeShippingPromo ? (
+                  <div className="bg-emerald-50 rounded-[20px] border border-emerald-200/70 px-4 py-3 flex items-center gap-2.5">
+                    <Truck size={15} strokeWidth={1.8} className="text-emerald-600 shrink-0" />
+                    <p className="font-body text-[12px] font-medium text-emerald-700">Free Shipping unlocked for your order!</p>
+                  </div>
+                ) : discountedTotal >= TN_FREE_SHIPPING_THRESHOLD ? (
+                  <div className="bg-emerald-50/70 rounded-[20px] border border-emerald-200/60 px-4 py-3 space-y-2">
                     <div className="flex items-center gap-2">
-                      <Truck size={14} strokeWidth={1.8} className="text-[#888]" />
-                      <p className="font-body text-[12px] text-on-surface-variant">
-                        Add{" "}
-                        <span className="font-semibold text-on-surface">{formatPrice(amountNeeded)}</span>{" "}
-                        more for{" "}
-                        <span className="font-semibold text-emerald-600">Free Shipping</span>{" "}
-                        across India
+                      <Truck size={14} strokeWidth={1.8} className="text-emerald-600" />
+                      <p className="font-body text-[12px] text-emerald-800">
+                        🎉 <span className="font-semibold text-emerald-700">Free Shipping in Tamil Nadu unlocked!</span>
                       </p>
                     </div>
+                    <p className="font-body text-[11px] text-on-surface-variant">
+                      Add <span className="font-semibold text-on-surface">{formatPrice(amountNeeded)}</span> more for Free Shipping across all of India.
+                    </p>
                     <div className="w-full h-1.5 bg-[#f0f0f0] rounded-full overflow-hidden">
                       <motion.div
-                        className="h-full bg-[#1a1a1a] rounded-full"
+                        className="h-full bg-emerald-600 rounded-full"
                         initial={{ width: 0 }}
                         animate={{ width: `${freeShippingProgress}%` }}
                         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
@@ -635,9 +651,22 @@ export default function CartPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-emerald-50 rounded-[20px] border border-emerald-200/70 px-4 py-3 flex items-center gap-2.5">
-                    <Truck size={15} strokeWidth={1.8} className="text-emerald-600 shrink-0" />
-                    <p className="font-body text-[12px] font-medium text-emerald-700">Free Shipping unlocked for your order!</p>
+                  <div className="bg-white rounded-[20px] border border-[#ebebeb] px-4 py-3.5 space-y-2.5">
+                    <div className="flex items-center gap-2">
+                      <Truck size={14} strokeWidth={1.8} className="text-[#888]" />
+                      <p className="font-body text-[12px] text-on-surface-variant">
+                        Add <span className="font-semibold text-on-surface">{formatPrice(tnAmountNeeded)}</span> more for{" "}
+                        <span className="font-semibold text-emerald-600">Free Shipping</span> in TN (or {formatPrice(amountNeeded)} for All India)
+                      </p>
+                    </div>
+                    <div className="w-full h-1.5 bg-[#f0f0f0] rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-[#1a1a1a] rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${tnFreeShippingProgress}%` }}
+                        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -879,24 +908,41 @@ export default function CartPage() {
                   </div>
 
                   {/* Free shipping nudge */}
-                  {amountNeeded > 0 ? (
-                    <div className="mt-1 p-3 rounded-xl bg-primary/5 border border-primary/15">
-                      <p className="font-body text-[12px] leading-[1.5] text-on-surface-variant mb-2">
-                        Add <span className="font-semibold text-primary">{formatPrice(amountNeeded)}</span> more for
-                        <span className="font-semibold text-primary"> Free Shipping</span> all over India
+                  {discountedTotal >= FREE_SHIPPING_THRESHOLD || isFreeShippingPromo ? (
+                    <div className="mt-1 p-3 rounded-xl bg-emerald-50 border border-emerald-200/60">
+                      <p className="font-body text-[12px] leading-[1.5] text-emerald-700 font-medium">
+                        🎉 You have unlocked <span className="font-semibold">Free Shipping</span> all over India!
                       </p>
-                      <div className="w-full h-1.5 bg-outline-variant/30 rounded-full overflow-hidden">
+                    </div>
+                  ) : discountedTotal >= TN_FREE_SHIPPING_THRESHOLD ? (
+                    <div className="mt-1 p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/60">
+                      <p className="font-body text-[12px] leading-[1.5] text-emerald-800 font-medium">
+                        🎉 Free Shipping in Tamil Nadu unlocked!
+                      </p>
+                      <p className="font-body text-[11px] leading-[1.4] text-on-surface-variant mt-1">
+                        Add <span className="font-semibold text-primary">{formatPrice(amountNeeded)}</span> more for Free Shipping all over India.
+                      </p>
+                      <div className="w-full h-1.5 bg-outline-variant/30 rounded-full overflow-hidden mt-2">
                         <div
-                          className="h-full bg-primary rounded-full transition-all duration-500"
+                          className="h-full bg-emerald-600 rounded-full transition-all duration-500"
                           style={{ width: `${freeShippingProgress}%` }}
                         />
                       </div>
                     </div>
                   ) : (
-                    <div className="mt-1 p-3 rounded-xl bg-emerald-50 border border-emerald-200/60">
-                      <p className="font-body text-[12px] leading-[1.5] text-emerald-700">
-                        You have unlocked <span className="font-semibold">Free Shipping</span> all over India!
+                    <div className="mt-1 p-3 rounded-xl bg-primary/5 border border-primary/15">
+                      <p className="font-body text-[12px] leading-[1.5] text-on-surface-variant mb-1">
+                        Free shipping: ₹499+ in Tamil Nadu, ₹999+ all over India.
                       </p>
+                      <p className="font-body text-[11px] leading-[1.4] text-on-surface-variant mb-2">
+                        Add <span className="font-semibold text-primary">{formatPrice(tnAmountNeeded)}</span> more for Free Shipping in TN.
+                      </p>
+                      <div className="w-full h-1.5 bg-outline-variant/30 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary rounded-full transition-all duration-500"
+                          style={{ width: `${tnFreeShippingProgress}%` }}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>

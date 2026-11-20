@@ -96,7 +96,8 @@ export function generateFakeOrderPayload(items, subtotal) {
   const state = randomChoice(FAKE_STATES);
   const pincode = randomChoice(FAKE_PINCODES);
   
-  const shippingCharge = subtotal >= 500 ? 0 : 50;
+  const isTamilNadu = state && state.toLowerCase().includes('tamil nadu');
+  const shippingCharge = subtotal >= (isTamilNadu ? 499 : 999) ? 0 : 60;
   const total = subtotal + shippingCharge;
 
   // Generate order number in helper using high-resolution unique hashes (VU + timestamp + random)

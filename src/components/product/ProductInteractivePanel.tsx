@@ -185,7 +185,7 @@ export default function ProductInteractivePanel({
     setPincodeResult({
       status: "valid",
       message: `Expected Delivery by ${dateStr}`,
-      subtext: "Free shipping available on orders above ₹999",
+      subtext: "Free shipping: ₹499+ in Tamil Nadu, ₹999+ all over India",
     });
   };
 

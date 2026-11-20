@@ -309,7 +309,7 @@ export type PromoValidationResult =
 /** Applied promo state stored in CartContext */
 export interface AppliedPromo {
   code: string;
-  discount_type: DiscountType;
+  discount_type: DiscountType | 'free_shipping';
   discount_amount: number;
 }
 

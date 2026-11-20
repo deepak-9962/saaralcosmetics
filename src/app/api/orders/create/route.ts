@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { generateOrderNumber } from "@/lib/utils";
+import { calculateShippingCharge } from "@/lib/shipping";
 import type { OrderItem } from "@/lib/types";
 
 interface CartInputItem {
@@ -227,9 +228,10 @@ export async function POST(request: NextRequest) {
   }
 
   // ── 6. Server-Side Shipping Calculation ────────────────────────
-  // Standard rule: Free shipping for orders >= ₹499 or free_shipping promo, otherwise ₹50
-  const isFreeShipping = calculatedSubtotal >= 499 || appliedDiscountType === "free_shipping";
-  const shippingCharge = isFreeShipping ? 0 : 50;
+  // Flat ₹60 shipping; Free shipping for orders >= ₹499 in Tamil Nadu, or >= ₹999 all over India, or free_shipping promo
+  const isFreeShippingPromo = appliedDiscountType === "free_shipping";
+  const eligibleAmount = Math.max(0, calculatedSubtotal - discountAmount);
+  const shippingCharge = calculateShippingCharge(eligibleAmount, customer.state, isFreeShippingPromo);
 
   // ── 7. Calculate Grand Total ───────────────────────────────────
   const grandTotal = Math.max(0, calculatedSubtotal - discountAmount + shippingCharge);
