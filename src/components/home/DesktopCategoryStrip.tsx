@@ -19,12 +19,30 @@ export default function DesktopCategoryStrip({ categories = [] }: DesktopCategor
     const el = scrollContainerRef.current;
     if (!el) return;
     const { scrollLeft, scrollWidth, clientWidth } = el;
-    const maxScroll = scrollWidth - clientWidth;
-    const overflow = maxScroll > 4; // Tolerance for fractional subpixel rendering
+    if (!clientWidth) return;
+
+    // Each card is 126px wide. With balanced spacing, each category slot
+    // needs at least 155px to breathe.
+    // 8 items * 155px = 1240px <= 1376px (fits evenly on standard desktop without overflow).
+    // 9 items * 155px = 1395px > 1376px (triggers overflow and shows navigation arrows).
+    const MIN_SLOT_WIDTH = 155;
+    const requiredWidth = categories.length * MIN_SLOT_WIDTH;
+    const overflow = requiredWidth > clientWidth || scrollWidth > clientWidth + 4;
+
     setHasOverflow(overflow);
-    setCanScrollLeft(overflow && scrollLeft > 2);
-    setCanScrollRight(overflow && scrollLeft < maxScroll - 2);
-  }, []);
+
+    if (overflow) {
+      const maxScroll = scrollWidth - clientWidth;
+      setCanScrollLeft(scrollLeft > 2);
+      setCanScrollRight(scrollLeft < maxScroll - 2);
+    } else {
+      if (scrollLeft !== 0) {
+        el.scrollLeft = 0;
+      }
+      setCanScrollLeft(false);
+      setCanScrollRight(false);
+    }
+  }, [categories.length]);
 
   useEffect(() => {
     checkScroll();
@@ -89,8 +107,8 @@ export default function DesktopCategoryStrip({ categories = [] }: DesktopCategor
           </span>
         </div>
 
-        {/* ── Category strip: horizontal single-row scroll with clean external arrow navigation ── */}
-        <div className="relative flex items-center">
+        {/* ── Category strip: fills width when fitting, scrolls with arrows if extra items exist ── */}
+        <div className="relative flex items-center w-full">
           {/* Left Arrow Button */}
           {hasOverflow && (
             <button
@@ -123,7 +141,11 @@ export default function DesktopCategoryStrip({ categories = [] }: DesktopCategor
           {/* Horizontally scrollable row — strictly single row without wrapping */}
           <div
             ref={scrollContainerRef}
-            className="flex items-center gap-6 overflow-x-auto no-scrollbar scroll-smooth flex-nowrap py-1 flex-1"
+            className={`flex items-center overflow-x-auto no-scrollbar scroll-smooth flex-nowrap py-1 flex-1 ${
+              hasOverflow
+                ? "justify-start gap-6"
+                : "justify-between w-full"
+            }`}
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none",
@@ -131,110 +153,117 @@ export default function DesktopCategoryStrip({ categories = [] }: DesktopCategor
             }}
           >
             {categories.map((cat, index) => (
-              <Link
+              <div
                 key={cat.id}
-                href={cat.link_url || "/products"}
-                aria-label={`Browse ${cat.title}`}
-                className="group flex flex-col items-center gap-2.5 cursor-pointer shrink-0"
-                style={{ width: "126px" }}
+                className={`flex justify-center shrink-0 ${
+                  hasOverflow ? "" : "flex-1"
+                }`}
+                style={{ minWidth: "126px" }}
               >
-                {/*
-                  Outer wrapper: calm, steady presentation.
-                  Subtle 2px hover elevation without bounce, oscillation, or excessive scaling.
-                */}
-                <div
-                  className="relative flex items-end justify-center transition-transform duration-200 ease-out group-hover:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none"
-                  style={{
-                    width: "126px",
-                    height: "148px",
-                  }}
+                <Link
+                  href={cat.link_url || "/products"}
+                  aria-label={`Browse ${cat.title}`}
+                  className="group flex flex-col items-center gap-2.5 cursor-pointer"
+                  style={{ width: "126px" }}
                 >
-                  {/* Pastel blob circle — sits at bottom of wrapper */}
+                  {/*
+                    Outer wrapper: calm, steady presentation.
+                    Subtle 2px hover elevation without bounce, oscillation, or excessive scaling.
+                  */}
                   <div
-                    aria-hidden="true"
-                    className="absolute bottom-0 left-1/2 -translate-x-1/2 transition-shadow duration-200 motion-reduce:transition-none group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]"
+                    className="relative flex items-end justify-center transition-transform duration-200 ease-out group-hover:-translate-y-1 motion-reduce:transform-none motion-reduce:transition-none"
                     style={{
-                      width: "112px",
-                      height: "112px",
-                      borderRadius: "50%",
-                      background: `radial-gradient(circle at 42% 52%, ${cat.blob_color || "#F2D5C0"} 0%, ${cat.blob_color2 || "#EEC4A8"} 60%, rgba(255,255,255,0.45) 100%)`,
-                      boxShadow: "0 4px 14px rgba(0,0,0,0.05), 0 1px 0 rgba(255,255,255,0.9) inset",
-                      border: "1.5px solid rgba(255,255,255,0.80)",
+                      width: "126px",
+                      height: "148px",
                     }}
                   >
-                    {/* Inner highlight */}
+                    {/* Pastel blob circle — sits at bottom of wrapper */}
                     <div
                       aria-hidden="true"
-                      className="absolute inset-0 rounded-full"
+                      className="absolute bottom-0 left-1/2 -translate-x-1/2 transition-shadow duration-200 motion-reduce:transition-none group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]"
                       style={{
-                        background:
-                          "radial-gradient(circle at 38% 38%, rgba(255,255,255,0.50) 0%, transparent 65%)",
+                        width: "112px",
+                        height: "112px",
+                        borderRadius: "50%",
+                        background: `radial-gradient(circle at 42% 52%, ${cat.blob_color || "#F2D5C0"} 0%, ${cat.blob_color2 || "#EEC4A8"} 60%, rgba(255,255,255,0.45) 100%)`,
+                        boxShadow: "0 4px 14px rgba(0,0,0,0.05), 0 1px 0 rgba(255,255,255,0.9) inset",
+                        border: "1.5px solid rgba(255,255,255,0.80)",
+                      }}
+                    >
+                      {/* Inner highlight */}
+                      <div
+                        aria-hidden="true"
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                          background:
+                            "radial-gradient(circle at 38% 38%, rgba(255,255,255,0.50) 0%, transparent 65%)",
+                        }}
+                      />
+                    </div>
+
+                    {/* Product image — static, calm, no bounce or aggressive zoom */}
+                    <Image
+                      src={cat.image_url}
+                      alt={cat.title}
+                      width={104}
+                      height={130}
+                      {...(index === 0
+                        ? { priority: true, fetchPriority: "high" as const }
+                        : { loading: "lazy" as const })}
+                      className="relative z-10"
+                      style={{
+                        objectFit: "contain",
+                        objectPosition: "bottom",
+                        maxHeight: "130px",
+                        width: "auto",
+                        filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.09))",
                       }}
                     />
                   </div>
 
-                  {/* Product image — static, calm, no bounce or aggressive zoom */}
-                  <Image
-                    src={cat.image_url}
-                    alt={cat.title}
-                    width={104}
-                    height={130}
-                    {...(index === 0
-                      ? { priority: true, fetchPriority: "high" as const }
-                      : { loading: "lazy" as const })}
-                    className="relative z-10"
+                  {/* Pill label — white bg, dusty-rose border, arrow with gentle color transition */}
+                  <div
+                    className="flex items-center gap-1 px-3 py-[5px] transition-all duration-200 group-hover:border-[#B06080] group-hover:bg-[#FFF9F7] motion-reduce:transition-none"
                     style={{
-                      objectFit: "contain",
-                      objectPosition: "bottom",
-                      maxHeight: "130px",
-                      width: "auto",
-                      filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.09))",
-                    }}
-                  />
-                </div>
-
-                {/* Pill label — white bg, dusty-rose border, arrow with gentle color transition */}
-                <div
-                  className="flex items-center gap-1 px-3 py-[5px] transition-all duration-200 group-hover:border-[#B06080] group-hover:bg-[#FFF9F7] motion-reduce:transition-none"
-                  style={{
-                    background: "#FFFFFF",
-                    border: "1px solid #D4A0B0",
-                    borderRadius: "100px",
-                    boxShadow: "0 1px 4px rgba(180,100,130,0.08)",
-                    minWidth: "86px",
-                    justifyContent: "center",
-                  }}
-                >
-                  <span
-                    className="font-body whitespace-nowrap"
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: 500,
-                      color: "#3A2418",
-                      letterSpacing: "0.03em",
-                      lineHeight: 1,
+                      background: "#FFFFFF",
+                      border: "1px solid #D4A0B0",
+                      borderRadius: "100px",
+                      boxShadow: "0 1px 4px rgba(180,100,130,0.08)",
+                      minWidth: "86px",
+                      justifyContent: "center",
                     }}
                   >
-                    {cat.title}
-                  </span>
-                  <svg
-                    width="7"
-                    height="7"
-                    viewBox="0 0 10 10"
-                    fill="none"
-                    aria-hidden="true"
-                    style={{ flexShrink: 0 }}
-                  >
-                    <path
-                      d="M2 5h6M6 2.5L8.5 5 6 7.5"
-                      stroke="#B06080"
-                      strokeWidth="1.3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              </Link>
+                    <span
+                      className="font-body whitespace-nowrap"
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 500,
+                        color: "#3A2418",
+                        letterSpacing: "0.03em",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {cat.title}
+                    </span>
+                    <svg
+                      width="7"
+                      height="7"
+                      viewBox="0 0 10 10"
+                      fill="none"
+                      aria-hidden="true"
+                      style={{ flexShrink: 0 }}
+                    >
+                      <path
+                        d="M2 5h6M6 2.5L8.5 5 6 7.5"
+                        stroke="#B06080"
+                        strokeWidth="1.3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                </Link>
+              </div>
             ))}
           </div>
 
