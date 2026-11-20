@@ -80,6 +80,11 @@ export async function POST(request: NextRequest) {
       ? (applies_to_ids as unknown[]).map(String).filter(Boolean)
       : [];
 
+    const UUID_REGEX =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const firstId = idsArray.length > 0 ? idsArray[0] : null;
+    const legacyAppliesToId = firstId && UUID_REGEX.test(firstId) ? firstId : null;
+
     const payload = {
       code: code.trim().toUpperCase(),
       discount_type: discount_type as "percentage" | "flat",
@@ -89,8 +94,8 @@ export async function POST(request: NextRequest) {
       usage_limit_total: usage_limit_total != null ? Number(usage_limit_total) : null,
       usage_limit_per_user: usage_limit_per_user != null ? Number(usage_limit_per_user) : null,
       applies_to: scope,
-      // Keep legacy applies_to_id as first element for backward compat
-      applies_to_id: idsArray.length > 0 ? idsArray[0] : null,
+      // Only set legacy applies_to_id if the value is a valid UUID (not a category slug)
+      applies_to_id: legacyAppliesToId,
       applies_to_ids: idsArray,
       starts_at: starts_at ? String(starts_at) : null,
       expires_at: expires_at ? String(expires_at) : null,

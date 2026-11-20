@@ -77,12 +77,9 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
       ? (patch.applies_to_ids as unknown[]).map(String).filter(Boolean)
       : [];
     patch.applies_to_ids = idsArray;
-    // Keep legacy applies_to_id as first element for backward compat
-    if (idsArray.length > 0) {
-      patch.applies_to_id = idsArray[0];
-    } else {
-      patch.applies_to_id = null;
-    }
+    // Only set legacy applies_to_id if the value is a valid UUID (not a category slug)
+    const firstId = idsArray.length > 0 ? idsArray[0] : null;
+    patch.applies_to_id = firstId && UUID_REGEX.test(firstId) ? firstId : null;
   }
 
   const { data, error } = await (supabase as any)
