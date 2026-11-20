@@ -29,6 +29,8 @@ function LoginForm() {
     if (errParam) {
       if (errParam === "auth_callback_failed") {
         setError("Authentication failed or was cancelled. Please try again.");
+      } else if (errParam.includes("access_denied")) {
+        setError("Google Sign-In was cancelled. Please try again.");
       } else {
         try {
           setError(decodeURIComponent(errParam));

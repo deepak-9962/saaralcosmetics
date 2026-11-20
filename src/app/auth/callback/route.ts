@@ -12,6 +12,7 @@
 
 import { NextResponse } from "next/server";
 import { getSupabaseSSRClient } from "@/lib/supabase/ssr-client";
+import { getSupabaseServiceClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -21,11 +22,20 @@ export async function GET(request: Request) {
   const error = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
 
+  // Determine production redirect origin (handles reverse proxies, Vercel, Cloudflare)
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const isLocalEnv = process.env.NODE_ENV === "development";
+  let redirectOrigin = origin;
+  if (!isLocalEnv && forwardedHost) {
+    const proto = request.headers.get("x-forwarded-proto") || "https";
+    redirectOrigin = `${proto}://${forwardedHost}`;
+  }
+
   // Handle provider / OAuth errors (e.g. user cancelled)
   if (error) {
     console.error("[auth/callback] OAuth provider error:", error, errorDescription);
     const msg = encodeURIComponent(errorDescription || error);
-    return NextResponse.redirect(`${origin}/account/login?error=${msg}`);
+    return NextResponse.redirect(`${redirectOrigin}/account/login?error=${msg}`);
   }
 
   if (code) {
@@ -35,10 +45,11 @@ export async function GET(request: Request) {
     if (!exchangeError) {
       // For password recovery links, always go to the reset-password page
       if (type === "recovery") {
-        return NextResponse.redirect(`${origin}/account/reset-password`);
+        return NextResponse.redirect(`${redirectOrigin}/account/reset-password`);
       }
 
-      // Ensure customer profile row exists in public.profiles (e.g., for Google OAuth users)
+      // Ensure customer profile row exists in public.profiles using service role client
+      // (service role bypasses RLS policies to guarantee profile upsert succeeds)
       const user = data?.user ?? (await supabase.auth.getUser()).data.user;
       if (user) {
         const fullName =
@@ -48,20 +59,20 @@ export async function GET(request: Request) {
           "";
 
         try {
-          const client = supabase as any;
-          const { data: existingProfile } = await client
+          const serviceClient = getSupabaseServiceClient();
+          const { data: existingProfile } = await (serviceClient as any)
             .from("profiles")
             .select("id, full_name")
             .eq("id", user.id)
             .maybeSingle();
 
           if (!existingProfile) {
-            await client.from("profiles").insert({
+            await (serviceClient as any).from("profiles").insert({
               id: user.id,
               full_name: fullName,
             });
           } else if (!existingProfile.full_name && fullName) {
-            await client
+            await (serviceClient as any)
               .from("profiles")
               .update({ full_name: fullName })
               .eq("id", user.id);
@@ -73,12 +84,12 @@ export async function GET(request: Request) {
 
       // Safe redirect target (prevent open redirect vulnerabilities)
       const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/account/dashboard";
-      return NextResponse.redirect(`${origin}${safeNext}`);
+      return NextResponse.redirect(`${redirectOrigin}${safeNext}`);
     }
 
     console.error("[auth/callback] Code exchange error:", exchangeError.message);
   }
 
   // Something went wrong — redirect to login with a friendly error hint
-  return NextResponse.redirect(`${origin}/account/login?error=auth_callback_failed`);
+  return NextResponse.redirect(`${redirectOrigin}/account/login?error=auth_callback_failed`);
 }

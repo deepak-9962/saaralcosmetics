@@ -23,7 +23,7 @@ export default function GoogleAuthButton({
       const origin = window.location.origin;
       const redirectUrl = `${origin}/auth/callback?next=${encodeURIComponent(nextUrl)}`;
 
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: redirectUrl,
@@ -38,6 +38,11 @@ export default function GoogleAuthButton({
         console.error("[GoogleAuth] OAuth initiation error:", error.message);
         onError?.(error.message || "Failed to initiate Google authentication");
         setIsLoading(false);
+        return;
+      }
+
+      if (data?.url) {
+        window.location.href = data.url;
       }
     } catch (err: unknown) {
       console.error("[GoogleAuth] Unexpected error:", err);
