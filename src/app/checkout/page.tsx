@@ -344,12 +344,14 @@ export default function CheckoutPage() {
         throw new Error(errorData.error || "Failed to initiate Razorpay order.");
       }
 
-      const { razorpayOrderId, keyId: serverKeyId } = await razorpayOrderResponse.json();
+      const { razorpayOrderId, amount: razorpayAmount, keyId: serverKeyId } = await razorpayOrderResponse.json();
 
       // 4. Trigger the custom-styled Razorpay modal
+      // IMPORTANT: Use the server-verified amount from the DB (includes promo discount + shipping),
+      // NOT the client-side grandTotal, to prevent showing the wrong price in the payment modal.
       const options = {
         key: serverKeyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
-        amount: grandTotal * 100,
+        amount: razorpayAmount ?? Math.round(order.total * 100),
         currency: "INR",
         name: "Saaral Cosmetics",
         description: "Pure. Natural. Luxury Skincare.",
