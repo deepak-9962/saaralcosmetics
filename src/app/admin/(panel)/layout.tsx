@@ -18,6 +18,7 @@ const navItems = [
   { label: "Reviews", href: "/admin/reviews", icon: "rate_review" },
   { label: "Homepage", href: "/admin/homepage", icon: "view_carousel" },
   { label: "Promo Codes", href: "/admin/promo-codes", icon: "local_offer" },
+  { label: "Purchase Limits", href: "/admin/purchase-limits", icon: "production_quantity_limits" },
   { label: "Blog", href: "/admin/blog", icon: "article" },
   { label: "Customers", href: "/admin/customers", icon: "group" },
   { label: "Export", href: "/admin/export", icon: "ios_share" },

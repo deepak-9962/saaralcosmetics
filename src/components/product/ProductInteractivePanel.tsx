@@ -18,11 +18,13 @@ import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { formatPrice } from "@/lib/utils";
 import { isTamilNaduPincode, getStateFromPincode } from "@/lib/shipping";
-import type { Product } from "@/lib/types";
+import type { Product, ProductLimitStatus } from "@/lib/types";
+import { formatPeriodLabel } from "@/lib/purchaseLimits";
 import ProductGallery, { type GalleryImage } from "@/components/product/ProductGallery";
 import ProductOtherInfoAccordion from "@/components/product/ProductOtherInfoAccordion";
 import { getProductWithImages } from "@/lib/supabase/data";
 import { useProductRatings } from "@/lib/useProductRatings";
+import { useAuth } from "@/lib/auth";
 
 function contentItems(text: string | null | undefined) {
   if (!text) return [];
@@ -70,6 +72,44 @@ export default function ProductInteractivePanel({
   const [product, setProduct] = useState<Product>(initialProduct);
   const ratingData = getRating(product.id);
   const [quantity, setQuantity] = useState(1);
+  const { user } = useAuth();
+  const [limitStatus, setLimitStatus] = useState<ProductLimitStatus | null>(null);
+
+  // Fetch real-time purchase limit status for the active customer
+  useEffect(() => {
+    if (!product?.id) return;
+    let cancelled = false;
+
+    fetch("/api/purchase-limits/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: [{ productId: product.id, quantity: 1 }],
+        userId: user?.id ?? null,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && data.limits?.[product.id]) {
+          setLimitStatus(data.limits[product.id]);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product?.id, user?.id]);
+
+  const isLimitReached = limitStatus?.isLimitReached ?? false;
+  const maxSelectable = Math.max(
+    1,
+    Math.min(
+      limitStatus?.isRestricted ? limitStatus.remainingAllowed : 20,
+      product.stock || 20,
+      20
+    )
+  );
 
   // ── Delivery Pincode Estimator State ──────────────────────────────────────
   const [pincode, setPincode] = useState("");
@@ -123,8 +163,15 @@ export default function ProductInteractivePanel({
 
   const handleAddToCart = () => {
     if (!product) return;
+    if (isLimitReached) {
+      toast.error(
+        `Purchase limit reached for this product (${limitStatus?.maxAllowed} units max).`
+      );
+      return;
+    }
+    const safeQty = Math.min(quantity, maxSelectable);
     const cartImage = galleryImages[0]?.url || product.images[0] || "";
-    for (let i = 0; i < quantity; i += 1) {
+    for (let i = 0; i < safeQty; i += 1) {
       addItem({
         product_id: product.id,
         name: product.name,
@@ -139,8 +186,15 @@ export default function ProductInteractivePanel({
 
   const handleBuyNow = () => {
     if (!product) return;
+    if (isLimitReached) {
+      toast.error(
+        `Purchase limit reached for this product (${limitStatus?.maxAllowed} units max).`
+      );
+      return;
+    }
+    const safeQty = Math.min(quantity, maxSelectable);
     const cartImage = galleryImages[0]?.url || product.images[0] || "";
-    for (let i = 0; i < quantity; i += 1) {
+    for (let i = 0; i < safeQty; i += 1) {
       addItem({
         product_id: product.id,
         name: product.name,
@@ -276,6 +330,20 @@ export default function ProductInteractivePanel({
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     In Stock
                   </span>
+                )}
+
+                {limitStatus?.isRestricted && (
+                  isLimitReached ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 font-body text-[11px] font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      Limit Reached ({limitStatus.purchasedInPeriod}/{limitStatus.maxAllowed})
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 font-body text-[11px] font-semibold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                      Max {limitStatus.maxAllowed} / {formatPeriodLabel(limitStatus.period)} ({limitStatus.remainingAllowed} left)
+                    </span>
+                  )
                 )}
               </div>
 
@@ -421,7 +489,7 @@ export default function ProductInteractivePanel({
                   <button
                     type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={isOutOfStock}
+                    disabled={isOutOfStock || isLimitReached}
                     aria-label="Decrease quantity"
                     className="w-9 h-9 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-white rounded-lg transition-colors cursor-pointer disabled:opacity-40"
                   >
@@ -432,8 +500,8 @@ export default function ProductInteractivePanel({
                   </span>
                   <button
                     type="button"
-                    onClick={() => setQuantity(quantity + 1)}
-                    disabled={isOutOfStock}
+                    onClick={() => setQuantity(Math.min(maxSelectable, quantity + 1))}
+                    disabled={isOutOfStock || isLimitReached || quantity >= maxSelectable}
                     aria-label="Increase quantity"
                     className="w-9 h-9 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-white rounded-lg transition-colors cursor-pointer disabled:opacity-40"
                   >
@@ -445,16 +513,22 @@ export default function ProductInteractivePanel({
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  disabled={isOutOfStock}
+                  disabled={isOutOfStock || isLimitReached}
                   className="flex-1 py-3.5 px-6 rounded-xl bg-primary hover:bg-[#9d4d6e] active:scale-[0.98] text-on-primary font-body text-[14px] md:text-[15px] font-semibold flex items-center justify-center gap-2 shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ShoppingBag size={17} strokeWidth={2.2} />
-                  <span>{isOutOfStock ? "Out of Stock" : "Add to Cart"}</span>
+                  <span>
+                    {isOutOfStock
+                      ? "Out of Stock"
+                      : isLimitReached
+                      ? "Purchase Limit Reached"
+                      : "Add to Cart"}
+                  </span>
                 </button>
               </div>
 
               {/* Buy Now (Instant Checkout) Button */}
-              {!isOutOfStock && (
+              {!isOutOfStock && !isLimitReached && (
                 <button
                   type="button"
                   onClick={handleBuyNow}
@@ -463,6 +537,44 @@ export default function ProductInteractivePanel({
                   <Zap size={16} strokeWidth={2.4} className="text-amber-400" />
                   <span>Buy Now (Instant Checkout)</span>
                 </button>
+              )}
+
+              {/* Purchase Limit Advisory / Reset Date Banner */}
+              {limitStatus?.isRestricted && (
+                <div
+                  className={`p-3.5 rounded-2xl border text-xs font-body flex items-start gap-2.5 transition-colors ${
+                    isLimitReached
+                      ? "bg-amber-50/90 border-amber-200 text-amber-900"
+                      : "bg-[#F4F8FA] border-[#D6E6ED] text-[#1E4D68]"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[18px] shrink-0 mt-0.5 text-amber-700">
+                    {isLimitReached ? "report" : "info"}
+                  </span>
+                  <div className="space-y-1">
+                    <p className="font-semibold text-[13px] leading-tight">
+                      {isLimitReached
+                        ? `Purchase Limit Reached (Max ${limitStatus.maxAllowed} per customer)`
+                        : `Purchase Limit: Maximum ${limitStatus.maxAllowed} unit${limitStatus.maxAllowed > 1 ? "s" : ""} per ${formatPeriodLabel(limitStatus.period)}`}
+                    </p>
+                    <p className="text-[11.5px] opacity-85 leading-normal">
+                      {isLimitReached ? (
+                        <>
+                          You have ordered {limitStatus.purchasedInPeriod} unit{limitStatus.purchasedInPeriod > 1 ? "s" : ""}.
+                          {limitStatus.resetDate ? (
+                            <> Your purchase quota resets on <strong className="font-semibold">{new Date(limitStatus.resetDate).toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</strong>.</>
+                          ) : (
+                            " No additional units may be ordered under the current restriction policy."
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          You can add up to <strong className="font-semibold">{limitStatus.remainingAllowed}</strong> more unit{limitStatus.remainingAllowed === 1 ? "" : "s"} of this item.
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
 
@@ -609,11 +721,17 @@ export default function ProductInteractivePanel({
           <button
             type="button"
             onClick={handleAddToCart}
-            disabled={isOutOfStock}
+            disabled={isOutOfStock || isLimitReached}
             className="flex-1 h-11 rounded-xl bg-primary hover:bg-[#9d4d6e] text-white font-body text-[12px] uppercase tracking-[0.08em] font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-transform cursor-pointer shadow-xs disabled:opacity-50"
           >
             <ShoppingBag size={15} strokeWidth={2.4} />
-            <span>{isOutOfStock ? "Out of Stock" : `Add ${quantity > 1 ? `(${quantity})` : ""} to Cart`}</span>
+            <span>
+              {isOutOfStock
+                ? "Out of Stock"
+                : isLimitReached
+                ? "Limit Reached"
+                : `Add ${quantity > 1 ? `(${quantity})` : ""} to Cart`}
+            </span>
           </button>
         </div>
       </div>

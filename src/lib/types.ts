@@ -615,3 +615,74 @@ export interface HomepagePromoCardInput {
   is_active?: boolean;
 }
 
+// ============================================================
+// PURCHASE LIMITS
+// ============================================================
+
+export type PurchaseLimitRestrictionType = "all" | "category" | "product" | "combo";
+
+export type PurchaseLimitPeriod = "per_order" | "daily" | "weekly" | "monthly" | "lifetime";
+
+export interface PurchaseLimitRule {
+  id: string;
+  name: string;
+  description: string | null;
+  restriction_type: PurchaseLimitRestrictionType;
+  target_ids: string[];
+  max_quantity: number;
+  period: PurchaseLimitPeriod;
+  starts_at: string | null;
+  expires_at: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PurchaseLimitRuleInput {
+  name: string;
+  description?: string | null;
+  restriction_type: PurchaseLimitRestrictionType;
+  target_ids: string[];
+  max_quantity: number;
+  period: PurchaseLimitPeriod;
+  starts_at?: string | null;
+  expires_at?: string | null;
+  is_active?: boolean;
+}
+
+export interface ProductLimitStatus {
+  productId: string;
+  isRestricted: boolean;
+  maxAllowed: number;
+  purchasedInPeriod: number;
+  remainingAllowed: number;
+  period: PurchaseLimitPeriod | null;
+  ruleName: string | null;
+  resetDate: string | null;
+  isLimitReached: boolean;
+}
+
+export interface PurchaseLimitValidationResult {
+  valid: boolean;
+  limits: Record<string, ProductLimitStatus>;
+  errors: string[];
+}
+
+export interface CustomerPurchaseLimitUsage {
+  customerId: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string | null;
+  ruleId: string;
+  ruleName: string;
+  restrictionType: PurchaseLimitRestrictionType;
+  targetNames: string[];
+  maxQuantity: number;
+  purchasedQuantity: number;
+  remainingQuantity: number;
+  period: PurchaseLimitPeriod;
+  resetDate: string | null;
+  isLimitReached: boolean;
+}
+
+

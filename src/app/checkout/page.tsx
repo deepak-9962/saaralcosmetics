@@ -29,6 +29,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [limitError, setLimitError] = useState<string | null>(null);
   const [promoInput, setPromoInput] = useState("");
   const validatedRef = useRef(false);
 
@@ -51,6 +52,39 @@ export default function CheckoutPage() {
       })
       .catch(() => {});
   }, []);
+
+  // Pre-flight validate purchase limits for current cart & customer
+  useEffect(() => {
+    if (items.length === 0) {
+      setLimitError(null);
+      return;
+    }
+    let cancelled = false;
+
+    fetch("/api/purchase-limits/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: items.map((i) => ({ productId: i.product_id, quantity: i.quantity })),
+        userId: user?.id ?? null,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) {
+          if (!data.valid) {
+            setLimitError(data.errors?.[0] || "Purchase limit exceeded for items in your cart.");
+          } else {
+            setLimitError(null);
+          }
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [items, user?.id]);
 
   const isPaymentsPaused = storeSettings !== null && !storeSettings.payments_enabled;
 
@@ -284,6 +318,25 @@ export default function CheckoutPage() {
           setIsSubmitting(false);
           return;
         }
+      }
+
+      // 0.6 Re-validate purchase limits server-side before creating the order
+      const limitsRes = await fetch("/api/purchase-limits/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((i) => ({ productId: i.product_id, quantity: i.quantity })),
+          userId: user?.id ?? null,
+        }),
+      });
+      const limitsData = await limitsRes.json();
+      if (!limitsData.valid) {
+        const errorMsg = limitsData.errors?.[0] || "Purchase limit exceeded for one or more items in your cart.";
+        toast.error(errorMsg, { duration: 6000 });
+        setSubmitError(errorMsg);
+        setLimitError(errorMsg);
+        setIsSubmitting(false);
+        return;
       }
 
       // 1. Create order server-side (server verifies stock, fetches real DB prices, computes totals)
@@ -846,6 +899,19 @@ export default function CheckoutPage() {
                 </div>
                </div>
 
+               {limitError && (
+                 <div className="mt-4 p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 flex items-start gap-2.5 shadow-xs text-left">
+                   <span className="material-symbols-outlined text-[20px] text-amber-700 shrink-0 mt-0.5">warning</span>
+                   <div className="space-y-1">
+                     <p className="font-semibold text-[13px] leading-tight text-amber-900">Purchase Limit Restriction</p>
+                     <p className="text-[12px] text-amber-800 leading-normal">{limitError}</p>
+                     <Link href="/cart" className="inline-block font-semibold text-primary underline text-[11px] mt-0.5">
+                       Return to Cart to adjust quantities →
+                     </Link>
+                   </div>
+                 </div>
+               )}
+
                {submitError && (
                  <p className="mt-4 font-body text-[14px] leading-[1.6] text-error text-center">
                    {submitError}
@@ -874,8 +940,8 @@ export default function CheckoutPage() {
               ) : (
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full mt-6 bg-primary text-on-primary font-body text-[16px] md:text-[18px] leading-[1.6] py-4 rounded-xl hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 custom-shadow disabled:opacity-50"
+                  disabled={isSubmitting || Boolean(limitError)}
+                  className="w-full mt-6 bg-primary text-on-primary font-body text-[16px] md:text-[18px] leading-[1.6] py-4 rounded-xl hover:bg-[#9d4d6e] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 custom-shadow disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <>
@@ -883,6 +949,11 @@ export default function CheckoutPage() {
                         progress_activity
                       </span>
                       Processing...
+                    </>
+                  ) : limitError ? (
+                    <>
+                      <span className="material-symbols-outlined">lock</span>
+                      Limit Exceeded — Cannot Checkout
                     </>
                   ) : (
                     <>

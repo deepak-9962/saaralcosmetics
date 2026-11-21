@@ -24,10 +24,12 @@ import WhatsAppFAB from "@/components/layout/WhatsAppFAB";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import GradientBackground from "@/components/layout/GradientBackground";
 import { useCart } from "@/lib/cart";
+import { useAuth } from "@/lib/auth";
 import { formatPrice } from "@/lib/utils";
 import { getActiveProductIds, listProducts, getCombosByIds } from "@/lib/supabase/data";
 import { MOCK_PRODUCTS } from "@/lib/products";
-import type { Product, ComboWithProducts, StoreSettings } from "@/lib/types";
+import type { Product, ComboWithProducts, StoreSettings, PurchaseLimitValidationResult } from "@/lib/types";
+import { formatPeriodLabel } from "@/lib/purchaseLimits";
 import {
   FLAT_SHIPPING_FEE,
   TN_FREE_SHIPPING_THRESHOLD,
@@ -322,11 +324,14 @@ function TrustBadges() {
 // ─────────────────────────────────────────────────────────────────────────────
 export default function CartPage() {
   const { items, total, updateQuantity, removeItem, addItem, appliedPromo, discountedTotal } = useCart();
+  const { user } = useAuth();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [combosMap, setCombosMap] = useState<Map<string, ComboWithProducts>>(new Map());
   const [loadingCombos, setLoadingCombos] = useState(false);
   const [expandedComboIds, setExpandedComboIds] = useState<Set<string>>(new Set());
   const [storeSettings, setStoreSettings] = useState<StoreSettings | null>(null);
+  const [limitResult, setLimitResult] = useState<PurchaseLimitValidationResult | null>(null);
+  const [isValidatingLimits, setIsValidatingLimits] = useState(false);
   const validatedRef = useRef(false);
 
   useEffect(() => {
@@ -339,6 +344,42 @@ export default function CartPage() {
       })
       .catch(() => {});
   }, []);
+
+  // Validate active purchase limits against current cart items and customer history
+  useEffect(() => {
+    if (items.length === 0) {
+      setLimitResult(null);
+      return;
+    }
+
+    let cancelled = false;
+    setIsValidatingLimits(true);
+
+    fetch("/api/purchase-limits/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: items.map((i) => ({ productId: i.product_id, quantity: i.quantity })),
+        userId: user?.id ?? null,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data: PurchaseLimitValidationResult) => {
+        if (!cancelled) {
+          setLimitResult(data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setIsValidatingLimits(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [items, user?.id]);
+
+  const hasPurchaseLimitViolation = Boolean(limitResult && !limitResult.valid);
 
   const isCheckoutDisabled =
     process.env.NEXT_PUBLIC_CHECKOUT_MODE === "disabled" ||
@@ -537,6 +578,22 @@ export default function CartPage() {
             <>
               {/* Scrollable content */}
               <div className="px-3 pt-3 pb-52 flex flex-col gap-3">
+                {/* Purchase limit banner if violated */}
+                {hasPurchaseLimitViolation && limitResult && (
+                  <div className="bg-amber-50 border border-amber-300 rounded-[18px] p-3.5 text-amber-950 flex items-start gap-2.5 shadow-xs">
+                    <span className="material-symbols-outlined text-[20px] text-amber-700 shrink-0 mt-0.5">warning</span>
+                    <div className="space-y-1">
+                      <h3 className="font-display font-semibold text-[13px] leading-tight text-amber-900">Purchase Limit Exceeded</h3>
+                      <ul className="list-disc list-inside space-y-0.5 font-body text-[11px] text-amber-900/90 leading-tight">
+                        {limitResult.errors.map((err, idx) => (
+                          <li key={idx}>{err}</li>
+                        ))}
+                      </ul>
+                      <p className="font-body text-[10px] text-amber-800/80">Please reduce quantities to proceed to checkout.</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Cart cards */}
                 <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="flex flex-col gap-2.5">
                   <AnimatePresence>
@@ -570,6 +627,20 @@ export default function CartPage() {
                                   {item.variant_name}
                                 </span>
                               )}
+                              {limitResult?.limits?.[item.product_id]?.isRestricted && (
+                                <div className="mt-0.5">
+                                  {item.quantity > limitResult.limits[item.product_id].remainingAllowed ? (
+                                    <span className="inline-flex items-center gap-1 font-body text-[10px] font-semibold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                      Exceeds limit (max {limitResult.limits[item.product_id].remainingAllowed} allowed)
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 font-body text-[9.5px] text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                                      Limit: max {limitResult.limits[item.product_id].maxAllowed} / {formatPeriodLabel(limitResult.limits[item.product_id].period)}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                               <div className="mt-auto">
                                 {isCombo && (
                                   <span className="block font-body text-[10px] text-on-surface-variant/70 mb-1 font-medium">
@@ -579,8 +650,14 @@ export default function CartPage() {
                                 <QuantityPill
                                   value={item.quantity}
                                   onDecrement={() => updateQuantity(item.product_id, item.quantity - 1)}
-                                  // eslint-disable-next-line react-hooks/exhaustive-deps
-                                  onIncrement={() => updateQuantity(item.product_id, item.quantity + 1)}
+                                  onIncrement={() => {
+                                    const limit = limitResult?.limits?.[item.product_id];
+                                    if (limit?.isRestricted && item.quantity >= limit.remainingAllowed) {
+                                      toast.error(`Purchase limit of ${limit.remainingAllowed} reached for this item.`);
+                                      return;
+                                    }
+                                    updateQuantity(item.product_id, item.quantity + 1);
+                                  }}
                                 />
                               </div>
                             </div>
@@ -723,6 +800,16 @@ export default function CartPage() {
                         Online Checkout Temporarily Paused
                       </div>
                     </div>
+                  ) : hasPurchaseLimitViolation ? (
+                    <div className="space-y-2">
+                      <div className="w-full py-3.5 bg-amber-100/90 border border-amber-300 text-amber-900 font-body text-[12px] font-bold rounded-[14px] flex items-center justify-center gap-2 cursor-not-allowed shadow-xs">
+                        <span className="material-symbols-outlined text-[17px] text-amber-700">lock</span>
+                        Purchase Limit Exceeded
+                      </div>
+                      <p className="font-body text-center text-[11px] text-amber-800 leading-tight">
+                        Adjust quantities to meet customer purchase limits to proceed.
+                      </p>
+                    </div>
                   ) : (
                     <>
                       <motion.div whileTap={{ scale: 0.98 }}>
@@ -781,6 +868,22 @@ export default function CartPage() {
 
               {/* ── Items list ──────────────────────────────────── */}
               <div className="lg:col-span-8 flex flex-col gap-[var(--spacing-stack-md)]">
+                {/* Purchase limit banner if violated */}
+                {hasPurchaseLimitViolation && limitResult && (
+                  <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 text-amber-950 flex items-start gap-3 shadow-xs">
+                    <span className="material-symbols-outlined text-[22px] text-amber-700 shrink-0 mt-0.5">warning</span>
+                    <div className="space-y-1">
+                      <h3 className="font-display font-semibold text-[15px] leading-tight text-amber-900">Purchase Limit Exceeded</h3>
+                      <ul className="list-disc list-inside space-y-1 font-body text-[12.5px] text-amber-900/90 leading-tight">
+                        {limitResult.errors.map((err, idx) => (
+                          <li key={idx}>{err}</li>
+                        ))}
+                      </ul>
+                      <p className="font-body text-[11.5px] text-amber-800/80 mt-1">Please reduce quantities to proceed to checkout.</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Column headers */}
                 <div className="hidden md:grid grid-cols-12 gap-[var(--spacing-gutter)] pb-[var(--spacing-stack-sm)] border-b border-outline-variant/30 font-body text-[12px] leading-[1.0] tracking-[0.1em] font-medium text-on-surface-variant">
                   <div className="col-span-6">Product</div>
@@ -823,6 +926,20 @@ export default function CartPage() {
                               {item.variant_name && (
                                 <p className="font-body text-[14px] leading-[1.5] text-on-surface-variant">{item.variant_name}</p>
                               )}
+                              {limitResult?.limits?.[item.product_id]?.isRestricted && (
+                                <div className="mt-1">
+                                  {item.quantity > limitResult.limits[item.product_id].remainingAllowed ? (
+                                    <span className="inline-flex items-center gap-1 font-body text-[11px] font-semibold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                      Exceeds limit (max {limitResult.limits[item.product_id].remainingAllowed} allowed)
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 font-body text-[10.5px] text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                                      Limit: max {limitResult.limits[item.product_id].maxAllowed} / {formatPeriodLabel(limitResult.limits[item.product_id].period)}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                               {isCombo && (
                                 <div className="mt-1.5">
                                   <ComboIncludedItems
@@ -846,7 +963,14 @@ export default function CartPage() {
                             <QuantityBox
                               value={item.quantity}
                               onDecrement={() => updateQuantity(item.product_id, item.quantity - 1)}
-                              onIncrement={() => updateQuantity(item.product_id, item.quantity + 1)}
+                              onIncrement={() => {
+                                const limit = limitResult?.limits?.[item.product_id];
+                                if (limit?.isRestricted && item.quantity >= limit.remainingAllowed) {
+                                  toast.error(`Purchase limit of ${limit.remainingAllowed} reached for this item.`);
+                                  return;
+                                }
+                                updateQuantity(item.product_id, item.quantity + 1);
+                              }}
                             />
                           </div>
                           {/* Total */}
@@ -985,6 +1109,16 @@ export default function CartPage() {
                     >
                       Online Checkout Paused
                     </button>
+                  </div>
+                ) : hasPurchaseLimitViolation ? (
+                  <div className="space-y-2.5">
+                    <div className="w-full py-4 bg-amber-100/90 border border-amber-300 text-amber-900 font-body text-[12px] font-bold tracking-[0.05em] rounded-lg flex items-center justify-center gap-2 cursor-not-allowed shadow-xs">
+                      <span className="material-symbols-outlined text-[18px] text-amber-700">lock</span>
+                      Purchase Limit Exceeded
+                    </div>
+                    <p className="font-body text-center text-[11px] text-amber-800">
+                      Please adjust your cart items to meet purchase limits before checking out.
+                    </p>
                   </div>
                 ) : (
                   <Link

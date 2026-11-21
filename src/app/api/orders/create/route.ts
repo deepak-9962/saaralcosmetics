@@ -3,6 +3,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase/server";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { generateOrderNumber } from "@/lib/utils";
 import { calculateShippingCharge } from "@/lib/shipping";
+import { validatePurchaseLimits } from "@/lib/purchaseLimits";
 import type { OrderItem } from "@/lib/types";
 
 interface CartInputItem {
@@ -187,6 +188,37 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  // ── 4b. Resolve Authenticated User & Validate Purchase Limits ─
+  let userId: string | null = null;
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.replace("Bearer ", "");
+    const {
+      data: { user },
+    } = await supabase.auth.getUser(token);
+    if (user?.id) {
+      userId = user.id;
+    }
+  }
+
+  const limitValidation = await validatePurchaseLimits(supabase, {
+    items: items.map((i) => ({
+      productId: i.productId,
+      quantity: Math.max(1, Math.min(20, Math.floor(Number(i.quantity) || 1))),
+    })),
+    userId,
+  });
+
+  if (!limitValidation.valid && limitValidation.errors.length > 0) {
+    return NextResponse.json(
+      {
+        error: limitValidation.errors[0],
+        allErrors: limitValidation.errors,
+      },
+      { status: 400 }
+    );
+  }
+
   // ── 5. Server-Side Promo Code Validation & Discount Calculation ──
   let discountAmount = 0;
   let appliedPromoCode: string | null = null;
@@ -236,20 +268,7 @@ export async function POST(request: NextRequest) {
   // ── 7. Calculate Grand Total ───────────────────────────────────
   const grandTotal = Math.max(0, calculatedSubtotal - discountAmount + shippingCharge);
 
-  // ── 8. Resolve Authenticated User (if logged in) ───────────────
-  let userId: string | null = null;
-  const authHeader = request.headers.get("Authorization");
-  if (authHeader?.startsWith("Bearer ")) {
-    const token = authHeader.replace("Bearer ", "");
-    const {
-      data: { user },
-    } = await supabase.auth.getUser(token);
-    if (user?.id) {
-      userId = user.id;
-    }
-  }
-
-  // ── 9. Insert Order into Supabase ──────────────────────────────
+  // ── 8. Insert Order into Supabase ──────────────────────────────
   const orderNumber = generateOrderNumber();
   const orderPayload = {
     order_number: orderNumber,
