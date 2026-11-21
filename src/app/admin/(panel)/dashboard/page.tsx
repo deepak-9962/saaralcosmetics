@@ -200,6 +200,7 @@ export default function AdminDashboardPage() {
   const bestSellingProducts = useMemo(() => {
     const productMap = new Map<string, { productId: string; name: string; unitsSold: number; revenue: number }>();
     orders.forEach((o) => {
+      if (o.order_status === "cancelled") return;
       o.items.forEach((item) => {
         const existing = productMap.get(item.product_id);
         productMap.set(item.product_id, {
@@ -542,18 +543,23 @@ export default function AdminDashboardPage() {
                 <th className="p-4 font-normal text-left">Total</th>
                 <th className="p-4 font-normal text-left">Payment</th>
                 <th className="p-4 font-normal text-left">Status</th>
+                <th className="p-4 font-normal text-right">Action</th>
               </tr>
             </thead>
             <tbody className="font-body text-[15px] leading-[1.6] text-on-surface divide-y divide-outline-variant/30">
               {recentOrders.length === 0 && (
-                <tr><td className="p-4 text-on-surface-variant" colSpan={6}>No orders yet.</td></tr>
+                <tr><td className="p-4 text-on-surface-variant" colSpan={7}>No orders yet.</td></tr>
               )}
               {recentOrders.map((order) => (
                 <tr key={order.id} className="hover:bg-surface-container-low/50 transition-colors">
-                  <td className="p-4 font-medium">{order.order_number}</td>
+                  <td className="p-4 font-medium">
+                    <Link href="/admin/orders" className="text-primary hover:underline font-semibold">
+                      {order.order_number}
+                    </Link>
+                  </td>
                   <td className="p-4">{order.customer_name}</td>
                   <td className="p-4 text-on-surface-variant">{new Date(order.created_at).toLocaleDateString("en-IN")}</td>
-                  <td className="p-4">{formatPrice(order.total)}</td>
+                  <td className="p-4 font-medium">{formatPrice(order.total)}</td>
                   <td className="p-4">
                     <span className={`inline-flex items-center px-2 py-1 rounded-full font-body text-[10px] leading-[1.0] tracking-[0.1em] font-medium uppercase ${
                       order.payment_status === "paid" ? "bg-emerald-100 text-emerald-800"
@@ -567,6 +573,14 @@ export default function AdminDashboardPage() {
                     <span className="inline-flex items-center px-2 py-1 rounded-full bg-primary-container text-on-primary-container font-body text-[10px] leading-[1.0] tracking-[0.1em] font-medium uppercase">
                       {order.order_status}
                     </span>
+                  </td>
+                  <td className="p-4 text-right">
+                    <Link
+                      href="/admin/orders"
+                      className="inline-flex items-center gap-1 text-[12px] font-medium text-primary hover:text-primary/80 transition-colors"
+                    >
+                      Manage <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                    </Link>
                   </td>
                 </tr>
               ))}

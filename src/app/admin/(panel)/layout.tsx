@@ -136,6 +136,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         if (error) { setAuthError(error.message); return; }
         if (!user) { router.replace("/admin"); return; }
+
+        const isAdmin =
+          user.email === "admin@saaralcosmetics.com" ||
+          user.email === "saaralcosmetics@gmail.com" ||
+          user.email === "deepak5122d@gmail.com" ||
+          user.app_metadata?.is_admin === true ||
+          user.user_metadata?.is_admin === true;
+
+        if (!isAdmin) {
+          setAuthError("Unauthorized: You do not have administrator permissions.");
+          return;
+        }
+
         setIsAuthorized(true);
 
         // Load store settings
