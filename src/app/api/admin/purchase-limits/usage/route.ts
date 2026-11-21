@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     // 2. Fetch products & categories for name resolution
     const [productsRes, categoriesRes, combosRes] = await Promise.all([
-      (supabase as any).from("products").select("id, name, slug, category, category_id, is_combo"),
+      (supabase as any).from("products").select("id, name, slug, category, category_id"),
       (supabase as any).from("categories").select("id, name, slug"),
       (supabase as any).from("combos").select("id, name, slug"),
     ]);
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
         name: p.name,
         category: p.category,
         category_id: p.category_id,
-        is_combo: p.is_combo ?? false,
+        is_combo: p.category === "combos" || p.slug?.includes("combo"),
       });
       productNameMap.set(p.id, p.name);
     });

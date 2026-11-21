@@ -178,25 +178,47 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
     if (appliesTo === "product") {
       supabase
         .from("products")
-        .select("id, name, variant_name, is_active, is_combo")
-        .eq("is_combo", false)
+        .select("id, name, variant_name, is_active, category")
         .order("name")
-        .then(({ data }: any) => {
-          setProducts((data ?? []) as Product[]);
+        .then(({ data, error }: any) => {
+          if (error) {
+            console.error("Error loading products:", error);
+            setProducts([]);
+          } else {
+            setProducts((data ?? []) as Product[]);
+          }
         })
-        .catch(() => setProducts([]))
+        .catch((err: any) => {
+          console.error("Error loading products:", err);
+          setProducts([]);
+        })
         .finally(() => setLoadingProducts(false));
     } else {
-      // combos
-      supabase
-        .from("products")
-        .select("id, name, is_active")
-        .eq("is_combo", true)
-        .order("name")
-        .then(({ data }: any) => {
-          setCombos((data ?? []).map((r: any) => ({ id: r.id, name: r.name })));
+      // combos: fetch from combos table and products where category = 'combos'
+      Promise.all([
+        supabase.from("combos").select("id, name, is_active").order("name"),
+        supabase
+          .from("products")
+          .select("id, name, is_active")
+          .eq("category", "combos")
+          .order("name"),
+      ])
+        .then(([combosRes, prodCombosRes]: any[]) => {
+          const comboMap = new Map<string, { id: string; name: string }>();
+          (combosRes.data ?? []).forEach((c: any) => {
+            comboMap.set(c.id, { id: c.id, name: c.name });
+          });
+          (prodCombosRes.data ?? []).forEach((p: any) => {
+            if (!comboMap.has(p.id)) {
+              comboMap.set(p.id, { id: p.id, name: p.name });
+            }
+          });
+          setCombos(Array.from(comboMap.values()));
         })
-        .catch(() => setCombos([]))
+        .catch((err: any) => {
+          console.error("Error loading combos:", err);
+          setCombos([]);
+        })
         .finally(() => setLoadingProducts(false));
     }
   }, [appliesTo]);

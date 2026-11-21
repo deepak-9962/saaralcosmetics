@@ -190,24 +190,46 @@ export default function PurchaseLimitForm({ initialData }: PurchaseLimitFormProp
     if (restrictionType === "product") {
       supabase
         .from("products")
-        .select("id, name, variant_name, is_active, is_combo")
-        .eq("is_combo", false)
+        .select("id, name, variant_name, is_active, category")
         .order("name")
-        .then(({ data }: any) => {
-          setProducts((data ?? []) as Product[]);
+        .then(({ data, error }: any) => {
+          if (error) {
+            console.error("Error loading products:", error);
+            setProducts([]);
+          } else {
+            setProducts((data ?? []) as Product[]);
+          }
         })
-        .catch(() => setProducts([]))
+        .catch((err: any) => {
+          console.error("Error loading products:", err);
+          setProducts([]);
+        })
         .finally(() => setLoadingProducts(false));
     } else {
-      supabase
-        .from("products")
-        .select("id, name, is_active")
-        .eq("is_combo", true)
-        .order("name")
-        .then(({ data }: any) => {
-          setCombos((data ?? []).map((r: any) => ({ id: r.id, name: r.name })));
+      Promise.all([
+        supabase.from("combos").select("id, name, is_active").order("name"),
+        supabase
+          .from("products")
+          .select("id, name, is_active")
+          .eq("category", "combos")
+          .order("name"),
+      ])
+        .then(([combosRes, prodCombosRes]: any[]) => {
+          const comboMap = new Map<string, { id: string; name: string; is_active?: boolean }>();
+          (combosRes.data ?? []).forEach((c: any) => {
+            comboMap.set(c.id, { id: c.id, name: c.name, is_active: c.is_active });
+          });
+          (prodCombosRes.data ?? []).forEach((p: any) => {
+            if (!comboMap.has(p.id)) {
+              comboMap.set(p.id, { id: p.id, name: p.name, is_active: p.is_active });
+            }
+          });
+          setCombos(Array.from(comboMap.values()));
         })
-        .catch(() => setCombos([]))
+        .catch((err: any) => {
+          console.error("Error loading combos:", err);
+          setCombos([]);
+        })
         .finally(() => setLoadingProducts(false));
     }
   }, [restrictionType]);
