@@ -109,17 +109,18 @@ export async function POST(request: Request) {
     // ── 7. Guard: Prevent duplicate Razorpay order creation ──────────────────
     // If a Razorpay order already exists for this DB order, return it directly
     // to avoid double-charging the customer on retries.
+    const amountInPaise = Math.round(Number(order.total) * 100);
+
     if (order.razorpay_order_id) {
       return NextResponse.json({
         razorpayOrderId: order.razorpay_order_id,
-        amount: Math.round(order.total * 100),
+        amount: amountInPaise,
         currency: "INR",
         keyId,
       });
     }
 
     // ── 8. Create Razorpay Order using server-fetched amount ─────────────────
-    const amountInPaise = Math.round(order.total * 100);
 
     const razorpayResponse = await fetch("https://api.razorpay.com/v1/orders", {
       method: "POST",

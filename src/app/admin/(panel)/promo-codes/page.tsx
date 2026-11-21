@@ -42,6 +42,9 @@ function StatusBadge({ promo }: { promo: PromoCode }) {
 }
 
 function formatDiscount(promo: PromoCode): string {
+  if (promo.discount_type === "free_shipping") {
+    return "Free Shipping";
+  }
   if (promo.discount_type === "percentage") {
     const cap = promo.max_discount_cap ? ` (max ₹${promo.max_discount_cap})` : "";
     return `${promo.discount_value}%${cap}`;

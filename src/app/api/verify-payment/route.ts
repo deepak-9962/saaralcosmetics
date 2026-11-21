@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { recordPromoRedemption } from "@/lib/promoEngine";
 
 // UUID v4 regex
 const UUID_REGEX =
@@ -175,6 +176,26 @@ export async function POST(request: Request) {
           { status: 409 }
         );
       }
+      // Record Promo Redemption Audit Trail
+      try {
+        const { data: orderDetails } = await supabase
+          .from("orders")
+          .select("id, promo_code_snapshot, discount_amount, user_id")
+          .eq("id", orderId)
+          .maybeSingle();
+
+        if (orderDetails?.promo_code_snapshot && Number(orderDetails.discount_amount) > 0) {
+          await recordPromoRedemption(supabase, {
+            orderId: orderDetails.id,
+            promoCode: orderDetails.promo_code_snapshot,
+            userId: orderDetails.user_id,
+            discountAmount: Number(orderDetails.discount_amount),
+          });
+        }
+      } catch (promoErr) {
+        console.warn("[verify-payment] promo redemption record failed:", promoErr);
+      }
+
       return NextResponse.json(
         { success: true },
         { headers: { "X-RateLimit-Remaining": String(remaining) } }
@@ -199,6 +220,26 @@ export async function POST(request: Request) {
         { error: "Failed to record payment. Contact support." },
         { status: 500 }
       );
+    }
+
+    // Record Promo Redemption Audit Trail (Fallback)
+    try {
+      const { data: orderDetails } = await supabase
+        .from("orders")
+        .select("id, promo_code_snapshot, discount_amount, user_id")
+        .eq("id", orderId)
+        .maybeSingle();
+
+      if (orderDetails?.promo_code_snapshot && Number(orderDetails.discount_amount) > 0) {
+        await recordPromoRedemption(supabase, {
+          orderId: orderDetails.id,
+          promoCode: orderDetails.promo_code_snapshot,
+          userId: orderDetails.user_id,
+          discountAmount: Number(orderDetails.discount_amount),
+        });
+      }
+    } catch (promoErr) {
+      console.warn("[verify-payment] promo redemption record failed:", promoErr);
     }
 
     return NextResponse.json(

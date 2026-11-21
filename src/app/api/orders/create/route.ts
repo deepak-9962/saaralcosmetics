@@ -4,6 +4,7 @@ import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { generateOrderNumber } from "@/lib/utils";
 import { calculateShippingCharge } from "@/lib/shipping";
 import { validatePurchaseLimits } from "@/lib/purchaseLimits";
+import { validatePromoCode } from "@/lib/promoEngine";
 import type { OrderItem } from "@/lib/types";
 
 interface CartInputItem {
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
 
   const { data: dbProducts, error: dbError } = await (supabase as any)
     .from("products")
-    .select("id, name, slug, price, stock, is_active, images, variant_name")
+    .select("id, name, slug, price, stock, is_active, images, variant_name, category, category_id")
     .in("id", productIds);
 
   if (dbError) {
@@ -139,12 +140,48 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const productMap = new Map((((dbProducts as any[]) ?? [])).map((p: any) => [p.id, p]));
+  // Handle any items that might be combos in the combos table
+  const foundProductIds = new Set((((dbProducts as any[]) ?? [])).map((p: any) => p.id));
+  const missingProductIds = productIds.filter((id) => !foundProductIds.has(id));
+  let dbCombos: any[] = [];
+  if (missingProductIds.length > 0) {
+    const { data: combosData } = await (supabase as any)
+      .from("combos")
+      .select("id, name, slug, price, is_active, image_url")
+      .in("id", missingProductIds);
+    if (combosData) {
+      dbCombos = combosData;
+    }
+  }
+
+  const catalogMap = new Map<string, any>();
+  ((dbProducts as any[]) ?? []).forEach((p: any) => {
+    catalogMap.set(p.id, {
+      ...p,
+      is_combo: p.category === "combos" || p.slug?.includes("combo"),
+    });
+  });
+  dbCombos.forEach((c: any) => {
+    catalogMap.set(c.id, {
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      price: c.price,
+      stock: 999, // Combos availability is determined by child items
+      is_active: c.is_active,
+      images: [c.image_url],
+      variant_name: "Combo Pack",
+      category: "combos",
+      category_id: null,
+      is_combo: true,
+    });
+  });
+
   const verifiedOrderItems: OrderItem[] = [];
   let calculatedSubtotal = 0;
 
   for (const item of items) {
-    const product: any = productMap.get(item.productId);
+    const product: any = catalogMap.get(item.productId);
     if (!product) {
       return NextResponse.json(
         { error: `One of the products in your cart is no longer available.` },
@@ -220,48 +257,47 @@ export async function POST(request: NextRequest) {
   }
 
   // ── 5. Server-Side Promo Code Validation & Discount Calculation ──
+  // Uses the authoritative promoEngine. NEVER trusts client-side numbers.
   let discountAmount = 0;
   let appliedPromoCode: string | null = null;
   let appliedDiscountType: string | null = null;
+  let isFreeShippingPromo = false;
 
   if (promoCode && typeof promoCode === "string" && promoCode.trim().length > 0) {
-    const cleanCode = promoCode.trim().toUpperCase();
-    const { data: promo, error: promoError } = await (supabase as any)
-      .from("promo_codes")
-      .select("*")
-      .eq("code", cleanCode)
-      .maybeSingle();
+    const promoEngineItems = verifiedOrderItems.map((item) => {
+      const prodMeta = catalogMap.get(item.product_id);
+      return {
+        productId: item.product_id,
+        quantity: item.qty,
+        price: item.price,
+        category: prodMeta?.category || null,
+        category_id: prodMeta?.category_id || null,
+        is_combo: Boolean(prodMeta?.is_combo),
+      };
+    });
 
-    if (!promoError && promo && promo.is_active) {
-      const now = new Date();
-      const startsAt = promo.starts_at ? new Date(promo.starts_at) : null;
-      const expiresAt = promo.expires_at ? new Date(promo.expires_at) : null;
-      const isDateValid = (!startsAt || now >= startsAt) && (!expiresAt || now <= expiresAt);
-      const isUsageValid = promo.usage_limit === null || (promo.times_used ?? 0) < promo.usage_limit;
-      const isMinCartValid = promo.min_cart_value === null || calculatedSubtotal >= Number(promo.min_cart_value);
+    const promoResult = await validatePromoCode(supabase, {
+      code: promoCode,
+      cartItems: promoEngineItems,
+      subtotal: calculatedSubtotal,
+      userId,
+    });
 
-      if (isDateValid && isUsageValid && isMinCartValid) {
-        appliedPromoCode = promo.code;
-        appliedDiscountType = promo.discount_type;
-
-        if (promo.discount_type === "percentage") {
-          const rawDiscount = (calculatedSubtotal * Number(promo.discount_value)) / 100;
-          discountAmount = promo.max_discount
-            ? Math.min(rawDiscount, Number(promo.max_discount))
-            : rawDiscount;
-        } else if (promo.discount_type === "flat") {
-          discountAmount = Math.min(calculatedSubtotal, Number(promo.discount_value));
-        } else if (promo.discount_type === "free_shipping") {
-          discountAmount = 0;
-        }
-        discountAmount = Math.round(discountAmount * 100) / 100;
-      }
+    if (!promoResult.valid) {
+      return NextResponse.json(
+        { error: `Promo code error: ${promoResult.reason}` },
+        { status: 400 }
+      );
     }
+
+    appliedPromoCode = promoResult.code;
+    appliedDiscountType = promoResult.discountType;
+    discountAmount = promoResult.discountAmount;
+    isFreeShippingPromo = promoResult.isFreeShipping;
   }
 
   // ── 6. Server-Side Shipping Calculation ────────────────────────
   // Flat ₹60 shipping; Free shipping for orders >= ₹499 in Tamil Nadu, or >= ₹999 all over India, or free_shipping promo
-  const isFreeShippingPromo = appliedDiscountType === "free_shipping";
   const eligibleAmount = Math.max(0, calculatedSubtotal - discountAmount);
   const shippingCharge = calculateShippingCharge(eligibleAmount, customer.state, isFreeShippingPromo, cleanPincode);
 

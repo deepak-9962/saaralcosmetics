@@ -255,7 +255,7 @@ export interface BlogPostInput {
 // PROMO CODE TYPES
 // ============================================
 
-export type DiscountType = 'percentage' | 'flat';
+export type DiscountType = 'percentage' | 'flat' | 'free_shipping';
 export type AppliesTo = 'all' | 'category' | 'product' | 'combo';
 
 export interface PromoCode {

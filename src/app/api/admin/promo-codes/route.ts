@@ -62,11 +62,18 @@ export async function POST(request: NextRequest) {
     if (!code || typeof code !== "string" || !code.trim()) {
       return NextResponse.json({ error: "Code is required." }, { status: 400 });
     }
-    if (discount_type !== "percentage" && discount_type !== "flat") {
-      return NextResponse.json({ error: "discount_type must be 'percentage' or 'flat'." }, { status: 400 });
+    if (
+      discount_type !== "percentage" &&
+      discount_type !== "flat" &&
+      discount_type !== "free_shipping"
+    ) {
+      return NextResponse.json(
+        { error: "discount_type must be 'percentage', 'flat', or 'free_shipping'." },
+        { status: 400 }
+      );
     }
-    const discountVal = Number(discount_value);
-    if (!Number.isFinite(discountVal) || discountVal <= 0) {
+    const discountVal = discount_type === "free_shipping" ? 0 : Number(discount_value);
+    if (discount_type !== "free_shipping" && (!Number.isFinite(discountVal) || discountVal <= 0)) {
       return NextResponse.json({ error: "discount_value must be a positive number." }, { status: 400 });
     }
     const validScopes = ["all", "category", "product", "combo"];
@@ -87,7 +94,7 @@ export async function POST(request: NextRequest) {
 
     const payload = {
       code: code.trim().toUpperCase(),
-      discount_type: discount_type as "percentage" | "flat",
+      discount_type: discount_type as "percentage" | "flat" | "free_shipping",
       discount_value: discountVal,
       max_discount_cap: max_discount_cap != null ? Number(max_discount_cap) : null,
       min_order_value: min_order_value != null ? Number(min_order_value) : 0,

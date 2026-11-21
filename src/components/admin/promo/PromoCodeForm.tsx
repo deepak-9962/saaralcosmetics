@@ -110,7 +110,7 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
 
   // ── Form state ─────────────────────────────────────────────────────────────
   const [code, setCode] = useState(initialData?.code ?? "");
-  const [discountType, setDiscountType] = useState<"percentage" | "flat">(
+  const [discountType, setDiscountType] = useState<"percentage" | "flat" | "free_shipping">(
     initialData?.discount_type ?? "percentage"
   );
   const [discountValue, setDiscountValue] = useState(
@@ -215,7 +215,10 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
       setError("Promo code is required.");
       return;
     }
-    if (!discountValue || isNaN(Number(discountValue)) || Number(discountValue) <= 0) {
+    if (
+      discountType !== "free_shipping" &&
+      (!discountValue || isNaN(Number(discountValue)) || Number(discountValue) <= 0)
+    ) {
       setError("Discount value must be a positive number.");
       return;
     }
@@ -233,8 +236,9 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
     const payload = {
       code: code.trim().toUpperCase(),
       discount_type: discountType,
-      discount_value: Number(discountValue),
-      max_discount_cap: maxDiscountCap ? Number(maxDiscountCap) : null,
+      discount_value: discountType === "free_shipping" ? 0 : Number(discountValue),
+      max_discount_cap:
+        discountType === "percentage" && maxDiscountCap ? Number(maxDiscountCap) : null,
       min_order_value: minOrderValue ? Number(minOrderValue) : 0,
       usage_limit_total: usageLimitTotal ? Number(usageLimitTotal) : null,
       usage_limit_per_user: usageLimitPerUser ? Number(usageLimitPerUser) : null,
@@ -341,7 +345,7 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
         <div>
           <label className={labelClass}>Discount Type *</label>
           <div className="flex gap-3">
-            {(["percentage", "flat"] as const).map((type) => (
+            {(["percentage", "flat", "free_shipping"] as const).map((type) => (
               <button
                 key={type}
                 type="button"
@@ -352,47 +356,60 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
                     : "bg-surface-container-lowest border-outline-variant text-on-surface-variant hover:border-primary/40"
                 }`}
               >
-                {type === "percentage" ? "Percentage (%)" : "Flat Amount (₹)"}
+                {type === "percentage"
+                  ? "Percentage (%)"
+                  : type === "flat"
+                  ? "Flat Amount (₹)"
+                  : "Free Shipping"}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className={labelClass}>
-              Discount Value * {discountType === "percentage" ? "(%)" : "(₹)"}
-            </label>
-            <input
-              type="number"
-              required
-              min={0.01}
-              step={0.01}
-              value={discountValue}
-              onChange={(e) => setDiscountValue(e.target.value)}
-              placeholder={discountType === "percentage" ? "20" : "200"}
-              className={inputClass}
-            />
-          </div>
-
-          {discountType === "percentage" && (
+        {discountType !== "free_shipping" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Max Discount Cap (₹)</label>
+              <label className={labelClass}>
+                Discount Value * {discountType === "percentage" ? "(%)" : "(₹)"}
+              </label>
               <input
                 type="number"
-                min={0}
+                required
+                min={0.01}
                 step={0.01}
-                value={maxDiscountCap}
-                onChange={(e) => setMaxDiscountCap(e.target.value)}
-                placeholder="e.g. 500 (optional)"
+                value={discountValue}
+                onChange={(e) => setDiscountValue(e.target.value)}
+                placeholder={discountType === "percentage" ? "20" : "200"}
                 className={inputClass}
               />
-              <p className="mt-1 font-body text-[11px] text-on-surface-variant/60">
-                Caps the maximum rupee discount for percentage codes.
-              </p>
             </div>
-          )}
-        </div>
+
+            {discountType === "percentage" && (
+              <div>
+                <label className={labelClass}>Max Discount Cap (₹)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={maxDiscountCap}
+                  onChange={(e) => setMaxDiscountCap(e.target.value)}
+                  placeholder="e.g. 500 (optional)"
+                  className={inputClass}
+                />
+                <p className="mt-1 font-body text-[11px] text-on-surface-variant/60">
+                  Caps the maximum rupee discount for percentage codes.
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 text-on-surface font-body text-[13px]">
+            <p className="font-medium text-primary">Free Delivery Promo</p>
+            <p className="text-on-surface-variant text-[12px] mt-0.5">
+              This code grants ₹0 shipping on all qualifying orders regardless of cart total or delivery state.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* ── Conditions ──────────────────────────────────────────────────── */}

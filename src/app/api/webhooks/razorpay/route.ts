@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getSupabaseServiceClient } from "@/lib/supabase/server";
+import { recordPromoRedemption } from "@/lib/promoEngine";
 
 /**
  * Constant-time string comparison preventing timing attacks.
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
       // Check existing order in DB
       const { data: order, error: orderError } = await (supabase as any)
         .from("orders")
-        .select("id, payment_status, promo_code_snapshot")
+        .select("id, payment_status, promo_code_snapshot, discount_amount, user_id")
         .eq("razorpay_order_id", razorpayOrderId)
         .maybeSingle();
 
@@ -92,6 +93,15 @@ export async function POST(request: NextRequest) {
           console.warn(`[razorpay-webhook] Oversell prevented for order ${order.id}: ${rpcResult.product_name} stock exhausted.`);
           return NextResponse.json({ status: "stock_exhausted", orderId: order.id, error: rpcResult.error });
         }
+        if (order.promo_code_snapshot) {
+          await recordPromoRedemption(supabase, {
+            orderId: order.id,
+            promoCode: order.promo_code_snapshot,
+            userId: order.user_id,
+            discountAmount: Number(order.discount_amount) || 0,
+          }).catch((err) => console.warn("[razorpay-webhook] promo redemption failed:", err));
+        }
+
         console.log(`[razorpay-webhook] Order ${order.id} marked as paid and inventory decremented atomically.`);
         return NextResponse.json({ status: "success", orderId: order.id });
       }
@@ -118,20 +128,14 @@ export async function POST(request: NextRequest) {
 
       if (order.promo_code_snapshot) {
         try {
-          const { data: promo } = await (supabase as any)
-            .from("promo_codes")
-            .select("times_used")
-            .eq("code", order.promo_code_snapshot)
-            .maybeSingle();
-
-          if (promo) {
-            await (supabase as any)
-              .from("promo_codes")
-              .update({ times_used: (promo.times_used || 0) + 1 })
-              .eq("code", order.promo_code_snapshot);
-          }
+          await recordPromoRedemption(supabase, {
+            orderId: order.id,
+            promoCode: order.promo_code_snapshot,
+            userId: order.user_id,
+            discountAmount: Number(order.discount_amount) || 0,
+          });
         } catch (promoErr) {
-          console.warn("[razorpay-webhook] Could not increment promo counter:", promoErr);
+          console.warn("[razorpay-webhook] Could not record promo redemption:", promoErr);
         }
       }
 
