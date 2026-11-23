@@ -76,6 +76,7 @@ const CATEGORY_FALLBACK_IMAGE: Record<string, string> = {
   "nalangu-maavu": "/images/cat-nalangu-maavu.webp",
   oil: "/images/head-oil.webp",
   balm: "/images/head-balm.webp",
+  combos: "/images/head-facewash-duo.webp",
 };
 
 const DISALLOWED_PLACEHOLDER_HOSTS = new Set([
@@ -333,6 +334,28 @@ export async function getProductVariants(name: string): Promise<Product[]> {
   return (data ?? []).map(normalizeProduct);
 }
 
+export function normalizeComboAsProduct(combo: any): Product {
+  const primaryImg = combo.image_url || "/images/head-facewash-duo.webp";
+  return {
+    id: combo.id,
+    name: combo.name,
+    slug: combo.slug,
+    description: combo.description || "",
+    ingredients: null,
+    how_to_use: null,
+    other_info: null,
+    price: Number(combo.price) || 0,
+    compare_price: combo.compare_price ? Number(combo.compare_price) : null,
+    images: [primaryImg],
+    category: "combos",
+    variant_name: combo.badge || "Combo Pack",
+    stock: 50,
+    is_active: combo.is_active ?? true,
+    created_at: combo.created_at || new Date().toISOString(),
+    updated_at: combo.updated_at || new Date().toISOString(),
+  };
+}
+
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   const supabase = getSupabaseBrowserClient() as any;
   const { data, error } = await supabase
@@ -343,8 +366,47 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     .maybeSingle();
 
   if (error) throw new Error(error.message);
-  if (!data) return null;
-  return normalizeProduct(data);
+  if (data) {
+    const product = normalizeProduct(data);
+    // If it's a combo product and its images array only has fallbacks or is missing the primary image,
+    // double-check combos table for the true uploaded combo image
+    if (product.category === "combos") {
+      try {
+        const { data: comboRow } = await supabase
+          .from("combos")
+          .select("image_url")
+          .eq("id", product.id)
+          .maybeSingle();
+        if (comboRow?.image_url && !product.images.includes(comboRow.image_url)) {
+          product.images = [
+            comboRow.image_url,
+            ...product.images.filter((img) => !img.includes("cat-face-cream")),
+          ];
+        }
+      } catch {
+        // Non-fatal
+      }
+    }
+    return product;
+  }
+
+  // Fallback: check combos table directly by slug
+  try {
+    const { data: combo, error: comboErr } = await supabase
+      .from("combos")
+      .select("*")
+      .eq("slug", slug)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (!comboErr && combo) {
+      return normalizeComboAsProduct(combo);
+    }
+  } catch (comboErr) {
+    console.warn("Fallback combo lookup by slug failed:", comboErr);
+  }
+
+  return null;
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
@@ -356,8 +418,21 @@ export async function getProductById(id: string): Promise<Product | null> {
     .maybeSingle();
 
   if (error) throw new Error(error.message);
-  if (!data) return null;
-  return normalizeProduct(data);
+  if (data) return normalizeProduct(data);
+
+  // Fallback: check combos table directly by id
+  try {
+    const { data: combo } = await supabase
+      .from("combos")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    if (combo) return normalizeComboAsProduct(combo);
+  } catch {
+    // Non-fatal
+  }
+
+  return null;
 }
 
 export async function listRelatedProducts(
@@ -859,7 +934,7 @@ export function subscribeToCustomers(onAnyChange: () => void) {
 export async function getProductWithImages(
   productId: string
 ): Promise<ProductWithImages | null> {
-  const supabase = getSupabaseBrowserClient();
+  const supabase = getSupabaseBrowserClient() as any;
 
   // Parallel fetch: product row + all its gallery images
   const [productResult, imagesResult] = await Promise.all([
@@ -872,11 +947,29 @@ export async function getProductWithImages(
   ]);
 
   if (productResult.error) throw new Error(productResult.error.message);
-  if (!productResult.data) return null;
 
-  const product = normalizeProduct(productResult.data);
+  let product: Product | null = null;
+  if (productResult.data) {
+    product = normalizeProduct(productResult.data);
+  } else {
+    // Check combos table fallback
+    try {
+      const { data: comboData } = await supabase
+        .from("combos")
+        .select("*")
+        .eq("id", productId)
+        .maybeSingle();
+      if (comboData) {
+        product = normalizeComboAsProduct(comboData);
+      }
+    } catch {
+      // Non-fatal
+    }
+  }
 
-  const images: ProductImage[] = (imagesResult.data ?? []).map((row: any) => {
+  if (!product) return null;
+
+  let images: ProductImage[] = (imagesResult.data ?? []).map((row: any) => {
     let finalUrl = row.image_url;
     if (typeof finalUrl === "string" && finalUrl.includes("/product-images/") && finalUrl.endsWith(".png")) {
       finalUrl = finalUrl.replace(/\.png$/, ".webp");
@@ -891,6 +984,45 @@ export async function getProductWithImages(
       created_at: row.created_at,
     };
   });
+
+  // If combo product, ensure primary combo image is present
+  if (product.category === "combos") {
+    // If no product_images exist, build them from product.images
+    if (images.length === 0) {
+      const imgUrls =
+        product.images && product.images.length > 0
+          ? product.images.filter((img) => !img.includes("cat-face-cream"))
+          : [];
+      if (imgUrls.length === 0) {
+        // Look up combos table
+        try {
+          const { data: comboRow } = await supabase
+            .from("combos")
+            .select("image_url")
+            .eq("id", product.id)
+            .maybeSingle();
+          if (comboRow?.image_url) imgUrls.push(comboRow.image_url);
+        } catch {
+          // Non-fatal
+        }
+      }
+      if (imgUrls.length === 0) {
+        imgUrls.push("/images/head-facewash-duo.webp");
+      }
+
+      images = imgUrls.map((url, i) => ({
+        id: `combo-img-${i}`,
+        product_id: product!.id,
+        image_url: url,
+        image_path: url.includes("/product-images/")
+          ? url.split("/product-images/")[1]
+          : `combos/${product!.id}-${i}.webp`,
+        display_order: i,
+        alt_text: `${product!.name} — image ${i + 1}`,
+        created_at: new Date().toISOString(),
+      }));
+    }
+  }
 
   return { ...product, product_images: images };
 }
@@ -1618,6 +1750,77 @@ export async function getCombosByIds(comboIds: string[]): Promise<Map<string, Co
   return map;
 }
 
+async function syncComboToProductsAndImages(supabase: any, comboData: {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  image_url?: string | null;
+  price: number;
+  compare_price?: number | null;
+  is_active?: boolean;
+}) {
+  try {
+    const { data: combosCat } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("slug", "combos")
+      .maybeSingle();
+
+    const imgUrl = comboData.image_url || "/images/head-facewash-duo.webp";
+    const imagePath = imgUrl.includes("/product-images/")
+      ? imgUrl.split("/product-images/")[1]
+      : `combos/${comboData.id}-0.webp`;
+
+    await supabase.from("products").upsert({
+      id: comboData.id,
+      name: comboData.name.trim(),
+      slug: comboData.slug.trim(),
+      category: "combos",
+      category_id: combosCat?.id || null,
+      price: comboData.price,
+      compare_price: comboData.compare_price || null,
+      description: comboData.description?.trim() || null,
+      images: [imgUrl],
+      stock: 50,
+      is_active: comboData.is_active ?? true,
+      updated_at: new Date().toISOString(),
+    });
+
+    if (comboData.image_url) {
+      const { data: existingImgs } = await supabase
+        .from("product_images")
+        .select("id")
+        .eq("product_id", comboData.id)
+        .eq("display_order", 0)
+        .maybeSingle();
+
+      if (existingImgs) {
+        await supabase
+          .from("product_images")
+          .update({
+            image_url: imgUrl,
+            image_path: imagePath,
+            alt_text: comboData.name,
+          })
+          .eq("id", existingImgs.id);
+      } else {
+        await supabase
+          .from("product_images")
+          .insert({
+            product_id: comboData.id,
+            image_url: imgUrl,
+            image_path: imagePath,
+            display_order: 0,
+            alt_text: comboData.name,
+          });
+      }
+    }
+  } catch (err) {
+    console.warn("Failed to sync combo into products and product_images:", err);
+  }
+}
+
 export async function createCombo(input: ComboInput): Promise<ComboWithProducts> {
   const supabase = getSupabaseBrowserClient() as any;
   const slug = input.slug?.trim() || generateSlug(input.name);
@@ -1656,31 +1859,17 @@ export async function createCombo(input: ComboInput): Promise<ComboWithProducts>
     }
   }
 
-  // 3. Keep products table synchronized so combo appears in the Combos category
-  try {
-    const { data: combosCat } = await supabase
-      .from("categories")
-      .select("id")
-      .eq("slug", "combos")
-      .maybeSingle();
-
-    await supabase.from("products").upsert({
-      id: comboData.id,
-      name: comboData.name,
-      slug: comboData.slug,
-      category: "combos",
-      category_id: combosCat?.id || null,
-      price: comboData.price,
-      compare_price: comboData.compare_price || null,
-      description: comboData.description,
-      images: [comboData.image_url],
-      stock: 50,
-      is_active: comboData.is_active,
-      updated_at: new Date().toISOString(),
-    });
-  } catch (err) {
-    console.warn("Failed to sync combo into products table:", err);
-  }
+  // 3. Keep products and product_images synchronized
+  await syncComboToProductsAndImages(supabase, {
+    id: comboData.id,
+    name: comboData.name,
+    slug: comboData.slug,
+    description: comboData.description,
+    image_url: comboData.image_url,
+    price: comboData.price,
+    compare_price: comboData.compare_price,
+    is_active: comboData.is_active,
+  });
 
   const result = await getComboById(comboData.id);
   if (!result) throw new Error("Failed to retrieve created combo");
@@ -1723,28 +1912,19 @@ export async function updateCombo(id: string, input: Partial<ComboInput>): Promi
     }
   }
 
-  // Keep products table synchronized
-  try {
-    const { data: combosCat } = await supabase
-      .from("categories")
-      .select("id")
-      .eq("slug", "combos")
-      .maybeSingle();
-
-    const prodUpdate: any = { updated_at: new Date().toISOString() };
-    if (input.name !== undefined) prodUpdate.name = input.name.trim();
-    if (input.slug !== undefined) prodUpdate.slug = input.slug.trim();
-    if (input.description !== undefined) prodUpdate.description = input.description?.trim() || null;
-    if (input.image_url !== undefined) prodUpdate.images = [input.image_url];
-    if (input.price !== undefined) prodUpdate.price = input.price;
-    if (input.compare_price !== undefined) prodUpdate.compare_price = input.compare_price || null;
-    if (input.is_active !== undefined) prodUpdate.is_active = input.is_active;
-    prodUpdate.category = "combos";
-    if (combosCat?.id) prodUpdate.category_id = combosCat.id;
-
-    await supabase.from("products").update(prodUpdate).eq("id", id);
-  } catch (err) {
-    console.warn("Failed to sync updated combo into products table:", err);
+  // Retrieve latest combo to sync
+  const latestCombo = await getComboById(id);
+  if (latestCombo) {
+    await syncComboToProductsAndImages(supabase, {
+      id: latestCombo.id,
+      name: latestCombo.name,
+      slug: latestCombo.slug,
+      description: latestCombo.description,
+      image_url: latestCombo.image_url,
+      price: latestCombo.price,
+      compare_price: latestCombo.compare_price,
+      is_active: latestCombo.is_active,
+    });
   }
 
   const result = await getComboById(id);

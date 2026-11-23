@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { listCategories } from "@/lib/supabase/data";
+import { listCategories, listAllProductsForAdmin, listCombos } from "@/lib/supabase/data";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type {
   PurchaseLimitRule,
@@ -33,6 +33,7 @@ function MultiCheckList({
   onToggle,
   onSelectAll,
   onClearAll,
+  onRetry,
   label,
   emptyMsg = "No items found.",
   loading = false,
@@ -42,6 +43,7 @@ function MultiCheckList({
   onToggle: (id: string) => void;
   onSelectAll?: () => void;
   onClearAll?: () => void;
+  onRetry?: () => void;
   label: string;
   emptyMsg?: string;
   loading?: boolean;
@@ -55,7 +57,7 @@ function MultiCheckList({
     <div className="mt-3 space-y-2">
       <div className="flex items-center justify-between">
         <span className="font-body text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant">
-          {label}
+          {label} ({items.length})
         </span>
         <div className="flex items-center gap-2">
           {onSelectAll && items.length > 0 && (
@@ -100,7 +102,19 @@ function MultiCheckList({
           </div>
         )}
         {!loading && filtered.length === 0 && (
-          <div className="p-3 text-on-surface-variant font-body text-[13px]">{emptyMsg}</div>
+          <div className="p-3 text-on-surface-variant font-body text-[13px] flex items-center justify-between">
+            <span>{emptyMsg}</span>
+            {items.length === 0 && onRetry && (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="font-body text-[12px] text-primary hover:underline font-medium flex items-center gap-1"
+              >
+                <span className="material-symbols-outlined text-[14px]">refresh</span>
+                Reload
+              </button>
+            )}
+          </div>
         )}
         {!loading &&
           filtered.map((item) => {
@@ -171,68 +185,64 @@ export default function PurchaseLimitForm({ initialData }: PurchaseLimitFormProp
     }
   }, [restrictionType, isEditing]);
 
-  // Load categories
-  useEffect(() => {
-    if (restrictionType !== "category") return;
-    setLoadingCategories(true);
-    listCategories(false)
-      .then(setCategories)
-      .catch(() => setCategories([]))
-      .finally(() => setLoadingCategories(false));
-  }, [restrictionType]);
-
-  // Load products / combos
-  useEffect(() => {
-    if (restrictionType !== "product" && restrictionType !== "combo") return;
+  const loadCatalogData = useCallback(async () => {
     setLoadingProducts(true);
-    const supabase = getSupabaseBrowserClient() as any;
+    setLoadingCategories(true);
 
-    if (restrictionType === "product") {
-      supabase
-        .from("products")
-        .select("id, name, variant_name, is_active, category")
-        .order("name")
-        .then(({ data, error }: any) => {
-          if (error) {
-            console.error("Error loading products:", error);
-            setProducts([]);
-          } else {
-            setProducts((data ?? []) as Product[]);
-          }
-        })
-        .catch((err: any) => {
-          console.error("Error loading products:", err);
-          setProducts([]);
-        })
-        .finally(() => setLoadingProducts(false));
-    } else {
-      Promise.all([
-        supabase.from("combos").select("id, name, is_active").order("name"),
-        supabase
-          .from("products")
-          .select("id, name, is_active")
-          .eq("category", "combos")
-          .order("name"),
-      ])
-        .then(([combosRes, prodCombosRes]: any[]) => {
-          const comboMap = new Map<string, { id: string; name: string; is_active?: boolean }>();
-          (combosRes.data ?? []).forEach((c: any) => {
-            comboMap.set(c.id, { id: c.id, name: c.name, is_active: c.is_active });
-          });
-          (prodCombosRes.data ?? []).forEach((p: any) => {
-            if (!comboMap.has(p.id)) {
-              comboMap.set(p.id, { id: p.id, name: p.name, is_active: p.is_active });
-            }
-          });
-          setCombos(Array.from(comboMap.values()));
-        })
-        .catch((err: any) => {
-          console.error("Error loading combos:", err);
-          setCombos([]);
-        })
-        .finally(() => setLoadingProducts(false));
+    try {
+      const res = await fetch("/api/admin/catalog");
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json.products) && json.products.length > 0) {
+          setProducts(json.products);
+        }
+        if (Array.isArray(json.combos) && json.combos.length > 0) {
+          setCombos(json.combos);
+        }
+        if (Array.isArray(json.categories) && json.categories.length > 0) {
+          setCategories(json.categories);
+        }
+        setLoadingProducts(false);
+        setLoadingCategories(false);
+        return;
+      }
+    } catch (err) {
+      console.warn("Failed to load /api/admin/catalog, falling back to direct data fetch:", err);
     }
-  }, [restrictionType]);
+
+    // Fallback if API route is unreachable
+    try {
+      const [cats, prods, cmbs] = await Promise.all([
+        listCategories(false).catch(() => []),
+        listAllProductsForAdmin().catch(() => []),
+        listCombos(false).catch(() => []),
+      ]);
+      if (cats.length > 0) setCategories(cats);
+      if (prods.length > 0) setProducts(prods);
+      if (cmbs.length > 0) setCombos(cmbs.map((c) => ({ id: c.id, name: c.name })));
+    } catch (err) {
+      console.error("Fallback catalog loading failed:", err);
+    } finally {
+      setLoadingProducts(false);
+      setLoadingCategories(false);
+    }
+  }, []);
+
+  // Pre-load all catalog data immediately on mount
+  useEffect(() => {
+    loadCatalogData();
+  }, [loadCatalogData]);
+
+  // If a scope is selected and its options are still empty, retry loading
+  useEffect(() => {
+    if (restrictionType === "category" && categories.length === 0) {
+      loadCatalogData();
+    } else if (restrictionType === "product" && products.length === 0) {
+      loadCatalogData();
+    } else if (restrictionType === "combo" && combos.length === 0) {
+      loadCatalogData();
+    }
+  }, [restrictionType, categories.length, products.length, combos.length, loadCatalogData]);
 
   const toggleTargetId = (id: string) => {
     setTargetIds((prev) =>
@@ -473,6 +483,7 @@ export default function PurchaseLimitForm({ initialData }: PurchaseLimitFormProp
             onClearAll={handleClearAllTargets}
             loading={loadingCategories}
             emptyMsg="No categories found."
+            onRetry={loadCatalogData}
           />
         )}
 
@@ -491,6 +502,7 @@ export default function PurchaseLimitForm({ initialData }: PurchaseLimitFormProp
             onClearAll={handleClearAllTargets}
             loading={loadingProducts}
             emptyMsg="No products found."
+            onRetry={loadCatalogData}
           />
         )}
 
@@ -529,6 +541,7 @@ export default function PurchaseLimitForm({ initialData }: PurchaseLimitFormProp
               onClearAll={handleClearAllTargets}
               loading={loadingProducts}
               emptyMsg="No combos found."
+              onRetry={loadCatalogData}
             />
           </div>
         )}

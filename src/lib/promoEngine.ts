@@ -35,8 +35,16 @@ export interface PromoValidationFailure {
 export type PromoValidationOutput = PromoValidationSuccess | PromoValidationFailure;
 
 /**
- * Computes the qualifying cart subtotal based on promo code targeting rules.
- * Handles 'all', 'product', 'combo', and 'category' scopes.
+ * Computes the qualifying cart subtotal based on strict promo code allow-list targeting rules.
+ * Supports:
+ *   1. 'all'      — All items in the cart qualify.
+ *   2. 'category' — Only items belonging to explicitly selected categories qualify.
+ *                   Combos are excluded unless the 'combos' category was explicitly selected.
+ *                   Empty selection never qualifies.
+ *   3. 'product'  — Only explicitly selected products qualify.
+ *                   Empty selection never qualifies.
+ *   4. 'combo'    — Only combo items qualify. If specific combo IDs are selected, only those
+ *                   qualify. Regular products never qualify.
  */
 export function computeQualifyingSubtotal(
   promo: {
@@ -55,40 +63,64 @@ export function computeQualifyingSubtotal(
   }
   const targetIds = rawIds.filter(Boolean);
 
+  // 1. All Products
   if (promo.applies_to === "all") {
-    return cartSubtotal;
+    return cartSubtotal > 0 ? cartSubtotal : null;
   }
 
-  if (targetIds.length === 0 && promo.applies_to !== "combo") {
-    return cartSubtotal;
-  }
+  // 2. Selected Categories
+  if (promo.applies_to === "category") {
+    // Empty selection must NEVER default to All Products
+    if (targetIds.length === 0) {
+      return null;
+    }
 
-  if (promo.applies_to === "product") {
-    const qualifying = cartItems.filter((item) => targetIds.includes(item.productId));
+    const qualifying = cartItems.filter((item) => {
+      // Combos never qualify under a category rule unless 'combos' is explicitly selected
+      if (item.is_combo) {
+        return targetIds.includes("combos");
+      }
+      const catSlugMatch = item.category ? targetIds.includes(item.category) : false;
+      const catIdMatch = item.category_id ? targetIds.includes(item.category_id) : false;
+      return Boolean(catSlugMatch || catIdMatch);
+    });
+
     const total = qualifying.reduce((sum, item) => sum + item.price * item.quantity, 0);
     return total > 0 ? total : null;
   }
 
-  if (promo.applies_to === "combo") {
+  // 3. Selected Individual Products
+  if (promo.applies_to === "product") {
+    // Empty selection must NEVER default to All Products
+    if (targetIds.length === 0) {
+      return null;
+    }
+
+    // Only explicitly selected products qualify; combos and other products are excluded
     const qualifying = cartItems.filter(
-      (item) => item.is_combo && (targetIds.length === 0 || targetIds.includes(item.productId))
+      (item) => !item.is_combo && targetIds.includes(item.productId)
     );
     const total = qualifying.reduce((sum, item) => sum + item.price * item.quantity, 0);
     return total > 0 ? total : null;
   }
 
-  if (promo.applies_to === "category") {
+  // 4. Selected Combos
+  if (promo.applies_to === "combo") {
+    // Regular products NEVER qualify under combo targeting
     const qualifying = cartItems.filter((item) => {
-      const catSlugMatch = item.category && targetIds.includes(item.category);
-      const catIdMatch = item.category_id && targetIds.includes(item.category_id);
-      return Boolean(catSlugMatch || catIdMatch);
+      if (!item.is_combo) return false;
+      if (targetIds.length > 0) {
+        return targetIds.includes(item.productId);
+      }
+      // If targetIds is empty for combo mode, all combos qualify (but never regular products)
+      return true;
     });
+
     const total = qualifying.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    // If cart items don't have category populated (e.g. client pre-check), fallback to cartSubtotal
-    return qualifying.length > 0 ? total : cartItems.some((i) => i.category) ? null : cartSubtotal;
+    return total > 0 ? total : null;
   }
 
-  return cartSubtotal;
+  return null;
 }
 
 /**
@@ -166,8 +198,62 @@ export async function validatePromoCode(
     };
   }
 
-  // 7. Qualifying items subtotal based on applies_to
-  const qualifyingSubtotal = computeQualifyingSubtotal(promo, cartItems, subtotal);
+  // 7. Authoritative DB metadata enrichment for cart items
+  // Never trust client-provided category, category_id, or is_combo flags!
+  let enrichedCartItems = cartItems;
+  if (promo.applies_to !== "all" && cartItems.length > 0) {
+    try {
+      const productIds = Array.from(new Set(cartItems.map((i) => i.productId).filter(Boolean)));
+      if (productIds.length > 0) {
+        const [productsRes, combosRes] = await Promise.all([
+          supabase
+            .from("products")
+            .select("id, name, slug, category, category_id, price")
+            .in("id", productIds),
+          supabase
+            .from("combos")
+            .select("id, name, slug, price")
+            .in("id", productIds),
+        ]);
+
+        const dbProductMap = new Map<string, any>();
+        (productsRes?.data ?? []).forEach((p: any) => {
+          dbProductMap.set(p.id, {
+            category: p.category,
+            category_id: p.category_id,
+            is_combo: p.category === "combos" || p.slug?.includes("combo"),
+            price: Number(p.price),
+          });
+        });
+
+        (combosRes?.data ?? []).forEach((c: any) => {
+          dbProductMap.set(c.id, {
+            category: "combos",
+            category_id: null,
+            is_combo: true,
+            price: Number(c.price),
+          });
+        });
+
+        enrichedCartItems = cartItems.map((item) => {
+          const meta = dbProductMap.get(item.productId);
+          return {
+            productId: item.productId,
+            quantity: item.quantity,
+            price: meta?.price ?? item.price,
+            category: meta ? meta.category : (item.category ?? null),
+            category_id: meta ? meta.category_id : (item.category_id ?? null),
+            is_combo: meta ? meta.is_combo : Boolean(item.is_combo),
+          };
+        });
+      }
+    } catch (lookupErr) {
+      console.warn("[promoEngine] Could not enrich cart items from DB:", lookupErr);
+    }
+  }
+
+  // 8. Qualifying items subtotal based on applies_to
+  const qualifyingSubtotal = computeQualifyingSubtotal(promo, enrichedCartItems, subtotal);
   if (qualifyingSubtotal === null || qualifyingSubtotal <= 0) {
     const scopeLabel =
       promo.applies_to === "product"

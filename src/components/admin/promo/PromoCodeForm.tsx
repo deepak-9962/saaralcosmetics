@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import type { PromoCode, Category, Product } from "@/lib/types";
-import { listCategories } from "@/lib/supabase/data";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { listCategories, listAllProductsForAdmin, listCombos } from "@/lib/supabase/data";
 
 interface PromoCodeFormProps {
   initialData?: PromoCode;
@@ -24,6 +23,7 @@ function MultiCheckList({
   items,
   selectedIds,
   onToggle,
+  onRetry,
   label,
   emptyMsg = "No items found.",
   loading = false,
@@ -31,6 +31,7 @@ function MultiCheckList({
   items: { id: string; label: string; badge?: string }[];
   selectedIds: string[];
   onToggle: (id: string) => void;
+  onRetry?: () => void;
   label: string;
   emptyMsg?: string;
   loading?: boolean;
@@ -44,7 +45,7 @@ function MultiCheckList({
     <div className="mt-3 space-y-2">
       <div className="flex items-center justify-between">
         <span className="font-body text-[11px] font-semibold uppercase tracking-widest text-on-surface-variant">
-          {label}
+          {label} ({items.length})
         </span>
         {selectedIds.length > 0 && (
           <span className="font-body text-[11px] text-primary font-medium">
@@ -69,7 +70,19 @@ function MultiCheckList({
           </div>
         )}
         {!loading && filtered.length === 0 && (
-          <div className="p-3 text-on-surface-variant font-body text-[13px]">{emptyMsg}</div>
+          <div className="p-3 text-on-surface-variant font-body text-[13px] flex items-center justify-between">
+            <span>{emptyMsg}</span>
+            {items.length === 0 && onRetry && (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="font-body text-[12px] text-primary hover:underline font-medium flex items-center gap-1"
+              >
+                <span className="material-symbols-outlined text-[14px]">refresh</span>
+                Reload
+              </button>
+            )}
+          </div>
         )}
         {!loading &&
           filtered.map((item) => {
@@ -154,74 +167,73 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
-  // Reset selection when scope changes
+  // Reset selection when scope changes after initial load
+  const prevAppliesToRef = useRef(appliesTo);
   useEffect(() => {
-    if (!isEditing) setAppliesToIds([]);
-  }, [appliesTo, isEditing]);
-
-  // Fetch categories when scope = category
-  useEffect(() => {
-    if (appliesTo !== "category") return;
-    setLoadingCategories(true);
-    listCategories(false)
-      .then(setCategories)
-      .catch(() => setCategories([]))
-      .finally(() => setLoadingCategories(false));
-  }, [appliesTo]);
-
-  // Fetch products/combos when scope = product or combo
-  useEffect(() => {
-    if (appliesTo !== "product" && appliesTo !== "combo") return;
-    setLoadingProducts(true);
-    const supabase = getSupabaseBrowserClient() as any;
-
-    if (appliesTo === "product") {
-      supabase
-        .from("products")
-        .select("id, name, variant_name, is_active, category")
-        .order("name")
-        .then(({ data, error }: any) => {
-          if (error) {
-            console.error("Error loading products:", error);
-            setProducts([]);
-          } else {
-            setProducts((data ?? []) as Product[]);
-          }
-        })
-        .catch((err: any) => {
-          console.error("Error loading products:", err);
-          setProducts([]);
-        })
-        .finally(() => setLoadingProducts(false));
-    } else {
-      // combos: fetch from combos table and products where category = 'combos'
-      Promise.all([
-        supabase.from("combos").select("id, name, is_active").order("name"),
-        supabase
-          .from("products")
-          .select("id, name, is_active")
-          .eq("category", "combos")
-          .order("name"),
-      ])
-        .then(([combosRes, prodCombosRes]: any[]) => {
-          const comboMap = new Map<string, { id: string; name: string }>();
-          (combosRes.data ?? []).forEach((c: any) => {
-            comboMap.set(c.id, { id: c.id, name: c.name });
-          });
-          (prodCombosRes.data ?? []).forEach((p: any) => {
-            if (!comboMap.has(p.id)) {
-              comboMap.set(p.id, { id: p.id, name: p.name });
-            }
-          });
-          setCombos(Array.from(comboMap.values()));
-        })
-        .catch((err: any) => {
-          console.error("Error loading combos:", err);
-          setCombos([]);
-        })
-        .finally(() => setLoadingProducts(false));
+    if (prevAppliesToRef.current !== appliesTo) {
+      setAppliesToIds([]);
+      prevAppliesToRef.current = appliesTo;
     }
   }, [appliesTo]);
+
+  const loadCatalogData = useCallback(async () => {
+    setLoadingProducts(true);
+    setLoadingCategories(true);
+
+    try {
+      const res = await fetch("/api/admin/catalog");
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json.products) && json.products.length > 0) {
+          setProducts(json.products);
+        }
+        if (Array.isArray(json.combos) && json.combos.length > 0) {
+          setCombos(json.combos);
+        }
+        if (Array.isArray(json.categories) && json.categories.length > 0) {
+          setCategories(json.categories);
+        }
+        setLoadingProducts(false);
+        setLoadingCategories(false);
+        return;
+      }
+    } catch (err) {
+      console.warn("Failed to load /api/admin/catalog in PromoCodeForm, trying fallback:", err);
+    }
+
+    // Fallback if API route is unreachable
+    try {
+      const [cats, prods, cmbs] = await Promise.all([
+        listCategories(false).catch(() => []),
+        listAllProductsForAdmin().catch(() => []),
+        listCombos(false).catch(() => []),
+      ]);
+      if (cats.length > 0) setCategories(cats);
+      if (prods.length > 0) setProducts(prods);
+      if (cmbs.length > 0) setCombos(cmbs.map((c) => ({ id: c.id, name: c.name })));
+    } catch (err) {
+      console.error("Fallback catalog loading failed in PromoCodeForm:", err);
+    } finally {
+      setLoadingProducts(false);
+      setLoadingCategories(false);
+    }
+  }, []);
+
+  // Pre-load all catalog data immediately on mount
+  useEffect(() => {
+    loadCatalogData();
+  }, [loadCatalogData]);
+
+  // If a scope is selected and options are still empty, trigger load
+  useEffect(() => {
+    if (appliesTo === "category" && categories.length === 0) {
+      loadCatalogData();
+    } else if (appliesTo === "product" && products.length === 0) {
+      loadCatalogData();
+    } else if (appliesTo === "combo" && combos.length === 0) {
+      loadCatalogData();
+    }
+  }, [appliesTo, categories.length, products.length, combos.length, loadCatalogData]);
 
   const toggleId = (id: string) => {
     setAppliesToIds((prev) =>
@@ -248,8 +260,12 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
       setError("Percentage discount cannot exceed 100%.");
       return;
     }
-    if (appliesTo !== "all" && appliesTo !== "category" && appliesToIds.length === 0) {
-      setError(`Please select at least one ${appliesTo} to apply this code to.`);
+    if (appliesTo === "category" && appliesToIds.length === 0) {
+      setError("Please select at least one category to apply this code to.");
+      return;
+    }
+    if (appliesTo === "product" && appliesToIds.length === 0) {
+      setError("Please select at least one product to apply this code to.");
       return;
     }
 
@@ -531,6 +547,7 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
                   onToggle={toggleId}
                   emptyMsg="No categories found."
                   loading={loadingCategories}
+                  onRetry={loadCatalogData}
                 />
               </motion.div>
             )}
@@ -554,6 +571,7 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
                   onToggle={toggleId}
                   emptyMsg="No products found."
                   loading={loadingProducts}
+                  onRetry={loadCatalogData}
                 />
               </motion.div>
             )}
@@ -577,6 +595,7 @@ export default function PromoCodeForm({ initialData }: PromoCodeFormProps) {
                   onToggle={toggleId}
                   emptyMsg="No combos found."
                   loading={loadingProducts}
+                  onRetry={loadCatalogData}
                 />
               </motion.div>
             )}

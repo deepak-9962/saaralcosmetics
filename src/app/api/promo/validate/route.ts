@@ -47,15 +47,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ valid: false, reason: "Invalid cart data." }, { status: 400 });
     }
 
-    const cartSubtotal = typeof subtotal === "number" ? subtotal : 0;
-    const supabase = getServiceClient();
-
-    const normalizedItems = (cartItems as CartItem[]).map((i) => ({
-      productId: i.product_id,
-      quantity: i.quantity,
-      price: i.price,
+    const normalizedItems = (cartItems as any[]).map((i) => ({
+      productId: i.product_id || i.productId,
+      quantity: Number(i.quantity) || 1,
+      price: Number(i.price) || 0,
       is_combo: Boolean(i.is_combo || i.variant_name === "Combo Pack"),
     }));
+
+    const calculatedSubtotal = normalizedItems.reduce(
+      (sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 1),
+      0
+    );
+    const cartSubtotal =
+      typeof subtotal === "number" && subtotal > 0 ? subtotal : calculatedSubtotal;
+    const supabase = getServiceClient();
 
     const result = await validatePromoCode(supabase, {
       code,
@@ -65,7 +70,11 @@ export async function POST(request: NextRequest) {
     });
 
     if (!result.valid) {
-      return NextResponse.json({ valid: false, reason: result.reason });
+      return NextResponse.json({
+        valid: false,
+        reason: result.reason,
+        error: result.reason,
+      });
     }
 
     const final_total = Math.max(0, cartSubtotal - result.discountAmount);
@@ -75,6 +84,7 @@ export async function POST(request: NextRequest) {
       code: result.code,
       discount_type: result.discountType,
       discount_amount: result.discountAmount,
+      discount: result.discountAmount,
       is_free_shipping: result.isFreeShipping,
       final_total,
     });
