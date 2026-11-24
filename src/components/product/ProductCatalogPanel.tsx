@@ -516,11 +516,11 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
 
             {/* ── Row 2: Category chips (full-width smooth scrollable row) ── */}
             <div
-              className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2"
+              className="category-nav-row flex items-center gap-2 overflow-x-auto no-scrollbar py-2"
               style={{ borderTop: "1px solid rgba(201,167,77,0.10)" }}
             >
               <LayoutGroup id="cat-chips">
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="category-nav-container flex items-center gap-2 shrink-0">
                   {allCategoryChips.map((cat) => {
                     const isActive = activeCategory === cat.slug;
                     return (
@@ -529,12 +529,13 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
                         ref={isActive ? mobileActiveRef : undefined}
                         role="tab"
                         aria-selected={isActive}
+                        data-active={isActive ? "true" : "false"}
                         onClick={() => {
                           const nextUrl =
                             cat.slug === "all" ? "/products" : `/products?category=${cat.slug}`;
                           router.push(nextUrl, { scroll: false });
                         }}
-                        className="relative shrink-0 flex items-center gap-1.5 h-8 px-3.5 rounded-full font-body text-[12px] tracking-[0.02em] transition-all duration-200 focus-visible:outline-none active:scale-95 cursor-pointer hover:text-[#8B3A5E]"
+                        className="category-nav-chip relative shrink-0 flex items-center gap-1.5 h-8 px-3.5 rounded-full font-body text-[12px] tracking-[0.02em] transition-all duration-200 focus-visible:outline-none active:scale-95 cursor-pointer hover:text-[#8B3A5E]"
                         style={{
                           background: isActive
                             ? "linear-gradient(135deg, rgba(139,58,94,0.12) 0%, rgba(201,167,77,0.08) 100%)"
@@ -559,7 +560,7 @@ export default function ProductCatalogPanel({ products, categories = [] }: Produ
                             transition={{ type: "spring", stiffness: 400, damping: 36 }}
                           />
                         )}
-                        <span className="relative z-10">{cat.label}</span>
+                        <span className="category-nav-chip-label relative z-10">{cat.label}</span>
                       </button>
                     );
                   })}

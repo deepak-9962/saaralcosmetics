@@ -537,4 +537,52 @@ body {
   animation: fade-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* ============================================
+   CATEGORY NAVIGATION TYPOGRAPHY (Shop / Collections Page)
+   Enhanced desktop typography: 17px, semi-bold 600, dark brown/plum
+   Active state: bold 700 with existing plum accent styling
+   Mobile styling (< 1024px) remains strictly unchanged
+   ============================================ */
+@media (min-width: 1024px) {
+  .category-nav-row {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+
+  .category-nav-container {
+    gap: 10px !important;
+  }
+
+  .category-nav-chip {
+    font-size: 17px !important;
+    font-weight: 600 !important;
+    color: #361E28 !important; /* dark brown/plum for enhanced readability */
+    height: 40px !important;
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    letter-spacing: 0.01em !important;
+    transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  }
+
+  .category-nav-chip:hover {
+    color: #8B3A5E !important;
+  }
+
+  .category-nav-chip[data-active="true"] {
+    font-weight: 700 !important;
+    color: #8B3A5E !important; /* retains existing plum accent styling */
+  }
+
+  .category-nav-chip-label {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+  }
+}
+
 
