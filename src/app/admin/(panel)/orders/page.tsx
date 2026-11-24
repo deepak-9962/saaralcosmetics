@@ -8,7 +8,7 @@ import { listOrders, updateOrderStatus, updateOrderNotes, updateOrderPaymentStat
 import { formatPrice } from "@/lib/utils";
 import type { Order, OrderStatus } from "@/lib/types";
 
-const tabs = ["All", "New", "Processing", "Shipped", "Delivered", "Cancelled"];
+const tabs = ["All", "Paid", "Pending", "New", "Processing", "Shipped", "Delivered", "Cancelled"];
 
 function getPaymentBadgeClass(status: Order["payment_status"]) {
   if (status === "paid") {
@@ -72,6 +72,22 @@ export default function AdminOrdersPage() {
       }
     );
 
+    // Read initial query params for tab / payment
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab") || params.get("status");
+      const paymentParam = params.get("payment");
+      if (tabParam) {
+        const match = tabs.find((t) => t.toLowerCase() === tabParam.toLowerCase());
+        if (match) setActiveTab(match);
+      } else if (paymentParam === "paid") {
+        setActiveTab("Paid");
+      }
+      if (paymentParam && ["all", "pending", "paid", "failed"].includes(paymentParam.toLowerCase())) {
+        setPaymentFilter(paymentParam.toLowerCase() as "all" | "pending" | "paid" | "failed");
+      }
+    }
+
     setTimeout(() => { isFirstLoad.current = false; }, 3000);
     return unsubscribe;
   }, []);
@@ -79,7 +95,11 @@ export default function AdminOrdersPage() {
   const filteredOrders = useMemo(() => {
     let result = [...orders];
 
-    if (activeTab !== "All") {
+    if (activeTab === "Paid") {
+      result = result.filter((order) => order.payment_status === "paid");
+    } else if (activeTab === "Pending") {
+      result = result.filter((order) => order.payment_status === "pending");
+    } else if (activeTab !== "All") {
       const tabStatus = getTabStatus(activeTab);
       if (tabStatus) {
         result = result.filter((order) => order.order_status === tabStatus);
@@ -107,7 +127,7 @@ export default function AdminOrdersPage() {
       result = result.filter((order) => new Date(order.created_at) <= to);
     }
 
-    if (paymentFilter !== "all") {
+    if (activeTab !== "Paid" && activeTab !== "Pending" && paymentFilter !== "all") {
       result = result.filter((order) => order.payment_status === paymentFilter);
     }
 
@@ -137,11 +157,19 @@ export default function AdminOrdersPage() {
 
   const tabCounts = useMemo(() => {
     return tabs.reduce<Record<string, number>>((acc, tab) => {
-      const tabStatus = getTabStatus(tab);
-      if (!tabStatus) {
+      if (tab === "All") {
         acc[tab] = orders.length;
+      } else if (tab === "Paid") {
+        acc[tab] = orders.filter((order) => order.payment_status === "paid").length;
+      } else if (tab === "Pending") {
+        acc[tab] = orders.filter((order) => order.payment_status === "pending").length;
       } else {
-        acc[tab] = orders.filter((order) => order.order_status === tabStatus).length;
+        const tabStatus = getTabStatus(tab);
+        if (tabStatus) {
+          acc[tab] = orders.filter((order) => order.order_status === tabStatus).length;
+        } else {
+          acc[tab] = 0;
+        }
       }
       return acc;
     }, {});
@@ -249,6 +277,7 @@ export default function AdminOrdersPage() {
     setPaymentFilter("all");
     setStateFilter("all");
     setSortBy("newest");
+    setActiveTab("All");
   }
 
   function renderStatusActions(order: Order) {
@@ -359,6 +388,29 @@ export default function AdminOrdersPage() {
                     className="w-full h-12 pl-12 pr-4 bg-surface-container-lowest border border-outline-variant rounded-xl font-body text-[16px] leading-[1.6] text-on-surface focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all"
                   />
                 </div>
+                {/* Quick Paid filter button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (activeTab === "Paid") {
+                      setActiveTab("All");
+                      setPaymentFilter("all");
+                    } else if (paymentFilter === "paid") {
+                      setPaymentFilter("all");
+                    } else {
+                      setPaymentFilter("paid");
+                    }
+                  }}
+                  className={`h-12 px-4 rounded-xl border font-body text-[14px] leading-[1.0] tracking-[0.04em] font-medium inline-flex items-center gap-2 cursor-pointer transition-all ${
+                    paymentFilter === "paid" || activeTab === "Paid"
+                      ? "bg-emerald-100 border-emerald-400 text-emerald-900 font-semibold shadow-xs"
+                      : "bg-surface-container-low border-outline-variant/50 text-on-surface hover:border-emerald-300 hover:bg-emerald-50/50"
+                  }`}
+                  title="Filter by Paid orders"
+                >
+                  <span className={`w-2.5 h-2.5 rounded-full ${paymentFilter === "paid" || activeTab === "Paid" ? "bg-emerald-600 animate-pulse" : "bg-emerald-500"}`} />
+                  <span>Paid ({tabCounts["Paid"] ?? 0})</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => setShowFilters((prev) => !prev)}
@@ -489,7 +541,12 @@ export default function AdminOrdersPage() {
             <button
               key={tab}
               type="button"
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                if (tab === "Paid" && paymentFilter === "paid") {
+                  setPaymentFilter("all");
+                }
+              }}
               className={`pb-3 px-1 border-b-2 font-body text-[14px] leading-[1.0] tracking-[0.08em] font-medium uppercase whitespace-nowrap transition-colors ${
                 activeTab === tab
                   ? "border-primary text-primary"
@@ -500,6 +557,25 @@ export default function AdminOrdersPage() {
             </button>
           ))}
         </div>
+
+        {(paymentFilter === "paid" || activeTab === "Paid") && (
+          <div className="mt-4 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-50/90 border border-emerald-200 text-emerald-900 text-[13px] font-body">
+            <span className="material-symbols-outlined text-[18px] text-emerald-600">verified</span>
+            <span>
+              Showing <strong>Paid</strong> orders only ({filteredOrders.length} {filteredOrders.length === 1 ? "order" : "orders"})
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab("All");
+                setPaymentFilter("all");
+              }}
+              className="ml-auto text-emerald-700 hover:text-emerald-950 underline text-[12px] font-medium cursor-pointer"
+            >
+              Reset to All
+            </button>
+          </div>
+        )}
 
         <div className="mt-5 flex flex-col gap-4 pb-8">
           {filteredOrders.length === 0 && (
