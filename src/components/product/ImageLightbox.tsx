@@ -76,6 +76,7 @@ export default function ImageLightbox({
           src={image.url}
           alt={image.alt}
           fill
+          unoptimized={image.url.startsWith("http")}
           className="object-contain"
           sizes="(max-width: 768px) 95vw, 768px"
           priority

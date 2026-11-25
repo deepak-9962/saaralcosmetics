@@ -10,7 +10,7 @@
  *  • Works with Supabase Storage public URLs (already whitelisted in next.config.ts)
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 
 interface ProductImageProps {
@@ -55,6 +55,11 @@ export default function ProductImage({
   // Switch to placeholder if the remote image errors (e.g. deleted from Storage)
   const [hasError, setHasError] = useState(false);
 
+  useEffect(() => {
+    setIsLoaded(false);
+    setHasError(false);
+  }, [src]);
+
   const resolvedSrc = !src || hasError ? (fallbackSrc ?? null) : src;
 
   if (!resolvedSrc) {
@@ -82,6 +87,7 @@ export default function ProductImage({
         src={resolvedSrc}
         alt={alt}
         fill
+        unoptimized={resolvedSrc.startsWith("http")}
         className="object-cover"
         sizes={sizes}
         priority={priority}

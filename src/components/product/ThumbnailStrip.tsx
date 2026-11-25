@@ -115,33 +115,37 @@ export default function ThumbnailStrip({
         role="listbox"
         aria-label="Product image thumbnails"
       >
-        {images.map((img, idx) => (
-          <button
-            key={idx}
-            role="option"
-            aria-selected={idx === activeIndex}
-            aria-label={`View image ${idx + 1}: ${img.alt}`}
-            onClick={() => onThumbnailClick(idx)}
-            className={[
-              "relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-              idx === activeIndex
-                // Active: full opacity, brand ring, slight lift
-                ? "ring-2 ring-offset-2 ring-[#b06080] opacity-100 scale-[1.03] shadow-md"
-                // Inactive: dimmed, hover restores opacity
-                : "opacity-70 hover:opacity-100 hover:scale-[1.01]",
-            ].join(" ")}
-            style={{ background: "linear-gradient(145deg, #F4E4DA 0%, #EDD5C8 100%)" }}
-          >
-            <Image
-              src={getThumbSrc(img.url)}
-              alt={img.alt}
-              fill
-              onError={() => handleThumbError(img.url)}
-              className="object-cover"
-              sizes="96px"
-            />
-          </button>
-        ))}
+        {images.map((img, idx) => {
+          const thumbSrc = getThumbSrc(img.url);
+          return (
+            <button
+              key={idx}
+              role="option"
+              aria-selected={idx === activeIndex}
+              aria-label={`View image ${idx + 1}: ${img.alt}`}
+              onClick={() => onThumbnailClick(idx)}
+              className={[
+                "relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+                idx === activeIndex
+                  // Active: full opacity, brand ring, slight lift
+                  ? "ring-2 ring-offset-2 ring-[#b06080] opacity-100 scale-[1.03] shadow-md"
+                  // Inactive: dimmed, hover restores opacity
+                  : "opacity-70 hover:opacity-100 hover:scale-[1.01]",
+              ].join(" ")}
+              style={{ background: "linear-gradient(145deg, #F4E4DA 0%, #EDD5C8 100%)" }}
+            >
+              <Image
+                src={thumbSrc}
+                alt={img.alt}
+                fill
+                unoptimized={thumbSrc.startsWith("http")}
+                onError={() => handleThumbError(img.url)}
+                className="object-cover"
+                sizes="96px"
+              />
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Progress bar track + indicator ─────────────────────────────────── */}

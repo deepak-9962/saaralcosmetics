@@ -41,11 +41,10 @@ export default function ProductGallery({ images, badges }: ProductGalleryProps) 
       setFailedUrls((prev) => ({ ...prev, [original]: original.replace(/\.png$/, ".webp") }));
       return;
     }
-    // Fallback to first non-failing image or standard fallback
-    const fallback = images.find((img) => img.url !== original && !failedUrls[img.url]);
+    // Fall back to neutral placeholder rather than another gallery image (e.g. cover image)
     setFailedUrls((prev) => ({
       ...prev,
-      [original]: fallback ? fallback.url : "/images/cat-face-cream.webp",
+      [original]: "/images/cat-face-cream.webp",
     }));
   };
 
@@ -121,9 +120,11 @@ export default function ProductGallery({ images, badges }: ProductGalleryProps) 
         >
           {/* Main image with crossfade transition */}
           <Image
+            key={currentImageUrl}
             src={currentImageUrl}
             alt={currentImage.alt}
             fill
+            unoptimized={currentImageUrl.startsWith("http")}
             priority={safeIndex === 0}
             fetchPriority={safeIndex === 0 ? "high" : "auto"}
             onError={handleImageError}
