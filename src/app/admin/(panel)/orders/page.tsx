@@ -197,6 +197,7 @@ export default function AdminOrdersPage() {
     setSelectedOrderId(order.id);
     setEditingNotes(false);
     setNotesValue(order.notes ?? "");
+    detailPanelRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function handleUpdateStatus(nextStatus: OrderStatus) {
@@ -366,18 +367,19 @@ export default function AdminOrdersPage() {
   }
 
   return (
-    <div className="flex-grow flex overflow-hidden">
-      <div className="flex-grow flex flex-col overflow-y-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] py-[var(--spacing-stack-md)] border-r border-outline-variant/30 custom-scrollbar">
-        <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+    <div className="flex-1 min-h-0 flex flex-col lg:flex-row lg:overflow-hidden">
+      <div className="flex-1 min-w-0 min-h-0 flex flex-col lg:overflow-hidden border-r border-outline-variant/30">
+        <div className="shrink-0 px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] pt-[var(--spacing-stack-md)]">
+          <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-              <h2 className="font-display text-[32px] leading-[1.3] text-on-background tracking-tight">
+            <div className="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between gap-3">
+              <h2 className="font-display text-[32px] leading-[1.3] text-on-background tracking-tight shrink-0">
                 Order Management
               </h2>
 
-              <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto xl:min-w-[560px]">
-                <div className="relative flex-1">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 w-full 2xl:w-auto min-w-0">
+                <div className="relative flex-1 min-w-[180px]">
+                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline">
                     search
                   </span>
                   <input
@@ -385,7 +387,7 @@ export default function AdminOrdersPage() {
                     value={searchTerm}
                     onChange={(event) => setSearchTerm(event.target.value)}
                     placeholder="Search order #, customer, phone..."
-                    className="w-full h-12 pl-12 pr-4 bg-surface-container-lowest border border-outline-variant rounded-xl font-body text-[16px] leading-[1.6] text-on-surface focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all"
+                    className="w-full h-11 pl-11 pr-3 bg-surface-container-lowest border border-outline-variant rounded-xl font-body text-[14px] leading-[1.5] text-on-surface focus:outline-none focus:border-tertiary-container focus:ring-1 focus:ring-tertiary-container/30 transition-all"
                   />
                 </div>
                 {/* Quick Paid filter button */}
@@ -401,7 +403,7 @@ export default function AdminOrdersPage() {
                       setPaymentFilter("paid");
                     }
                   }}
-                  className={`h-12 px-4 rounded-xl border font-body text-[14px] leading-[1.0] tracking-[0.04em] font-medium inline-flex items-center gap-2 cursor-pointer transition-all ${
+                  className={`h-11 px-3.5 rounded-xl border font-body text-[13px] leading-[1.0] tracking-[0.04em] font-medium inline-flex items-center gap-2 shrink-0 whitespace-nowrap cursor-pointer transition-all ${
                     paymentFilter === "paid" || activeTab === "Paid"
                       ? "bg-emerald-100 border-emerald-400 text-emerald-900 font-semibold shadow-xs"
                       : "bg-surface-container-low border-outline-variant/50 text-on-surface hover:border-emerald-300 hover:bg-emerald-50/50"
@@ -414,7 +416,7 @@ export default function AdminOrdersPage() {
                 <button
                   type="button"
                   onClick={() => setShowFilters((prev) => !prev)}
-                  className="h-12 px-4 rounded-xl bg-surface-container-low border border-outline-variant/50 font-body text-[14px] leading-[1.0] tracking-[0.08em] font-medium text-on-surface inline-flex items-center gap-2 uppercase"
+                  className="h-11 px-3.5 rounded-xl bg-surface-container-low border border-outline-variant/50 font-body text-[13px] leading-[1.0] tracking-[0.08em] font-medium text-on-surface inline-flex items-center gap-2 shrink-0 whitespace-nowrap uppercase cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[18px]">tune</span>
                   Filters
@@ -577,7 +579,9 @@ export default function AdminOrdersPage() {
           </div>
         )}
 
-        <div className="mt-5 flex flex-col gap-4 pb-8">
+        </div>
+
+        <div className="flex-1 min-h-0 overflow-y-auto px-[var(--spacing-margin-mobile)] md:px-[var(--spacing-margin-desktop)] pt-5 pb-8 flex flex-col gap-4 custom-scrollbar">
           {filteredOrders.length === 0 && (
             <p className="font-body text-[16px] leading-[1.6] text-on-surface-variant">No orders found.</p>
           )}
@@ -635,7 +639,7 @@ export default function AdminOrdersPage() {
 
       <div
         ref={detailPanelRef}
-        className="hidden lg:flex flex-col w-[400px] xl:w-[500px] bg-surface-container-lowest border-l border-outline-variant/30 overflow-y-auto custom-scrollbar"
+        className="hidden lg:flex flex-col w-[400px] xl:w-[500px] shrink-0 min-h-0 bg-surface-container-lowest border-l border-outline-variant/30 overflow-y-auto custom-scrollbar"
       >
         <div className="p-[var(--spacing-gutter)] border-b border-outline-variant/50 sticky top-0 bg-surface-container-lowest/95 backdrop-blur z-10">
           <h3 className="font-display text-[24px] leading-[1.4] text-on-surface">Order Details</h3>

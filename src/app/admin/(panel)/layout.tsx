@@ -222,7 +222,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-[100dvh] flex bg-background text-on-background font-body text-[16px] leading-[1.6]">
+    <div className="min-h-[100dvh] md:h-[100dvh] md:overflow-hidden flex bg-background text-on-background font-body text-[16px] leading-[1.6]">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex flex-col h-[100dvh] w-64 flex-shrink-0 border-r border-outline-variant/40 bg-surface-container-low sticky top-0">
         <SidebarContent
@@ -256,7 +256,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       )}
 
       {/* Main */}
-      <main className="flex-1 flex flex-col overflow-y-auto relative">
+      <main className="flex-1 min-w-0 flex flex-col overflow-y-auto relative">
         <GradientBackground />
         {/* Mobile Header */}
         <header className="md:hidden flex justify-between items-center px-[var(--spacing-margin-mobile)] py-4 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 sticky top-0 z-40 shadow-sm">
@@ -295,7 +295,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </button>
           </div>
         )}
-        <div className="relative z-10">{children}</div>
+        <div className="relative z-10 flex-1 min-h-0 flex flex-col">{children}</div>
       </main>
     </div>
   );
